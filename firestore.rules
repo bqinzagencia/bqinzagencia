@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admins collection — solo superadmins
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // Solo via Firebase Console
+    }
+
+    // Empresas — cada empresa solo ve sus propios datos
+    match /empresas/{empresaId} {
+      allow read, write: if request.auth != null && request.auth.uid == empresaId;
+
+      // Subcolecciones — mismas reglas
+      match /agentes/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == empresaId;
+      }
+      match /conversaciones/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == empresaId;
+      }
+      match /contactos/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == empresaId;
+      }
+      match /citas/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == empresaId;
+      }
+    }
+
+    // Superadmin puede leer todo
+    match /empresas/{docId} {
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+  }
+}
