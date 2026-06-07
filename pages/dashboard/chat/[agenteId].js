@@ -56,7 +56,11 @@ export default function ChatAgente() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, agente, empresa }),
+        body: JSON.stringify({
+          messages: newMessages,
+          agente: { id: agente.id, nombre: agente.nombre, tipo: agente.tipo, personalidad: agente.personalidad, prompt: agente.prompt },
+          empresa: { id: empresa.id || user.uid, nombreEmpresa: empresa.nombreEmpresa, industria: empresa.industria, ciudad: empresa.ciudad, telefono: empresa.telefono },
+        }),
       });
 
       const data = await res.json();
@@ -66,13 +70,16 @@ export default function ChatAgente() {
           await addDoc(collection(db, 'empresas', user.uid, 'conversaciones'), {
             agenteId,
             agenteNombre: agente.nombre,
-            canal: 'web',
+            canal: 'Chat Web',
+            nombre: userMsg.content.substring(0, 30),
+            ultimoMensajeTexto: data.reply.substring(0, 60),
             mensajeUsuario: userMsg.content,
             mensajeAgente: data.reply,
+            citaGuardada: data.citaGuardada || null,
             ultimoMensaje: serverTimestamp(),
             creadoEn: serverTimestamp(),
           });
-        } catch (e) {}
+        } catch (e) { console.error('Conv error:', e); }
       } else {
         toast.error(data.error || 'Error al obtener respuesta');
       }
