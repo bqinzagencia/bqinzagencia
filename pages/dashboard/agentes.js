@@ -155,7 +155,8 @@ export default function Agentes() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn btn-ghost btn-sm" style={{ flex: 1, justifyContent: 'center' }} onClick={() => openEdit(ag)}>✏️ Editar</button>
+                  <button className="btn btn-accent btn-sm" style={{ flex: 2, justifyContent: 'center' }} onClick={() => router.push('/dashboard/chat/' + ag.id)}>💬 Chatear</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(ag)}>✏️</button>
                   <button className="btn btn-danger btn-sm" onClick={() => handleDelete(ag.id)}>🗑️</button>
                 </div>
               </div>
