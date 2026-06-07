@@ -1,42 +1,115 @@
 // pages/auth/register.js
-import { useState } from 'react';
+// Registro con social login + formulario por pasos — NEXOIA
+
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import { registerUser, crearEmpresa } from '../../lib/firebase';
+import {
+  registerUser, crearEmpresa, getEmpresa,
+  loginWithGoogle, loginWithGithub, loginWithMicrosoft,
+  auth
+} from '../../lib/firebase';
 import { INDUSTRIAS } from '../../lib/utils';
-import { Logo } from '../index';
 
-const STEPS = ['Datos de acceso', 'Tu negocio', 'Tu industria'];
+const G = '#B8FF6C';
+const BG = '#080808';
+
+// Detecta si ya existe empresa para el usuario social
+async function completarRegistroSocial(user, datos) {
+  const empresa = await getEmpresa(user.uid);
+  if (!empresa) {
+    await crearEmpresa(user.uid, {
+      email: user.email,
+      nombreEmpresa: datos.nombreEmpresa,
+      telefono: datos.telefono,
+      ciudad: datos.ciudad,
+      industria: datos.industria,
+      plan: datos.plan || 'emprendedor',
+      fotoUrl: user.photoURL || '',
+      displayName: user.displayName || '',
+    });
+  }
+}
 
 export default function Register() {
   const router = useRouter();
   const { plan } = router.query;
-  const [step, setStep] = useState(0);
+
+  // Flujo: 'social-choice' | 'form-step0' | 'form-step1' | 'form-step2' | 'social-complete'
+  const [flow, setFlow] = useState('social-choice');
+  const [socialUser, setSocialUser] = useState(null); // usuario ya autenticado con social
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState('');
+
   const [form, setForm] = useState({
     email: '', password: '', confirmPassword: '',
     nombreEmpresa: '', telefono: '', ciudad: '',
     industria: '',
-    plan: plan || 'profesional',
+    plan: plan || 'emprendedor',
   });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const nextStep = () => {
-    if (step === 0) {
-      if (!form.email || !form.password) { toast.error('Completa correo y contraseña'); return; }
-      if (form.password.length < 6) { toast.error('La contraseña debe tener al menos 6 caracteres'); return; }
-      if (form.password !== form.confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
+  // Si hay usuario logueado con social, completar datos
+  useEffect(() => {
+    if (socialUser && flow === 'social-complete') {
+      // Pre-llenar con datos del proveedor social
+      if (socialUser.displayName) {
+        set('nombreEmpresa', socialUser.displayName);
+      }
     }
-    if (step === 1) {
-      if (!form.nombreEmpresa || !form.telefono) { toast.error('Completa el nombre y teléfono'); return; }
+  }, [socialUser, flow]);
+
+  // ── Social login handlers ─────────────────────────────────────────────────
+  const handleSocial = async (provider) => {
+    setSocialLoading(provider);
+    try {
+      let result;
+      if (provider === 'google') result = await loginWithGoogle();
+      else if (provider === 'github') result = await loginWithGithub();
+      else if (provider === 'microsoft') result = await loginWithMicrosoft();
+
+      const user = result.user;
+      setSocialUser(user);
+
+      // Verificar si ya tiene empresa (ya registrado antes)
+      const empresa = await getEmpresa(user.uid);
+      if (empresa) {
+        toast.success('¡Bienvenido de nuevo, ' + (user.displayName || user.email) + '!');
+        router.push('/dashboard');
+        return;
+      }
+
+      // Nuevo usuario — completar datos del negocio
+      set('email', user.email || '');
+      toast.success('✅ ' + (user.displayName || user.email) + ' conectado. Completa los datos de tu negocio.');
+      setFlow('social-complete');
+    } catch (err) {
+      console.error(err);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        toast.error('Error al conectar: ' + (err.message || 'intenta de nuevo'));
+      }
+    } finally {
+      setSocialLoading('');
     }
-    setStep(s => s + 1);
   };
 
-  const handleSubmit = async () => {
+  // ── Registro con email ────────────────────────────────────────────────────
+  const nextStep = () => {
+    if (flow === 'form-step0') {
+      if (!form.email || !form.password) { toast.error('Completa correo y contraseña'); return; }
+      if (form.password.length < 6) { toast.error('Mínimo 6 caracteres'); return; }
+      if (form.password !== form.confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
+      setFlow('form-step1');
+    } else if (flow === 'form-step1') {
+      if (!form.nombreEmpresa || !form.telefono) { toast.error('Completa nombre y teléfono'); return; }
+      setFlow('form-step2');
+    }
+  };
+
+  const handleSubmitEmail = async () => {
     if (!form.industria) { toast.error('Selecciona tu industria'); return; }
     setLoading(true);
     try {
@@ -49,7 +122,7 @@ export default function Register() {
         industria: form.industria,
         plan: form.plan,
       });
-      toast.success('¡Cuenta creada! Bienvenido a NEXOIA 🎉');
+      toast.success('¡Bienvenido a NEXOIA! 🎉');
       router.push('/dashboard');
     } catch (err) {
       const msgs = {
@@ -61,102 +134,255 @@ export default function Register() {
     } finally { setLoading(false); }
   };
 
+  const handleSubmitSocial = async () => {
+    if (!form.industria) { toast.error('Selecciona tu industria'); return; }
+    if (!form.nombreEmpresa || !form.telefono) { toast.error('Completa nombre y teléfono'); return; }
+    setLoading(true);
+    try {
+      await completarRegistroSocial(socialUser, { ...form });
+      toast.success('¡Bienvenido a NEXOIA! 🎉');
+      router.push('/dashboard');
+    } catch (err) {
+      toast.error('Error al guardar datos: ' + err.message);
+    } finally { setLoading(false); }
+  };
+
+  // ── Estilos base ──────────────────────────────────────────────────────────
+  const inputStyle = {
+    width: '100%', background: '#111', border: '1px solid #222', borderRadius: 4,
+    padding: '13px 16px', color: '#E8E8E8', fontSize: 14, outline: 'none',
+    fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'border-color 0.2s',
+    marginBottom: 16,
+  };
+
+  const labelStyle = {
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, fontWeight: 600,
+    letterSpacing: 1.5, textTransform: 'uppercase', color: '#333', marginBottom: 8, display: 'block',
+  };
+
+  const btnLima = {
+    width: '100%', background: G, color: '#000', border: 'none', borderRadius: 4,
+    padding: '14px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+    fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: 0.3,
+    transition: 'all 0.2s',
+  };
+
+  const socialBtn = (disabled) => ({
+    display: 'flex', alignItems: 'center', gap: 12,
+    width: '100%', background: disabled ? '#0E0E0E' : '#111',
+    border: '1px solid #1E1E1E', borderRadius: 4,
+    padding: '13px 20px', cursor: disabled ? 'not-allowed' : 'pointer',
+    color: disabled ? '#333' : '#E8E8E8', fontSize: 14,
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 400,
+    transition: 'all 0.2s', marginBottom: 10,
+    opacity: disabled ? 0.5 : 1,
+  });
+
+  const stepProgress = (current) => (
+    <div style={{ display: 'flex', gap: 6, marginBottom: 32 }}>
+      {['Acceso', 'Negocio', 'Industria'].map((s, i) => {
+        const stepNum = { 'form-step0': 0, 'form-step1': 1, 'form-step2': 2, 'social-complete': 1 }[flow] ?? 0;
+        const active = i <= stepNum;
+        return (
+          <div key={i} style={{ flex: 1 }}>
+            <div style={{ height: 3, borderRadius: 1, background: active ? G : '#1A1A1A', marginBottom: 6, transition: 'background 0.3s' }} />
+            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, color: active ? G : '#222', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>{s}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <>
-      <Head><title>Crear cuenta — NEXOIA</title></Head>
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'var(--black)' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 60% at 50% 30%,rgba(0,229,160,0.05),transparent)', pointerEvents: 'none' }} />
-        <div style={{ width: '100%', maxWidth: 500, position: 'relative' }}>
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <Link href="/"><Logo size={28} /></Link>
-            <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 26, fontWeight: 800, marginTop: 20, marginBottom: 6 }}>Crea tu cuenta gratis</h1>
-            <p style={{ color: 'var(--gray6)', fontSize: 14 }}>14 días de prueba · Sin tarjeta de crédito</p>
-          </div>
+      <Head>
+        <title>Crear cuenta — NEXOIA</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+      </Head>
 
-          {/* Steps indicator */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
-            {STEPS.map((s, i) => (
-              <div key={i} style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ height: 4, borderRadius: 2, background: i <= step ? 'var(--accent)' : 'rgba(255,255,255,0.1)', marginBottom: 8, transition: 'background 0.3s' }} />
-                <span style={{ fontSize: 11, color: i <= step ? 'var(--accent)' : 'var(--gray5)', fontWeight: 600 }}>{s}</span>
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: ${BG}; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; }
+        input:focus { border-color: ${G} !important; }
+        input::placeholder { color: #333; }
+        .social-btn:hover { border-color: #333 !important; background: #151515 !important; }
+        .ind-btn:hover { border-color: #333 !important; }
+        .ind-btn.active { background: ${G}15 !important; border-color: ${G} !important; color: ${G} !important; }
+        .btn-back { background: transparent; color: #444; border: 1px solid #1A1A1A; border-radius: 4px; padding: 13px 20px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .btn-back:hover { border-color: #333; color: #888; }
+      `}</style>
+
+      {/* Fondo con foto sutil */}
+      <div style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=70)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.06)', zIndex: 0 }} />
+        <div style={{ position: 'fixed', inset: 0, background: `radial-gradient(ellipse 60% 70% at 50% 30%, ${G}04, transparent)`, zIndex: 0 }} />
+
+        <div style={{ width: '100%', maxWidth: 480, position: 'relative', zIndex: 1 }}>
+
+          {/* Logo */}
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <Link href="/">
+              <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 28, color: '#E8E8E8', cursor: 'pointer', display: 'inline-block' }}>
+                NEX<span style={{ color: G }}>OIA</span>
               </div>
-            ))}
+            </Link>
+            <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6, color: '#E8E8E8' }}>
+              {flow === 'social-choice' ? 'Crea tu cuenta gratis' : flow === 'social-complete' ? 'Completa tu perfil' : 'Crea tu cuenta'}
+            </h1>
+            <p style={{ color: '#2A2A2A', fontSize: 13 }}>14 días de prueba · Sin tarjeta de crédito</p>
           </div>
 
-          <div style={{ background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 32 }}>
-            {/* Step 0 */}
-            {step === 0 && (
+          <div style={{ background: '#0C0C0C', border: '1px solid #161616', borderRadius: 8, padding: 32 }}>
+
+            {/* ── PANTALLA INICIAL: Social + opción email ── */}
+            {flow === 'social-choice' && (
               <>
-                <div className="form-group">
-                  <label className="form-label">Correo electrónico</label>
-                  <input type="email" className="form-input" placeholder="tu@empresa.com"
-                    value={form.email} onChange={e => set('email', e.target.value)} />
+                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: '#2A2A2A', marginBottom: 20, textAlign: 'center' }}>
+                  Elige cómo registrarte
+                </p>
+
+                {/* Google */}
+                <button className="social-btn" style={socialBtn(socialLoading && socialLoading !== 'google')} onClick={() => handleSocial('google')} disabled={!!socialLoading}>
+                  <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  <span>{socialLoading === 'google' ? 'Conectando...' : 'Continuar con Google'}</span>
+                  {socialLoading === 'google' && <span style={{ marginLeft: 'auto', opacity: 0.5 }}>⏳</span>}
+                </button>
+
+
+
+                {/* GitHub */}
+                <button className="social-btn" style={socialBtn(socialLoading && socialLoading !== 'github')} onClick={() => handleSocial('github')} disabled={!!socialLoading}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#E8E8E8">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                  <span>{socialLoading === 'github' ? 'Conectando...' : 'Continuar con GitHub'}</span>
+                </button>
+
+                {/* Divisor */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '24px 0' }}>
+                  <div style={{ flex: 1, height: 1, background: '#161616' }} />
+                  <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#222', letterSpacing: 1, textTransform: 'uppercase' }}>o con correo</span>
+                  <div style={{ flex: 1, height: 1, background: '#161616' }} />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Contraseña</label>
-                  <input type="password" className="form-input" placeholder="Mínimo 6 caracteres"
-                    value={form.password} onChange={e => set('password', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Confirmar contraseña</label>
-                  <input type="password" className="form-input" placeholder="Repite la contraseña"
-                    value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)} />
-                </div>
-                <button className="btn btn-accent btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={nextStep}>
-                  Continuar →
+
+                {/* Email manual */}
+                <button style={{ ...socialBtn(false), justifyContent: 'center', background: 'transparent', border: `1px solid ${G}33`, color: G }}
+                  className="social-btn" onClick={() => setFlow('form-step0')}>
+                  ✉️ &nbsp;Registrarse con correo y contraseña
                 </button>
               </>
             )}
 
-            {/* Step 1 */}
-            {step === 1 && (
+            {/* ── STEP 0: Email + password ── */}
+            {flow === 'form-step0' && (
               <>
-                <div className="form-group">
-                  <label className="form-label">Nombre del negocio</label>
-                  <input type="text" className="form-input" placeholder="Ej: Taller AutoCenter"
-                    value={form.nombreEmpresa} onChange={e => set('nombreEmpresa', e.target.value)} />
+                {stepProgress()}
+                <div>
+                  <label style={labelStyle}>Correo electrónico</label>
+                  <input type="email" style={inputStyle} placeholder="tu@empresa.com"
+                    value={form.email} onChange={e => set('email', e.target.value)}
+                    onFocus={e => e.target.style.borderColor = G}
+                    onBlur={e => e.target.style.borderColor = '#222'} />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Teléfono / WhatsApp</label>
-                  <input type="tel" className="form-input" placeholder="+57 300 000 0000"
-                    value={form.telefono} onChange={e => set('telefono', e.target.value)} />
+                <div>
+                  <label style={labelStyle}>Contraseña</label>
+                  <input type="password" style={inputStyle} placeholder="Mínimo 6 caracteres"
+                    value={form.password} onChange={e => set('password', e.target.value)}
+                    onFocus={e => e.target.style.borderColor = G}
+                    onBlur={e => e.target.style.borderColor = '#222'} />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Ciudad</label>
-                  <input type="text" className="form-input" placeholder="Ej: Cali, Bogotá, Medellín"
-                    value={form.ciudad} onChange={e => set('ciudad', e.target.value)} />
+                <div>
+                  <label style={labelStyle}>Confirmar contraseña</label>
+                  <input type="password" style={{ ...inputStyle, marginBottom: 24 }} placeholder="Repite la contraseña"
+                    value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)}
+                    onFocus={e => e.target.style.borderColor = G}
+                    onBlur={e => e.target.style.borderColor = '#222'} />
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <button className="btn btn-ghost btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(0)}>← Atrás</button>
-                  <button className="btn btn-accent btn-lg" style={{ flex: 2, justifyContent: 'center' }} onClick={nextStep}>Continuar →</button>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button className="btn-back" onClick={() => setFlow('social-choice')}>← Atrás</button>
+                  <button style={{ ...btnLima, flex: 1 }} onClick={nextStep}>Continuar →</button>
                 </div>
               </>
             )}
 
-            {/* Step 2 */}
-            {step === 2 && (
+            {/* ── STEP 1: Datos del negocio (email o social) ── */}
+            {(flow === 'form-step1' || flow === 'social-complete') && (
               <>
-                <p style={{ color: 'var(--gray5)', fontSize: 14, marginBottom: 20 }}>¿A qué tipo de negocio perteneces?</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+                {stepProgress()}
+                {flow === 'social-complete' && socialUser && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: G + '10', border: `1px solid ${G}22`, borderRadius: 4, padding: '12px 16px', marginBottom: 24 }}>
+                    {socialUser.photoURL && <img src={socialUser.photoURL} alt="" style={{ width: 36, height: 36, borderRadius: '50%' }} />}
+                    <div>
+                      <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 600, color: G }}>{socialUser.displayName || socialUser.email}</div>
+                      <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#444' }}>{socialUser.email}</div>
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <label style={labelStyle}>Nombre del negocio *</label>
+                  <input type="text" style={inputStyle} placeholder="Ej: Peluquería Elegance"
+                    value={form.nombreEmpresa} onChange={e => set('nombreEmpresa', e.target.value)}
+                    onFocus={e => e.target.style.borderColor = G}
+                    onBlur={e => e.target.style.borderColor = '#222'} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Teléfono / WhatsApp *</label>
+                  <input type="tel" style={inputStyle} placeholder="+57 300 000 0000"
+                    value={form.telefono} onChange={e => set('telefono', e.target.value)}
+                    onFocus={e => e.target.style.borderColor = G}
+                    onBlur={e => e.target.style.borderColor = '#222'} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Ciudad</label>
+                  <input type="text" style={{ ...inputStyle, marginBottom: 24 }} placeholder="Ej: Cali, Bogotá, Medellín"
+                    value={form.ciudad} onChange={e => set('ciudad', e.target.value)}
+                    onFocus={e => e.target.style.borderColor = G}
+                    onBlur={e => e.target.style.borderColor = '#222'} />
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button className="btn-back" onClick={() => flow === 'social-complete' ? setFlow('social-choice') : setFlow('form-step0')}>← Atrás</button>
+                  <button style={{ ...btnLima, flex: 1 }} onClick={() => {
+                    if (!form.nombreEmpresa || !form.telefono) { toast.error('Completa nombre y teléfono'); return; }
+                    setFlow(flow === 'social-complete' ? 'social-industry' : 'form-step2');
+                  }}>Continuar →</button>
+                </div>
+              </>
+            )}
+
+            {/* ── STEP 2: Industria (email) ── */}
+            {(flow === 'form-step2' || flow === 'social-industry') && (
+              <>
+                {stepProgress()}
+                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#333', fontSize: 13, marginBottom: 20 }}>¿A qué tipo de negocio perteneces?</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 24 }}>
                   {INDUSTRIAS.map(ind => (
-                    <button key={ind.value} onClick={() => set('industria', ind.value)}
-                      style={{ background: form.industria === ind.value ? 'rgba(0,229,160,0.1)' : 'var(--gray2)', border: `1px solid ${form.industria === ind.value ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 12, padding: '12px 14px', cursor: 'pointer', color: form.industria === ind.value ? 'var(--accent)' : 'var(--gray6)', fontSize: 13, fontWeight: 500, textAlign: 'left', transition: 'all 0.15s' }}>
+                    <button key={ind.value} className={'ind-btn' + (form.industria === ind.value ? ' active' : '')}
+                      onClick={() => set('industria', ind.value)}
+                      style={{ background: form.industria === ind.value ? G + '15' : '#111', border: '1px solid ' + (form.industria === ind.value ? G : '#1E1E1E'), borderRadius: 4, padding: '12px 14px', cursor: 'pointer', color: form.industria === ind.value ? G : '#444', fontSize: 13, textAlign: 'left', fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'all 0.15s' }}>
                       {ind.label}
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <button className="btn btn-ghost btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(1)}>← Atrás</button>
-                  <button className="btn btn-accent btn-lg" style={{ flex: 2, justifyContent: 'center' }} onClick={handleSubmit} disabled={loading}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button className="btn-back" onClick={() => setFlow(flow === 'social-industry' ? 'social-complete' : 'form-step1')}>← Atrás</button>
+                  <button style={{ ...btnLima, flex: 1 }} onClick={flow === 'social-industry' ? handleSubmitSocial : handleSubmitEmail} disabled={loading}>
                     {loading ? 'Creando cuenta...' : '¡Comenzar gratis! 🚀'}
                   </button>
                 </div>
               </>
             )}
+
           </div>
 
-          <p style={{ textAlign: 'center', marginTop: 20, color: 'var(--gray5)', fontSize: 13 }}>
-            ¿Ya tienes cuenta? <Link href="/auth/login" style={{ color: 'var(--accent)', fontWeight: 600 }}>Ingresar</Link>
+          <p style={{ textAlign: 'center', marginTop: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#222', fontSize: 13 }}>
+            ¿Ya tienes cuenta?{' '}
+            <Link href="/auth/login" style={{ color: G, fontWeight: 600 }}>Ingresar</Link>
           </p>
         </div>
       </div>
