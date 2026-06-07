@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/reportes', icon: '📊', label: 'Reportes' },
   { href: '/dashboard/voz', icon: '🎙️', label: 'Voz IA' },
   { href: '/dashboard/conocimiento', icon: '🧠', label: 'Base de conocimiento' },
+  { href: '/dashboard/widget', icon: '🔌', label: 'Widget para mi web' },
 ];
 
 export default function DashboardLayout({ children, title }) {

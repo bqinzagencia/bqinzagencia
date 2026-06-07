@@ -248,7 +248,7 @@ export default function SitioEmpresa({ empresa, conocimiento }) {
       const res = await fetch('/api/chat-publico', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, empresaNombre: empresa.nombreEmpresa, industria: empresa.industria, conocimiento: conocimiento?.promptGenerado || '' }),
+        body: JSON.stringify({ messages: newMessages, empresaId: empresa.id, empresaNombre: empresa.nombreEmpresa, industria: empresa.industria, conocimiento: conocimiento?.promptGenerado || '' }),
       });
       const data = await res.json();
       if (data.reply) setMessages(m => [...m, { role: 'assistant', content: data.reply }]);

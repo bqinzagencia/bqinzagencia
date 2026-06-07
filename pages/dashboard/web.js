@@ -19,11 +19,17 @@ const PLANTILLAS = [
 export default function Web() {
   const { user, empresa, loading } = useAuth();
   const router = useRouter();
-  const [plantillaSeleccionada, setPlantillaSeleccionada] = useState(empresa?.plantillaWeb || '');
+  const [plantillaSeleccionada, setPlantillaSeleccionada] = useState('');
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState(empresa?.plantillaWeb ? 2 : 1);
+  const [step, setStep] = useState(1);
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
+  useEffect(() => {
+    if (empresa?.plantillaWeb) {
+      setPlantillaSeleccionada(empresa.plantillaWeb);
+      setStep(2);
+    }
+  }, [empresa]);
 
   const aplicarPlantilla = async () => {
     if (!plantillaSeleccionada) { toast.error('Selecciona una plantilla'); return; }
