@@ -25,10 +25,25 @@ export default async function handler(req, res) {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   if (!OPENAI_API_KEY) return res.status(500).json({ error: 'OpenAI no configurado' });
 
+  // Cargar base de conocimiento si existe
+  let promptConocimiento = '';
+  try {
+    if (empresa && empresa.id) {
+      const db = getAdminDb();
+      const snapConocimiento = await db.collection('empresas').doc(empresa.id).collection('config').doc('conocimiento').get();
+      if (snapConocimiento.exists) {
+        const dataC = snapConocimiento.data();
+        if (dataC.promptGenerado) promptConocimiento = dataC.promptGenerado;
+      }
+    }
+  } catch (e) {
+    console.log('[NEXOIA] Sin base de conocimiento:', e.message);
+  }
+
   const systemPrompt = [
     'Eres ' + agente.nombre + ', asistente de IA ' + (agente.personalidad || 'amigable y profesional') + ' de ' + (empresa ? empresa.nombreEmpresa : 'la empresa') + '.',
-    'Empresa: ' + (empresa ? empresa.nombreEmpresa : '') + ', ' + (empresa ? empresa.industria : '') + ', ' + (empresa ? empresa.ciudad : '') + '.',
-    agente.prompt ? 'Instrucciones: ' + agente.prompt : '',
+    promptConocimiento ? promptConocimiento : 'Empresa: ' + (empresa ? empresa.nombreEmpresa : '') + ', ' + (empresa ? empresa.industria : '') + ', ' + (empresa ? empresa.ciudad : '') + '.',
+    agente.prompt ? 'Instrucciones adicionales: ' + agente.prompt : '',
     'Reglas: responde en espanol colombiano, maximo 3 lineas, tono calido.',
     'Cuando el cliente pida cita: solicita nombre, servicio, fecha y hora.',
     'Al confirmar una cita di exactamente: "Listo [nombre], te agendo [servicio] para [fecha] a las [hora]."',
