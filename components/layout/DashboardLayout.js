@@ -30,6 +30,7 @@ export default function DashboardLayout({ children, title }) {
     await logoutUser();
     toast.success('Sesión cerrada');
     router.push('/');
+    setTimeout(() => window.location.href = '/', 300);
   };
 
   return (
