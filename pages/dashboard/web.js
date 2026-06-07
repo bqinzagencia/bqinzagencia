@@ -71,9 +71,14 @@ export default function Web() {
               <div style={{ background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: 14, padding: 24 }}>
                 <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 18, marginBottom: 8 }}>✅ Tu web está activa</div>
                 <div style={{ color: 'var(--gray5)', fontSize: 14, marginBottom: 16 }}>Tu página web fue generada con la información de tu negocio.</div>
-                <div style={{ background: 'var(--gray2)', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontFamily: 'monospace', color: 'var(--accent)' }}>
-                  nexoia.co/{empresa.nombreEmpresa?.toLowerCase().replace(/\s/g,'-')}
+                <div style={{ background: 'var(--gray2)', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontFamily: 'monospace', color: 'var(--accent)', cursor: 'pointer' }}
+                  onClick={() => window.open('/sitio/' + (empresa.nombreEmpresa || '').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''), '_blank')}>
+                  {typeof window !== 'undefined' ? window.location.origin : 'https://nexoia-eight.vercel.app'}/sitio/{(empresa.nombreEmpresa || '').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')}
                 </div>
+                <button className="btn btn-accent btn-sm" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}
+                  onClick={() => window.open('/sitio/' + (empresa.nombreEmpresa || '').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''), '_blank')}>
+                  🌐 Ver mi sitio web
+                </button>
               </div>
               <div style={{ background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24 }}>
                 <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Herramientas de la web</div>
