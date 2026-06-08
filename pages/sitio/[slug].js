@@ -237,6 +237,9 @@ export default function SitioEmpresa({ empresa, conocimiento }) {
   const whatsappNum = (info.whatsapp || info.telefono || empresa.telefono || '').replace(/\D/g, '');
   const whatsappUrl = whatsappNum ? 'https://wa.me/57' + whatsappNum : null;
 
+  // Foto de fondo: primero la personalizada, luego la de industria
+  const heroPhoto = empresa.fotoWeb || cfg.hero;
+
   const sendChat = async () => {
     if (!input.trim() || thinking) return;
     const userMsg = { role: 'user', content: input.trim() };
@@ -308,7 +311,7 @@ export default function SitioEmpresa({ empresa, conocimiento }) {
 
       {/* HERO */}
       <section id="inicio" style={{ position: 'relative', height: '100vh', minHeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(' + cfg.hero + ')', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.35)' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(' + heroPhoto + ')', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.35)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, ' + cfg.bg + 'CC 0%, transparent 60%, ' + cfg.bg + '88 100%)' }} />
         <div className={'container fade-in' + (visible ? ' visible' : '')} style={{ position: 'relative', textAlign: 'center', padding: '0 24px' }}>
           <div style={{ fontFamily: '"' + cfg.fontBody + '", sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: 4, textTransform: 'uppercase', color: cfg.accent, marginBottom: 20 }}>{cfg.tagline}</div>

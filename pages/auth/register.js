@@ -50,6 +50,21 @@ export default function Register() {
     plan: plan || 'emprendedor',
   });
 
+  // Fotos por industria para el fondo
+  const INDUSTRY_PHOTOS = {
+    taller: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1400&q=80',
+    peluqueria: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1400&q=80',
+    inmobiliaria: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400&q=80',
+    restaurante: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1400&q=80',
+    tienda: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1400&q=80',
+    gimnasio: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1400&q=80',
+    salud: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1400&q=80',
+    papeleria: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80',
+    educacion: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80',
+    otro: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80',
+  };
+  const bgPhoto = form.industria ? (INDUSTRY_PHOTOS[form.industria] || INDUSTRY_PHOTOS.otro) : 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=70';
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   // Si hay usuario logueado con social, completar datos
@@ -215,7 +230,7 @@ export default function Register() {
 
       {/* Fondo con foto sutil */}
       <div style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-        <div style={{ position: 'fixed', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=70)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.06)', zIndex: 0 }} />
+        <div style={{ position: 'fixed', inset: 0, backgroundImage: 'url(' + bgPhoto + ')', backgroundSize: 'cover', backgroundPosition: 'center', filter: (flow === 'form-step2' || flow === 'social-industry') && form.industria ? 'brightness(0.18)' : 'brightness(0.06)', zIndex: 0, transition: 'all 1s ease' }} />
         <div style={{ position: 'fixed', inset: 0, background: `radial-gradient(ellipse 60% 70% at 50% 30%, ${G}04, transparent)`, zIndex: 0 }} />
 
         <div style={{ width: '100%', maxWidth: 480, position: 'relative', zIndex: 1 }}>
