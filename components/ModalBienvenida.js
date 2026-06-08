@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 export default function ModalBienvenida() {
   const [visible, setVisible] = useState(false);
   const [cerrado, setCerrado] = useState(false);
+  const [iniciado, setIniciado] = useState(false);
   const [audioActivo, setAudioActivo] = useState(false);
   const videoRef = useRef(null);
 
@@ -12,35 +13,30 @@ export default function ModalBienvenida() {
     return () => clearTimeout(t);
   }, []);
 
-  useEffect(() => {
-    if (!visible) return;
-    const t = setTimeout(() => {
-      const vid = videoRef.current;
-      if (!vid) return;
-      vid.muted = false;
-      vid.play()
-        .then(() => setAudioActivo(true))
-        .catch(() => {
-          vid.muted = true;
-          vid.play().catch(() => {});
-        });
-    }, 100);
-    return () => clearTimeout(t);
-  }, [visible]);
-
-  const activarAudio = () => {
+  const iniciarConAudio = () => {
     const vid = videoRef.current;
     if (!vid) return;
+    setIniciado(true);
     vid.muted = false;
-    vid.play().catch(() => {});
-    setAudioActivo(true);
+    vid.play()
+      .then(() => setAudioActivo(true))
+      .catch(() => {
+        vid.muted = true;
+        vid.play().catch(() => {});
+        setAudioActivo(false);
+      });
   };
 
-  const silenciar = () => {
+  const toggleAudio = () => {
     const vid = videoRef.current;
     if (!vid) return;
-    vid.muted = true;
-    setAudioActivo(false);
+    if (audioActivo) {
+      vid.muted = true;
+      setAudioActivo(false);
+    } else {
+      vid.muted = false;
+      setAudioActivo(true);
+    }
   };
 
   const cerrar = () => {
@@ -62,11 +58,12 @@ export default function ModalBienvenida() {
         .bv-card-in  { animation: slideUpCard 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
         .bv-card-out { animation: fadeOutModal 0.3s ease forwards; }
         .bv-texto-in { animation: slideUpCard 0.5s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+        .bv-play-btn:hover { transform: scale(1.08) !important; background: #B8FF6C !important; }
       `}} />
 
       <div
         className={cerrado ? 'bv-overlay-out' : 'bv-overlay-in'}
-        onClick={cerrar}
+        onClick={iniciado ? cerrar : iniciarConAudio}
         style={{
           position: 'fixed', inset: 0,
           background: 'rgba(0,0,0,0.75)',
@@ -99,36 +96,61 @@ export default function ModalBienvenida() {
 
           {/* Cerrar */}
           <button onClick={cerrar} style={{
-            position: 'absolute', top: 12, right: 12, zIndex: 10,
+            position: 'absolute', top: 12, right: 12, zIndex: 30,
             width: 32, height: 32, borderRadius: '50%',
             background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)',
             color: '#fff', fontSize: 16, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>✕</button>
 
-          {/* Audio */}
-          <button
-            onClick={audioActivo ? silenciar : activarAudio}
-            style={{
+          {/* Botón audio — solo después de iniciar */}
+          {iniciado && (
+            <button onClick={toggleAudio} style={{
               position: 'absolute', bottom: 70, right: 12, zIndex: 10,
               width: 34, height: 34, borderRadius: '50%',
               background: audioActivo ? 'rgba(184,255,108,0.3)' : 'rgba(0,0,0,0.6)',
               border: '1px solid rgba(255,255,255,0.2)',
               color: '#fff', fontSize: 14, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            {audioActivo ? '🔊' : '🔇'}
-          </button>
+            }}>
+              {audioActivo ? '🔊' : '🔇'}
+            </button>
+          )}
 
           {/* Video */}
           <video
             ref={videoRef}
             src="/bienvenida.mp4"
             playsInline
+            muted
             loop
             style={{ width: '100%', display: 'block', aspectRatio: '9/16', objectFit: 'cover' }}
           />
+
+          {/* Overlay de play — antes de que el usuario interactúe */}
+          {!iniciado && (
+            <div
+              onClick={iniciarConAudio}
+              style={{
+                position: 'absolute', inset: 0, zIndex: 20,
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(0,0,0,0.4)',
+                cursor: 'pointer', gap: 12,
+              }}
+            >
+              <div className="bv-play-btn" style={{
+                width: 68, height: 68, borderRadius: '50%',
+                background: 'rgba(184,255,108,0.9)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 28, transition: 'transform 0.2s, background 0.2s',
+              }}>▶</div>
+              <span style={{
+                color: '#fff', fontSize: 13, fontWeight: 600,
+                fontFamily: 'sans-serif', letterSpacing: 0.5,
+              }}>Ver con sonido</span>
+            </div>
+          )}
 
           {/* CTA inferior */}
           <div style={{
@@ -136,6 +158,7 @@ export default function ModalBienvenida() {
             padding: '48px 16px 16px',
             background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
             display: 'flex', flexDirection: 'column', gap: 8,
+            zIndex: iniciado ? 10 : 5,
           }}>
             <a href="/auth/register" onClick={cerrar} style={{
               background: '#B8FF6C', color: '#080808',
