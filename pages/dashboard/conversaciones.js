@@ -8,7 +8,7 @@ import { db } from '../../lib/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { iniciales, tiempoRelativo } from '../../lib/utils';
 
-const CANAL_ICONS = { 'Chat Web': '🌐', 'Sitio Web': '🌐', 'whatsapp': '💬', 'instagram': '📸', 'facebook': '📘', 'telegram': '🔵', 'Voz': '📞' };
+const CANAL_ICONS = { 'Chat Web': 'Web', 'Sitio Web': 'Web', 'whatsapp': 'WhatsApp', 'instagram': 'Instagram', 'facebook': 'Facebook', 'telegram': 'Telegram', 'Voz': 'Voz' };
 
 export default function Conversaciones() {
   const { user, empresa, loading } = useAuth();
@@ -61,7 +61,7 @@ export default function Conversaciones() {
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {filtradas.length === 0 ? (
                 <div style={{ padding: 32, textAlign: 'center', color: 'var(--gray5)' }}>
-                  <div style={{ fontSize: 36, marginBottom: 10 }}>💬</div>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.5" strokeLinecap="round" style={{margin:'0 auto 10px',display:'block'}}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   <p style={{ fontSize: 14 }}>Sin conversaciones aún</p>
                   <p style={{ fontSize: 12, marginTop: 4, lineHeight: 1.5 }}>Tu agente IA registrará las conversaciones cuando los clientes contacten</p>
                 </div>
@@ -137,7 +137,9 @@ export default function Conversaciones() {
                   {/* Respuesta del agente */}
                   {seleccionada.mensajeAgente && (
                     <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 10 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,229,160,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0, alignSelf: 'flex-end' }}>🤖</div>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(26,86,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0, alignSelf: 'flex-end' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    </div>
                       <div>
                         <div style={{ fontSize: 10, color: 'var(--gray5)', marginBottom: 4, fontWeight: 600 }}>{(seleccionada.agenteNombre || 'AGENTE IA').toUpperCase()}</div>
                         <div style={{ maxWidth: 480, background: 'var(--gray2)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px 16px 16px 4px', padding: '12px 16px', fontSize: 14, lineHeight: 1.6, color: 'var(--gray7)' }}>
@@ -158,7 +160,9 @@ export default function Conversaciones() {
 
                   {!seleccionada.mensajeUsuario && !seleccionada.mensajeAgente && (
                     <div style={{ textAlign: 'center', color: 'var(--gray5)', padding: 40 }}>
-                      <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
+                      <div style={{ fontSize: 32, marginBottom: 8, display:'flex',justifyContent:'center' }}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.5" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
                       No hay mensajes en esta conversación
                     </div>
                   )}
@@ -178,7 +182,7 @@ export default function Conversaciones() {
               </>
             ) : (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, color: 'var(--gray5)' }}>
-                <div style={{ fontSize: 48 }}>💬</div>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <p style={{ fontWeight: 600, fontSize: 16 }}>Selecciona una conversación</p>
                 <p style={{ fontSize: 13 }}>Haz clic en un chat para verlo</p>
               </div>

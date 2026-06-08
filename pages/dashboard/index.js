@@ -148,6 +148,18 @@ export default function Dashboard() {
   const hora   = new Date().getHours();
   const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
 
+  // ── Cálculo del trial ────────────────────────────────────────────
+  const esTrial = empresa.plan === 'emprendedor';
+  let diasRestantes = 0;
+  let trialVencido = false;
+  if (esTrial && empresa.trialHasta) {
+    const hasta = empresa.trialHasta?.toDate ? empresa.trialHasta.toDate() : new Date(empresa.trialHasta);
+    const hoy   = new Date();
+    const diff  = Math.ceil((hasta - hoy) / (1000 * 60 * 60 * 24));
+    diasRestantes = Math.max(0, diff);
+    trialVencido  = diff <= 0;
+  }
+
   const STATS = [
     { label: 'Conversaciones hoy', value: stats.conversaciones, sub: '+12% vs ayer',    color: '#00E5A0', img: imgs[0] },
     { label: 'Citas agendadas',    value: stats.citas,          sub: 'Total activas',    color: '#3B82F6', img: imgs[1] },
@@ -156,7 +168,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <>
+    <DashboardLayout title="Dashboard">
       <Head><title>Dashboard — {empresa.nombreEmpresa} · agencIAme</title></Head>
       <style dangerouslySetInnerHTML={{__html:`
         .db-page { font-family:${F}; }
@@ -312,7 +324,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </>
+    </DashboardLayout>
   );
 }
 

@@ -23,7 +23,7 @@ export default function Configuracion() {
     try {
       await updateEmpresa(user.uid, form);
       setEmpresa(e => ({ ...e, ...form }));
-      toast.success('Configuración guardada ✅');
+      toast.success('Configuración guardada');
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
   };
@@ -32,9 +32,9 @@ export default function Configuracion() {
 
   const planActual = PLANES[empresa.plan] || PLANES.emprendedor;
   const TABS = [
-    { key: 'negocio', label: '🏢 Mi negocio' },
-    { key: 'plan', label: '⭐ Mi plan' },
-    { key: 'cuenta', label: '👤 Cuenta' },
+    { key: 'negocio', label: 'Mi negocio' },
+    { key: 'plan',    label: 'Mi plan'     },
+    { key: 'cuenta',  label: 'Cuenta'      },
   ];
 
   return (

@@ -9,11 +9,11 @@ import { getAgentes, crearAgente, updateAgente, deleteAgente } from '../../lib/f
 import { CANALES, PLANES } from '../../lib/utils';
 
 const TIPOS_AGENTE = [
-  { value: 'ventas', label: '🛒 Ventas', desc: 'Captura leads, cotiza y cierra ventas' },
-  { value: 'atencion', label: '🎧 Atención al cliente', desc: 'Responde preguntas y resuelve dudas' },
-  { value: 'agenda', label: '📅 Agendamiento', desc: 'Gestiona citas y reservas automáticamente' },
-  { value: 'soporte', label: '🔧 Soporte técnico', desc: 'Atiende problemas y solicitudes' },
-  { value: 'info', label: 'ℹ️ Informativo', desc: 'Comparte info del negocio y servicios' },
+  { value: 'ventas',   label: 'Ventas',             desc: 'Captura leads, cotiza y cierra ventas' },
+  { value: 'atencion', label: 'Atención al cliente',  desc: 'Responde preguntas y resuelve dudas' },
+  { value: 'agenda',   label: 'Agendamiento',         desc: 'Gestiona citas y reservas automáticamente' },
+  { value: 'soporte',  label: 'Soporte técnico',      desc: 'Atiende problemas y solicitudes' },
+  { value: 'info',     label: 'Informativo',          desc: 'Comparte info del negocio y servicios' },
 ];
 
 export default function Agentes() {
@@ -113,7 +113,9 @@ export default function Agentes() {
         {/* Agents grid */}
         {agentes.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--gray1)', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.1)' }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🤖</div>
+            <div style={{ fontSize: 56, marginBottom: 16, display:'flex', justifyContent:'center' }}>
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M15 3.5a3 3 0 0 1 0 5"/></svg>
+          </div>
             <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Crea tu primer agente IA</h3>
             <p style={{ color: 'var(--gray5)', marginBottom: 24, maxWidth: 400, margin: '0 auto 24px' }}>Tu agente aprenderá sobre tu negocio y atenderá clientes automáticamente por WhatsApp, web y más canales.</p>
             <button className="btn btn-accent btn-lg" onClick={openNew}>Crear mi primer agente →</button>
@@ -124,8 +126,8 @@ export default function Agentes() {
               <div key={ag.id} style={{ background: 'var(--gray1)', border: `1px solid ${ag.activo ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 16, padding: 24, transition: 'all 0.2s' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: ag.activo ? 'rgba(0,229,160,0.1)' : 'var(--gray2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
-                      🤖
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: ag.activo ? 'rgba(26,86,255,0.1)' : 'var(--gray2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={ag.activo ? '#1A56FF' : '#6B7280'} strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M15 3.5a3 3 0 0 1 0 5"/></svg>
                     </div>
                     <div>
                       <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16 }}>{ag.nombre}</div>
@@ -155,9 +157,9 @@ export default function Agentes() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn btn-accent btn-sm" style={{ flex: 2, justifyContent: 'center' }} onClick={() => router.push('/dashboard/chat/' + ag.id)}>💬 Chatear</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(ag)}>✏️</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(ag.id)}>🗑️</button>
+                  <button className="btn btn-accent btn-sm" style={{ flex: 2, justifyContent: 'center' }} onClick={() => router.push('/dashboard/chat/' + ag.id)}>Chatear</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(ag)}>Editar</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(ag.id)}>Eliminar</button>
                 </div>
               </div>
             ))}
@@ -218,7 +220,7 @@ export default function Agentes() {
               <div style={{ display: 'flex', gap: 12 }}>
                 <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setShowModal(false)}>Cancelar</button>
                 <button className="btn btn-accent" style={{ flex: 2, justifyContent: 'center' }} onClick={handleSave} disabled={saving}>
-                  {saving ? 'Guardando...' : editando ? 'Guardar cambios' : 'Crear agente IA 🤖'}
+                  {saving ? 'Guardando...' : editando ? 'Guardar cambios' : 'Crear agente IA'}
                 </button>
               </div>
             </div>

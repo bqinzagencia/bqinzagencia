@@ -11,7 +11,7 @@ const INDUSTRIES = [
   { icon: '🍽️', title: 'Restaurantes', desc: 'Reservas, menu digital y domicilios por WhatsApp.', slug: 'restaurante', color: '#FFB830', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80' },
   { icon: '🏠🍲', title: 'Restaurante de Barrio', desc: 'Menu diario con fotos, domicilios y pedidos por WhatsApp.', slug: 'restaurante_barrio', color: '#E85D04', img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80' },
   { icon: '🛒', title: 'Tiendas & Retail', desc: 'Catálogo digital, ventas y domicilios.', slug: 'tienda', color: '#30D988', img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80' },
-  { icon: '🏋️', title: 'Gimnasios & Fitness', desc: 'Inscripciones, clases y pagos automáticos.', slug: 'gimnasio', color: '#B8FF6C', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80' },
+  { icon: '🏋️', title: 'Gimnasios & Fitness', desc: 'Inscripciones, clases y pagos automáticos.', slug: 'gimnasio', color: '#1A56FF', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80' },
   { icon: '🏥', title: 'Salud & Clínicas', desc: 'Agenda médica y pre-triage por chat.', slug: 'salud', color: '#00D4FF', img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=80' },
   { icon: '♟️', title: 'Escuelas de Ajedrez', desc: 'Clases niños/adultos, torneos, libros y clases virtuales.', slug: 'ajedrez', color: '#C0962C', img: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=600&q=80' },
   { icon: '🏗️', title: 'Arquitectura & Construcción', desc: 'Diseño, construcción, renders y consultoría de proyectos.', slug: 'arquitectura', color: '#B5A16E', img: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&q=80' },
@@ -39,9 +39,10 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  const G = '#B8FF6C';   // verde lima — acento primario
-  const R = '#FF4D6D';   // coral rojo — CTA urgente
-  const BG = '#080808';  // negro obsidiana
+  const G = '#2563EB';   // azul safiro
+  const G2 = '#06B6D4';  // cyan vivo
+  const R = '#F97316';   // naranja fuego
+  const BG = '#0F1623';  // azul medianoche
 
   return (
     <>
@@ -468,8 +469,8 @@ export default function Landing() {
             La IA que atiende, agenda y vende por tu negocio. Plataforma colombiana de automatización con inteligencia artificial.
             </p>
             <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>📍 Cali, Colombia</span>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>✉ soportesistemas@soporteia.net</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>Cali, Colombia</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>soportesistemas@soporteia.net</span>
             </div>
           </div>
           {[
@@ -495,7 +496,7 @@ export default function Landing() {
         </div>
         <div style={{ borderTop: '1px solid #0E0E0E', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#141414', fontSize: 12 }}>
         <span>© 2026 agenc<span style={{ color: '#FF6B00' }}>IA</span>me by NexoTI · Todos los derechos reservados</span>
-          <span>Hecho con ❤️ en Cali, Colombia 🇨🇴</span>
+        <span>Hecho con amor en Cali, Colombia</span>
         </div>
       </footer>
     </>

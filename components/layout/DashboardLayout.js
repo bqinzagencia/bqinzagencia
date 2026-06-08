@@ -6,6 +6,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { logoutUser } from '../../lib/firebase';
 import { getIndustriaInfo, iniciales } from '../../lib/utils';
 import toast from 'react-hot-toast';
+import TrialFloatButton from '../TrialFloatButton';
 
 // Fotos Unsplash por industria para el avatar de la empresa
 const INDUSTRY_PHOTOS = {
@@ -185,7 +186,7 @@ export default function DashboardLayout({ children, title }) {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <h1 className="db-topbar">{title}</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <PlanBadge plan={empresa?.plan} />
               {/* Avatar topbar con foto real */}
               <img
@@ -193,6 +194,31 @@ export default function DashboardLayout({ children, title }) {
                 alt={empresa?.nombreEmpresa}
                 style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,229,160,0.25)' }}
               />
+              {/* Cerrar sesión — siempre visible en topbar */}
+              <button
+                onClick={handleLogout}
+                title="Cerrar sesión"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '1px solid rgba(239,68,68,0.2)',
+                  borderRadius: 8, padding: '6px 12px',
+                  cursor: 'pointer', color: '#EF4444',
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  fontSize: 12, fontWeight: 600,
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)'; }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Cerrar sesión
+              </button>
             </div>
           </div>
 
@@ -202,6 +228,9 @@ export default function DashboardLayout({ children, title }) {
           </div>
         </main>
       </div>
+
+      {/* Botón flotante de trial — visible en todo el dashboard */}
+      <TrialFloatButton />
     </>
   );
 }
