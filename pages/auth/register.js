@@ -239,7 +239,7 @@ export default function Register() {
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <Link href="/">
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 28, color: '#E8E8E8', cursor: 'pointer', display: 'inline-block' }}>
-                NEX<span style={{ color: G }}>OIA</span>
+                agenc<span style={{ color: '#FF6B00', fontSize: 32 }}>IA</span>me
               </div>
             </Link>
             <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6, color: '#E8E8E8' }}>

@@ -42,8 +42,8 @@ export default function Landing() {
   return (
     <>
       <Head>
-        <title>NEXOIA — Tu negocio en piloto automático con IA</title>
-        <meta name="description" content="Plataforma de IA para negocios colombianos. Automatiza ventas, atención y operaciones." />
+        <title>agencIAme — Tu negocio atendido por Inteligencia Artificial</title>
+        <meta name="description" content="agencIAme: La plataforma de IA que atiende, agenda y vende por tu negocio. Automatiza ventas y atención al cliente 24/7." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* Abril Fatface: display dramático | Fraunces: editorial variable | Plus Jakarta Sans: cuerpo moderno */}
@@ -116,9 +116,9 @@ export default function Landing() {
         borderBottom: scrolled ? '1px solid #1A1A1A' : 'none',
         transition: 'all 0.5s ease',
       }}>
-        {/* Logo — Abril Fatface */}
-        <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 22, letterSpacing: '-0.5px', color: '#E8E8E8' }}>
-          NEX<span style={{ color: G }}>OIA</span>
+        {/* Logo — agencIAme */}
+        <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 20, letterSpacing: '-0.5px', color: '#E8E8E8' }}>
+          agenc<span style={{ color: '#FF6B00', fontSize: 23, fontWeight: 900 }}>IA</span>me
         </div>
 
         <div style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
@@ -161,20 +161,20 @@ export default function Landing() {
             <div className="slide-up" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: `1px solid ${G}30`, borderRadius: 1, padding: '7px 16px', marginBottom: 44 }}>
               <span style={{ width: 5, height: 5, background: G, borderRadius: '50%', animation: 'blink 2.2s infinite', flexShrink: 0 }} />
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: G, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase' }}>
-                Inteligencia Artificial · Negocios Colombianos
+                Tu negocio atendido por Inteligencia Artificial
               </span>
             </div>
 
             {/* Título — Abril Fatface impacto */}
             <h1 className="slide-up d1" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(60px, 8.5vw, 120px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '-2px', color: '#F0F0F0', marginBottom: 36 }}>
-              Tu negocio<br />
-              <span style={{ color: G }}>en piloto</span><br />
-              automático.
+              agenc<span style={{ color: '#FF6B00' }}>IA</span>me<br />
+              <span style={{ fontSize: '55%', color: 'rgba(240,240,240,0.7)', fontStyle: 'normal' }}>tu negocio en<br /></span>
+              <span style={{ color: G }}>piloto automático.</span>
             </h1>
 
             {/* Subtítulo — Fraunces italic */}
             <p className="slide-up d2" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 21, color: 'rgba(255,255,255,0.5)', maxWidth: 500, marginBottom: 52, lineHeight: 1.65, fontWeight: 300 }}>
-              Agentes de IA que atienden, agendan y venden por ti — 24 horas al día, sin contratar más personal.
+              La IA que atiende tus clientes, agenda citas y vende por ti — las 24 horas, los 7 días de la semana.
             </p>
 
             {/* CTAs */}
@@ -469,10 +469,10 @@ export default function Landing() {
         <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: 64, marginBottom: 64 }}>
           <div>
             <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 26, color: '#E8E8E8', marginBottom: 20 }}>
-              NEX<span style={{ color: G }}>OIA</span>
+            agenc<span style={{ color: '#FF6B00', fontSize: 30 }}>IA</span>me
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 13, lineHeight: 1.8, maxWidth: 300, fontWeight: 300 }}>
-              Automatización empresarial con IA para negocios colombianos. Desarrollado por NexoTI / SoporteIA.
+            La IA que atiende, agenda y vende por tu negocio. Plataforma colombiana de automatización con inteligencia artificial.
             </p>
             <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>📍 Cali, Colombia</span>
@@ -501,7 +501,7 @@ export default function Landing() {
           ))}
         </div>
         <div style={{ borderTop: '1px solid #0E0E0E', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#141414', fontSize: 12 }}>
-          <span>© 2026 NEXOIA by NexoTI · Todos los derechos reservados</span>
+        <span>© 2026 agenc<span style={{ color: '#FF6B00' }}>IA</span>me by NexoTI · Todos los derechos reservados</span>
           <span>Hecho con ❤️ en Cali, Colombia 🇨🇴</span>
         </div>
       </footer>
@@ -512,7 +512,7 @@ export default function Landing() {
 export function Logo({ size = 20 }) {
   return (
     <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: size + 2, color: '#E8E8E8' }}>
-      NEX<span style={{ color: '#B8FF6C' }}>OIA</span>
+      agenc<span style={{ color: '#FF6B00', fontSize: size + 5 }}>IA</span>me
     </div>
   );
 }

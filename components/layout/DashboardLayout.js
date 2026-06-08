@@ -52,8 +52,8 @@ export default function DashboardLayout({ children, title }) {
         {/* Logo */}
         <div style={{ padding: '20px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           {!collapsed && (
-            <Link href="/dashboard" style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 800 }}>
-              NEX<span style={{ color: 'var(--accent)' }}>OIA</span>
+            <Link href="/dashboard" style={{ fontFamily: 'Syne,sans-serif', fontSize: 18, fontWeight: 800, letterSpacing: '-0.5px' }}>
+              agenc<span style={{ color: '#FF6B00', fontSize: 20, fontWeight: 900, textTransform: 'uppercase' }}>IA</span>me
             </Link>
           )}
           <button onClick={() => setCollapsed(c => !c)} style={{ background: 'none', border: 'none', color: 'var(--gray5)', cursor: 'pointer', fontSize: 18, padding: 4, marginLeft: collapsed ? 'auto' : 0, marginRight: collapsed ? 'auto' : 0 }}>

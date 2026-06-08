@@ -103,11 +103,11 @@ export default function Login() {
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <Link href="/">
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 28, color: '#E8E8E8', cursor: 'pointer', display: 'inline-block' }}>
-                NEX<span style={{ color: G }}>OIA</span>
+                agenc<span style={{ color: '#FF6B00', fontSize: 32 }}>IA</span>me
               </div>
             </Link>
             <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6 }}>Bienvenido de vuelta</h1>
-            <p style={{ color: '#2A2A2A', fontSize: 13 }}>Ingresa a tu panel de NEXOIA</p>
+            <p style={{ color: '#2A2A2A', fontSize: 13 }}>Ingresa a tu panel de agenc<span style={{ color: '#FF6B00' }}>IA</span>me</p>
           </div>
 
           <div style={{ background: '#0C0C0C', border: '1px solid #161616', borderRadius: 8, padding: 32 }}>
