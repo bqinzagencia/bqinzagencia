@@ -3,30 +3,52 @@
 import { useState, useEffect, useRef } from 'react';
 
 export default function ModalBienvenida() {
-  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [cerrado, setCerrado] = useState(false);
-  const [muted, setMuted] = useState(true); // inicia silenciado para permitir autoplay
+  const [audioActivo, setAudioActivo] = useState(false);
   const videoRef = useRef(null);
 
-  // Paso 1: marcar que estamos en el cliente (evita hidratación SSR)
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
     // Solo mostrar si nunca ha visitado
     const yaVio = localStorage.getItem('agenciame_bienvenida_v1');
     if (!yaVio) {
-      // Pequeño delay para que la página cargue primero
-      const t = setTimeout(() => setVisible(true), 1200);
+      const t = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(t);
     }
-  }, [mounted]);
+  }, []);
 
-  // No renderizar nada hasta que estemos en el cliente
-  if (!mounted) return null;
+  // Cuando el video aparece, intentar reproducir con audio
+  useEffect(() => {
+    if (!visible || !videoRef.current) return;
+    const vid = videoRef.current;
+    vid.muted = false;
+    const playPromise = vid.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setAudioActivo(true);
+        })
+        .catch(() => {
+          // Navegador bloqueó audio — reproducir silenciado
+          vid.muted = true;
+          vid.play().catch(() => {});
+          setAudioActivo(false);
+        });
+    }
+  }, [visible]);
+
+  const activarAudio = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = false;
+    videoRef.current.play().catch(() => {});
+    setAudioActivo(true);
+  };
+
+  const silenciar = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = true;
+    setAudioActivo(false);
+  };
 
   const cerrar = () => {
     setCerrado(true);
@@ -34,14 +56,7 @@ export default function ModalBienvenida() {
     setTimeout(() => {
       setVisible(false);
       localStorage.setItem('agenciame_bienvenida_v1', '1');
-    }, 400);
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setMuted(videoRef.current.muted);
-    }
+    }, 350);
   };
 
   if (!visible) return null;
@@ -145,37 +160,37 @@ export default function ModalBienvenida() {
             ✕
           </button>
 
-          {/* Botón mute */}
+          {/* Botón audio */}
           <button
-            onClick={toggleMute}
+            onClick={audioActivo ? silenciar : activarAudio}
+            title={audioActivo ? 'Silenciar' : 'Activar audio'}
             style={{
               position: 'absolute',
               bottom: 14,
               right: 14,
               zIndex: 10,
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               borderRadius: '50%',
-              background: 'rgba(0,0,0,0.5)',
-              border: '1px solid rgba(255,255,255,0.2)',
+              background: audioActivo ? 'rgba(184,255,108,0.25)' : 'rgba(0,0,0,0.55)',
+              border: audioActivo ? '1px solid rgba(184,255,108,0.6)' : '1px solid rgba(255,255,255,0.2)',
               color: '#fff',
-              fontSize: 14,
+              fontSize: 15,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               backdropFilter: 'blur(4px)',
+              transition: 'all 0.2s',
             }}
           >
-            {muted ? '🔇' : '🔊'}
+            {audioActivo ? '🔊' : '🔇'}
           </button>
 
           {/* VIDEO REAL */}
           <video
             ref={videoRef}
             src="/bienvenida.mp4"
-            autoPlay
-            muted
             playsInline
             loop
             controls={false}
