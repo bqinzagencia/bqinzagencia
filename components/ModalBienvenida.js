@@ -6,7 +6,7 @@ export default function ModalBienvenida() {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [cerrado, setCerrado] = useState(false);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true); // inicia silenciado para permitir autoplay
   const videoRef = useRef(null);
 
   // Paso 1: marcar que estamos en el cliente (evita hidratación SSR)
@@ -175,7 +175,9 @@ export default function ModalBienvenida() {
             ref={videoRef}
             src="/bienvenida.mp4"
             autoPlay
+            muted
             playsInline
+            loop
             controls={false}
             onEnded={() => {
               // Mostrar botón "Empezar" al terminar
