@@ -8,7 +8,7 @@ export default function ModalBienvenida() {
   const videoRef = useRef(null);
 
   useEffect(() => {
-    const yaVio = localStorage.getItem('agenciame_bienvenida_v1');
+    const yaVio = localStorage.getItem('agenciame_bienvenida_v2');
     if (!yaVio) {
       const t = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(t);
@@ -51,7 +51,7 @@ export default function ModalBienvenida() {
     if (videoRef.current) videoRef.current.pause();
     setTimeout(() => {
       setVisible(false);
-      localStorage.setItem('agenciame_bienvenida_v1', '1');
+      localStorage.setItem('agenciame_bienvenida_v2', '1');
     }, 350);
   };
 
