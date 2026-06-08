@@ -54,85 +54,15 @@ export default function Landing() {
         <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap&text=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%C3%A0%C3%A1%C3%A9%C3%AD%C3%B3%C3%BA%C3%BC%C3%B1%C3%91" rel="stylesheet" />
       </Head>
 
-      <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body {
-          background: ${BG};
-          color: #E8E8E8;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          overflow-x: hidden;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          text-rendering: optimizeLegibility;
-          font-feature-settings: 'kern' 1, 'liga' 1;
-        }
+      <style dangerouslySetInnerHTML={{__html: `
+        body { background: #080808; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; font-feature-settings: kern 1, liga 1; }
         a { text-decoration: none; color: inherit; }
-
-        /* Nitidez máxima en todos los textos */
-        h1, h2, h3, h4, h5, h6, p, span, a, button, li, div {
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          text-rendering: optimizeLegibility;
-        }
-
-        /* Abril Fatface — nitidez forzada para pantallas oscuras */
-        h1, h2, h3 {
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          font-synthesis: none;
-          -webkit-text-stroke: 0.01px transparent;
-        }
-
-        /* Tipografías con carácter */
-        .font-display  { font-family: 'Abril Fatface', serif; }
-        .font-editorial { font-family: 'Fraunces', serif; }
-        .font-body     { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-        /* Botones */
-        .btn-lima { background: ${G}; color: #080808; border: none; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; letter-spacing: 0.3px; transition: all 0.25s; display: inline-block; }
-        .btn-lima:hover { background: #CCFF80; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(184,255,108,0.25); }
-        .btn-coral { background: ${R}; color: #fff; border: none; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .btn-coral:hover { background: #FF2D50; transform: translateY(-2px); }
-        .btn-ghost-lima { background: transparent; color: ${G}; border: 1px solid ${G}44; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .btn-ghost-lima:hover { border-color: ${G}; background: ${G}08; }
-        .btn-ghost { background: transparent; color: #aaa; border: 1px solid #333; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .btn-ghost:hover { border-color: #666; color: #E8E8E8; }
-
-        /* Etiqueta de sección */
-        .label { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: ${G}; margin-bottom: 20px; display: block; }
-
-        /* Animaciones */
-        @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        @keyframes slideUp { from{opacity:0;transform:translateY(48px)} to{opacity:1;transform:translateY(0)} }
-
-        .slide-up { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) both; }
-        .d1 { animation-delay: 0.1s; }
-        .d2 { animation-delay: 0.25s; }
-        .d3 { animation-delay: 0.4s; }
-        .d4 { animation-delay: 0.55s; }
-
-        /* Grid industrias */
-        .ind-wrap { position:relative; overflow:hidden; cursor:pointer; }
-        .ind-img { width:100%; height:100%; object-fit:cover; transition:transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94); }
-        .ind-wrap:hover .ind-img { transform:scale(1.1); }
-        .ind-overlay { position:absolute; inset:0; background:linear-gradient(180deg,rgba(8,8,8,0.1) 0%,rgba(8,8,8,0.82) 100%); transition:background 0.4s; }
-        .ind-wrap:hover .ind-overlay { background:linear-gradient(180deg,rgba(8,8,8,0.05) 0%,rgba(8,8,8,0.92) 100%); }
-        .ind-bar { position:absolute; bottom:0; left:0; right:0; height:3px; transform:scaleX(0); transform-origin:left; transition:transform 0.5s cubic-bezier(0.16,1,0.3,1); }
-        .ind-wrap:hover .ind-bar { transform:scaleX(1); }
-
-        /* Feature hover */
-        .feat-cell { transition: background 0.3s; }
-        .feat-cell:hover { background: rgba(184,255,108,0.03) !important; }
-
-        /* Plan card */
-        .plan-card { transition: transform 0.3s ease; }
-        .plan-card:hover { transform: translateY(-10px); }
-
+        h1,h2,h3 { font-synthesis: none; -webkit-text-stroke: 0.01px transparent; }
         img { display:block; }
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-      `}</style>
+        .btn-ghost { background: transparent; color: #aaa; border: 1px solid #333; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .btn-ghost:hover { border-color: #666; color: #E8E8E8; }
+      `}} />
 
       {/* ── NAV ────────────────────────────────────────────────────────────────── */}
       <nav style={{
