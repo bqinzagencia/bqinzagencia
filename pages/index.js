@@ -51,14 +51,38 @@ export default function Landing() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* Abril Fatface: display dramático | Fraunces: editorial variable | Plus Jakarta Sans: cuerpo moderno */}
-        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap&text=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%C3%A0%C3%A1%C3%A9%C3%AD%C3%B3%C3%BA%C3%BC%C3%B1%C3%91" rel="stylesheet" />
       </Head>
 
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { background: ${BG}; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        body {
+          background: ${BG};
+          color: #E8E8E8;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          overflow-x: hidden;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
+          font-feature-settings: 'kern' 1, 'liga' 1;
+        }
         a { text-decoration: none; color: inherit; }
+
+        /* Nitidez máxima en todos los textos */
+        h1, h2, h3, h4, h5, h6, p, span, a, button, li, div {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
+        }
+
+        /* Abril Fatface — nitidez forzada para pantallas oscuras */
+        h1, h2, h3 {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          font-synthesis: none;
+          -webkit-text-stroke: 0.01px transparent;
+        }
 
         /* Tipografías con carácter */
         .font-display  { font-family: 'Abril Fatface', serif; }
@@ -107,7 +131,7 @@ export default function Landing() {
         .plan-card:hover { transform: translateY(-10px); }
 
         img { display:block; }
-        * { -webkit-font-smoothing: antialiased; }
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
       `}</style>
 
       {/* ── NAV ────────────────────────────────────────────────────────────────── */}
@@ -170,7 +194,7 @@ export default function Landing() {
             </div>
 
             {/* Título — Abril Fatface impacto */}
-            <h1 className="slide-up d1" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(60px, 8.5vw, 120px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '-2px', color: '#F0F0F0', marginBottom: 36 }}>
+            <h1 className="slide-up d1" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(60px, 8.5vw, 120px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '-2px', color: '#FAFAFA', marginBottom: 36 }}>
               agenc<span style={{ color: '#FF6B00' }}>IA</span>me<br />
               <span style={{ fontSize: '55%', color: 'rgba(240,240,240,0.7)', fontStyle: 'normal' }}>tu negocio en<br /></span>
               <span style={{ color: G }}>piloto automático.</span>
