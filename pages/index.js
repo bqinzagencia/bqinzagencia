@@ -173,13 +173,12 @@ export default function Landing() {
       {/* ── MARQUEE ─────────────────────────────────────────────────────────────── */}
       <div style={{ borderTop: '1px solid #141414', borderBottom: '1px solid #141414', padding: '16px 0', overflow: 'hidden', background: '#0C0C0C' }}>
         <div style={{ display: 'flex', gap: 80, animation: 'marquee 32s linear infinite', whiteSpace: 'nowrap' }}>
-          {[...Array(2)].flatMap(() =>
-            ['Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads'].map((t, i) => (
-              <span key={t + i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#252525', fontSize: 12, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
+          {['Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads',
+            'Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads'].map((t, i) => (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#252525', fontSize: 12, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
                 <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.6 }} />{t}
               </span>
-            ))
-          )}
+            ))}
         </div>
       </div>
 
