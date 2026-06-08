@@ -8,6 +8,61 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import { getConversaciones, getCitas, getContactos, getAgentes } from '../../lib/firebase';
 import { tiempoRelativo, formatHora, getIndustriaInfo, iniciales } from '../../lib/utils';
 
+// Iconos SVG inline — profesionales
+const Ico = ({ d, size = 18, color = 'currentColor', fill = 'none' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}
+    stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    {typeof d === 'string' ? <path d={d} /> : d}
+  </svg>
+);
+
+const GUIDE_STEPS = [
+  {
+    step: '01', href: '/dashboard/agentes',
+    title: 'Crea tu Agente IA',
+    desc: 'Entrena tu primer agente con los servicios y precios de tu negocio. Responderá clientes 24/7.',
+    color: '#00E5A0',
+    icon: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
+  },
+  {
+    step: '02', href: '/dashboard/conocimiento',
+    title: 'Base de conocimiento',
+    desc: 'Agrega tus servicios, tarifas, horarios y FAQs. Tu agente usará esta información en cada conversación.',
+    color: '#3B82F6',
+    icon: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></>,
+  },
+  {
+    step: '03', href: '/dashboard/widget',
+    title: 'Instala el chat en tu web',
+    desc: 'Copia el código widget y pégalo en tu sitio web. Tus visitantes podrán chatear con la IA de inmediato.',
+    color: '#A78BFA',
+    icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></>,
+  },
+  {
+    step: '04', href: '/dashboard/agenda',
+    title: 'Activa el agendamiento',
+    desc: 'Configura tu calendario de disponibilidad y deja que la IA agende citas automáticamente.',
+    color: '#F59E0B',
+    icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+  },
+  {
+    step: '05', href: '/dashboard/voz',
+    title: 'Configura Voz IA',
+    desc: 'Conecta tu número de teléfono para que la IA conteste llamadas y confirme citas automáticamente.',
+    color: '#F97316',
+    icon: <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></>,
+  },
+  {
+    step: '06', href: '/dashboard/web',
+    title: 'Publica tu página web',
+    desc: 'Activa tu micrositio con tus servicios, fotos y chat integrado. Incluido en todos los planes.',
+    color: '#EC4899',
+    icon: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></>,
+  },
+];
+
+const F = "'Inter', 'DM Sans', system-ui, sans-serif";
+
 export default function Dashboard() {
   const { user, empresa, loading } = useAuth();
   const router = useRouter();
@@ -15,6 +70,7 @@ export default function Dashboard() {
   const [conversaciones, setConversaciones] = useState([]);
   const [citas, setCitas] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [guideVisible, setGuideVisible] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) router.push('/auth/login');
@@ -33,9 +89,10 @@ export default function Dashboard() {
         setConversaciones(convs);
         setCitas(cits.slice(0, 5));
         setStats({ conversaciones: convs.length, citas: cits.length, contactos: conts.length, agentes: agts.length });
-      } catch (e) {
-        console.error(e);
-      } finally { setDataLoading(false); }
+        // Ocultar guía si ya tiene agentes configurados
+        if (agts.length > 0) setGuideVisible(false);
+      } catch (e) { console.error(e); }
+      finally { setDataLoading(false); }
     };
     load();
   }, [user]);
@@ -47,129 +104,230 @@ export default function Dashboard() {
   const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
 
   const STAT_CARDS = [
-    { label: 'Conversaciones hoy', value: stats.conversaciones, change: '+12% vs ayer', color: 'var(--accent)', icon: '💬' },
-    { label: 'Citas agendadas', value: stats.citas, change: 'Total activas', color: '#3B82F6', icon: '📅' },
-    { label: 'Contactos en CRM', value: stats.contactos, change: 'Base de clientes', color: '#A29BFE', icon: '👥' },
-    { label: 'Agentes activos', value: stats.agentes, change: empresa.plan === 'emprendedor' ? 'Plan: 1 máx' : 'Funcionando', color: '#F97316', icon: '🤖' },
+    {
+      label: 'Conversaciones hoy', value: stats.conversaciones,
+      sub: '+12% vs ayer', color: '#00E5A0',
+      icon: <><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></>,
+    },
+    {
+      label: 'Citas agendadas', value: stats.citas,
+      sub: 'Total activas', color: '#3B82F6',
+      icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    },
+    {
+      label: 'Contactos en CRM', value: stats.contactos,
+      sub: 'Base de clientes', color: '#A78BFA',
+      icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    },
+    {
+      label: 'Agentes activos', value: stats.agentes,
+      sub: empresa.plan === 'emprendedor' ? 'Plan: 1 máx' : 'En línea',
+      color: '#F97316',
+      icon: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
+    },
   ];
 
   return (
     <>
-      <Head><title>Dashboard — {empresa.nombreEmpresa} · NEXOIA</title></Head>
-      <DashboardLayout title="Dashboard">
-        {/* Welcome */}
-        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+      <Head><title>Dashboard — {empresa.nombreEmpresa} · agencIAme</title></Head>
+      <style dangerouslySetInnerHTML={{__html:`
+        .db-page { font-family: ${F}; }
+        .db-h2 { font-family: 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.4px; color: #F9FAFB; margin-bottom: 4px; }
+        .db-card { background: #0C0F14; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+        .db-section-title { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #F9FAFB; letter-spacing: -0.1px; }
+        .db-stat-val { font-family: 'Inter', sans-serif; font-size: 34px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+        .db-stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #4B5563; }
+        .db-stat-sub { font-size: 12px; color: #374151; margin-top: 6px; }
+        .db-link { color: #00E5A0; font-size: 12px; font-weight: 500; text-decoration: none; }
+        .db-link:hover { text-decoration: underline; }
+        .db-guide-card { background: #0C0F14; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; transition: border-color 0.2s; cursor: pointer; text-decoration: none; display: block; }
+        .db-guide-card:hover { border-color: rgba(255,255,255,0.14); }
+        .db-action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #9CA3AF; text-decoration: none; transition: all 0.15s; font-family: 'Inter', sans-serif; }
+        .db-action-btn:hover { background: rgba(255,255,255,0.07); color: #F9FAFB; border-color: rgba(255,255,255,0.14); }
+        .db-badge-conf { background: rgba(0,229,160,0.1); color: #00E5A0; border: 1px solid rgba(0,229,160,0.2); border-radius: 6px; padding: 3px 9px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .db-badge-pend { background: rgba(245,158,11,0.1); color: #F59E0B; border: 1px solid rgba(245,158,11,0.2); border-radius: 6px; padding: 3px 9px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+      `}} />
+
+      <div className="db-page">
+        {/* Header */}
+        <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 4 }}>
-              {saludo}, {empresa.nombreEmpresa} {ind.icon}
-            </h2>
-            <p style={{ color: 'var(--gray5)', fontSize: 14 }}>
+            <h2 className="db-h2">{saludo}, {empresa.nombreEmpresa}</h2>
+            <p style={{ color: '#4B5563', fontSize: 13, fontFamily: F }}>
               {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <Link href="/dashboard/agentes" className="btn btn-accent">
-            + Nuevo Agente IA
+          <Link href="/dashboard/agentes" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: '#00E5A0', color: '#080B0F',
+            padding: '9px 20px', borderRadius: 8,
+            fontSize: 13, fontWeight: 700, textDecoration: 'none',
+            fontFamily: F, letterSpacing: 0.1,
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo Agente IA
           </Link>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16, marginBottom: 32 }}>
-          {STAT_CARDS.map((s, i) => (
-            <div key={i} style={{ background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '20px 22px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--gray5)' }}>{s.label}</span>
-                <span style={{ fontSize: 20 }}>{s.icon}</span>
+        {/* Guía de activación */}
+        {guideVisible && (
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: F, fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 2 }}>
+                  Guía de activación
+                </div>
+                <div style={{ fontFamily: F, fontSize: 12, color: '#4B5563' }}>
+                  Completa estos pasos para tener tu agencia de IA funcionando al 100%
+                </div>
               </div>
-              <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 36, fontWeight: 800, color: s.color, marginBottom: 4 }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: 'var(--gray5)' }}>{s.change}</div>
+              <button onClick={() => setGuideVisible(false)} style={{
+                background: 'none', border: 'none', color: '#374151',
+                cursor: 'pointer', fontSize: 12, fontFamily: F,
+              }}>
+                Ocultar guía
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+              {GUIDE_STEPS.map((s) => (
+                <Link key={s.step} href={s.href} className="db-guide-card">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 9, background: s.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={s.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        {s.icon}
+                      </svg>
+                    </div>
+                    <span style={{ fontFamily: F, fontSize: 11, fontWeight: 700, color: s.color, letterSpacing: 1, textTransform: 'uppercase' }}>
+                      Paso {s.step}
+                    </span>
+                  </div>
+                  <div style={{ fontFamily: F, fontSize: 13, fontWeight: 600, color: '#F9FAFB', marginBottom: 6 }}>{s.title}</div>
+                  <div style={{ fontFamily: F, fontSize: 12, color: '#4B5563', lineHeight: 1.6 }}>{s.desc}</div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
+          {STAT_CARDS.map((s, i) => (
+            <div key={i} className="db-card" style={{ padding: '18px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <span className="db-stat-label">{s.label}</span>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: s.color + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    {s.icon}
+                  </svg>
+                </div>
+              </div>
+              <div className="db-stat-val" style={{ color: s.color }}>{s.value}</div>
+              <div className="db-stat-sub">{s.sub}</div>
             </div>
           ))}
         </div>
 
-        {/* Two columns */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-          {/* Recent conversations */}
-          <div style={{ background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 15, fontWeight: 700 }}>Últimas conversaciones</h3>
-              <Link href="/dashboard/conversaciones" style={{ color: 'var(--accent)', fontSize: 13 }}>Ver todas →</Link>
+        {/* Conversaciones + Citas */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          {/* Conversaciones */}
+          <div className="db-card" style={{ padding: 22 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <span className="db-section-title">Últimas conversaciones</span>
+              <Link href="/dashboard/conversaciones" className="db-link">Ver todas →</Link>
             </div>
-            {dataLoading ? (
-              <p style={{ color: 'var(--gray5)', fontSize: 14 }}>Cargando...</p>
-            ) : conversaciones.length === 0 ? (
-              <EmptyState icon="💬" text="Aún no hay conversaciones" sub="Activa tu agente IA para comenzar" />
-            ) : conversaciones.map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: i < conversaciones.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--gray2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
-                  {iniciales(c.nombreCliente || 'CL')}
+            {dataLoading ? <Skeleton /> : conversaciones.length === 0
+              ? <EmptyState text="Sin conversaciones aún" sub="Activa tu agente IA para comenzar" />
+              : conversaciones.map((c, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 0', borderBottom: i < conversaciones.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 8, background: '#1C2028', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#00E5A0', flexShrink: 0, fontFamily: F }}>
+                    {iniciales(c.nombreCliente || 'CL')}
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#F9FAFB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: F }}>{c.nombreCliente || 'Cliente'}</div>
+                    <div style={{ fontSize: 11, color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: F }}>{c.ultimoTexto || 'Sin mensajes'}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#374151', flexShrink: 0, fontFamily: F }}>{tiempoRelativo(c.ultimoMensaje)}</div>
                 </div>
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nombreCliente || 'Cliente'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--gray5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.ultimoTexto || 'Sin mensajes'}</div>
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--gray5)', flexShrink: 0 }}>{tiempoRelativo(c.ultimoMensaje)}</div>
-              </div>
-            ))}
+              ))
+            }
           </div>
 
-          {/* Upcoming appointments */}
-          <div style={{ background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 15, fontWeight: 700 }}>Próximas citas</h3>
-              <Link href="/dashboard/agenda" style={{ color: 'var(--accent)', fontSize: 13 }}>Ver agenda →</Link>
+          {/* Citas */}
+          <div className="db-card" style={{ padding: 22 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <span className="db-section-title">Próximas citas</span>
+              <Link href="/dashboard/agenda" className="db-link">Ver agenda →</Link>
             </div>
-            {dataLoading ? (
-              <p style={{ color: 'var(--gray5)', fontSize: 14 }}>Cargando...</p>
-            ) : citas.length === 0 ? (
-              <EmptyState icon="📅" text="No hay citas agendadas" sub="Tu agente IA agendará automáticamente" />
-            ) : citas.map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: i < citas.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                <div style={{ width: 44, textAlign: 'center', background: 'rgba(0,229,160,0.08)', borderRadius: 10, padding: '6px 4px', flexShrink: 0 }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--accent)', fontFamily: 'Syne,sans-serif' }}>
-                    {c.fechaHora?.toDate ? c.fechaHora.toDate().getDate() : '—'}
+            {dataLoading ? <Skeleton /> : citas.length === 0
+              ? <EmptyState text="Sin citas agendadas" sub="Tu agente IA agendará automáticamente" />
+              : citas.map((c, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 0', borderBottom: i < citas.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <div style={{ width: 42, textAlign: 'center', background: 'rgba(0,229,160,0.07)', borderRadius: 8, padding: '5px 4px', flexShrink: 0 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#00E5A0', fontFamily: F, lineHeight: 1 }}>
+                      {c.fechaHora?.toDate ? c.fechaHora.toDate().getDate() : '—'}
+                    </div>
+                    <div style={{ fontSize: 9, color: '#00E5A0', fontWeight: 700, letterSpacing: 0.5, fontFamily: F }}>
+                      {c.fechaHora?.toDate ? c.fechaHora.toDate().toLocaleDateString('es-CO',{month:'short'}).toUpperCase() : ''}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600 }}>
-                    {c.fechaHora?.toDate ? c.fechaHora.toDate().toLocaleDateString('es-CO',{month:'short'}).toUpperCase() : ''}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#F9FAFB', fontFamily: F }}>{c.nombreCliente || 'Cliente'}</div>
+                    <div style={{ fontSize: 11, color: '#374151', fontFamily: F }}>{c.servicio || 'Servicio'} · {formatHora(c.fechaHora)}</div>
                   </div>
+                  <span className={c.estado === 'confirmada' ? 'db-badge-conf' : 'db-badge-pend'} style={{ fontFamily: F }}>
+                    {c.estado || 'Pendiente'}
+                  </span>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{c.nombreCliente || 'Cliente'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--gray5)' }}>{c.servicio || 'Servicio'} · {formatHora(c.fechaHora)}</div>
-                </div>
-                <span className={'badge ' + (c.estado === 'confirmada' ? 'badge-active' : 'badge-trial')}>{c.estado || 'pendiente'}</span>
-              </div>
-            ))}
+              ))
+            }
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div style={{ marginTop: 24, background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24 }}>
-          <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Acciones rápidas</h3>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        {/* Acciones rápidas */}
+        <div className="db-card" style={{ padding: 22 }}>
+          <div className="db-section-title" style={{ marginBottom: 14 }}>Acciones rápidas</div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {[
-              { icon: '🤖', label: 'Crear agente IA', href: '/dashboard/agentes' },
-              { icon: '👥', label: 'Agregar contacto', href: '/dashboard/crm' },
-              { icon: '📅', label: 'Agendar cita', href: '/dashboard/agenda' },
-              { icon: '📊', label: 'Ver reportes', href: '/dashboard/reportes' },
-              { icon: '⚙️', label: 'Configurar negocio', href: '/dashboard/configuracion' },
+              { label: 'Crear agente IA',      href: '/dashboard/agentes',       icon: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
+              { label: 'Agregar contacto',     href: '/dashboard/crm',           icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></> },
+              { label: 'Agendar cita',         href: '/dashboard/agenda',        icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></> },
+              { label: 'Ver reportes',         href: '/dashboard/reportes',      icon: <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></> },
+              { label: 'Configurar negocio',   href: '/dashboard/configuracion', icon: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></> },
             ].map((a, i) => (
-              <Link key={i} href={a.href} className="btn btn-ghost" style={{ gap: 8 }}>
-                {a.icon} {a.label}
+              <Link key={i} href={a.href} className="db-action-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  {a.icon}
+                </svg>
+                {a.label}
               </Link>
             ))}
           </div>
         </div>
-      </DashboardLayout>
+      </div>
     </>
   );
 }
 
-function EmptyState({ icon, text, sub }) {
+function EmptyState({ text, sub }) {
   return (
-    <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-      <div style={{ fontSize: 32, marginBottom: 10 }}>{icon}</div>
-      <div style={{ fontWeight: 600, marginBottom: 4 }}>{text}</div>
-      <div style={{ color: 'var(--gray5)', fontSize: 13 }}>{sub}</div>
+    <div style={{ textAlign: 'center', padding: '28px 16px' }}>
+      <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,0.04)', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="1.8" strokeLinecap="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#6B7280', marginBottom: 3, fontFamily: "'Inter', sans-serif" }}>{text}</div>
+      <div style={{ fontSize: 12, color: '#374151', fontFamily: "'Inter', sans-serif" }}>{sub}</div>
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {[1,2,3].map(i => (
+        <div key={i} style={{ height: 36, background: 'rgba(255,255,255,0.03)', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
+      ))}
     </div>
   );
 }
