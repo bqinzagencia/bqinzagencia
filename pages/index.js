@@ -122,12 +122,12 @@ export default function Landing() {
         </div>
 
         <div style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
-          {['Industrias', 'Funciones', 'Precios'].map(item => (
+          {['Empresas', 'Funciones', 'Precios'].map(item => (
             <a key={item} href={'#' + item.toLowerCase()}
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#555', fontSize: 13, fontWeight: 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
               onMouseEnter={e => e.target.style.color = '#E8E8E8'}
               onMouseLeave={e => e.target.style.color = '#555'}>
-              {item}
+              {item === 'Empresas' ? 'Empresas' : item}
             </a>
           ))}
         </div>
@@ -226,20 +226,20 @@ export default function Landing() {
       </div>
 
       {/* ── INDUSTRIAS ──────────────────────────────────────────────────────────── */}
-      <section id="industrias">
+      <section id="empresas">
         {/* Header */}
         <div style={{ position: 'relative', padding: '100px 80px 72px', overflow: 'hidden' }}>
           <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600&q=80" alt=""
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.08) saturate(0.3)' }} />
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 32 }}>
             <div>
-              <span className="label">Por industria</span>
+              <span className="label">Por tipo de empresa</span>
               <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(42px, 5.5vw, 80px)', fontWeight: 400, lineHeight: 1.0, letterSpacing: '-1.5px', color: '#F0F0F0' }}>
-                Diseñado para<br />tu tipo de negocio
+                Diseñado para<br />tu tipo de empresa
               </h2>
             </div>
             <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontSize: 18, maxWidth: 380, lineHeight: 1.8, fontWeight: 300 }}>
-              Cada industria tiene su propio agente IA, sitio web y flujos preconfigurados listos desde el primer día.
+              Cada empresa tiene su propio agente IA, sitio web y flujos preconfigurados listos desde el primer día.
             </p>
           </div>
         </div>
@@ -288,20 +288,43 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Grid 3x2 de funciones */}
+        {/* Grid 3x2 de funciones — iconos SVG profesionales */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderTop: '1px solid #141414' }}>
           {[
-            { icon: '🤖', n: '01', title: 'Agentes IA personalizados', desc: 'Entrenados con tu información. Responden, capturan leads y cierran ventas 24/7 sin intervención humana.' },
-            { icon: '💬', n: '02', title: 'Chat multicanal', desc: 'WhatsApp, Instagram, web y más. Todos tus canales unificados con respuestas automáticas e inteligentes.' },
-            { icon: '📞', n: '03', title: 'Voz IA', desc: 'Agente que contesta llamadas, confirma citas y hace seguimiento telefónico de forma completamente automática.' },
-            { icon: '📊', n: '04', title: 'CRM inteligente', desc: 'Gestiona clientes y pipeline. Los leads se capturan solos desde cada conversación y llamada.' },
-            { icon: '🌐', n: '05', title: 'Página web IA', desc: 'Sitio web elegante generado automáticamente con tus servicios, precios y chat de IA integrado.' },
-            { icon: '📅', n: '06', title: 'Agendamiento automático', desc: 'Calendario conectado al agente. Tus clientes reservan citas solos — sin mensajes ni llamadas manuales.' },
+            {
+              n: '01', title: 'Agentes IA personalizados',
+              desc: 'Entrenados con tu información. Responden, capturan leads y cierran ventas 24/7 sin intervención humana.',
+              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/><path d="M8 16h.01M16 16h.01"/></svg>)
+            },
+            {
+              n: '02', title: 'Chat multicanal',
+              desc: 'WhatsApp, Instagram, web y más. Todos tus canales unificados con respuestas automáticas e inteligentes.',
+              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="#B8FF6C"/><circle cx="12" cy="10" r="1" fill="#B8FF6C"/><circle cx="15" cy="10" r="1" fill="#B8FF6C"/></svg>)
+            },
+            {
+              n: '03', title: 'Voz IA',
+              desc: 'Agente que contesta llamadas, confirma citas y hace seguimiento telefónico de forma completamente automática.',
+              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.4 2 2 0 0 1 3.62 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/><path d="M15 5.5a4 4 0 0 1 4 4" opacity="0.5"/><path d="M15 1.5a8 8 0 0 1 8 8" opacity="0.3"/></svg>)
+            },
+            {
+              n: '04', title: 'CRM inteligente',
+              desc: 'Gestiona clientes y pipeline. Los leads se capturan solos desde cada conversación y llamada.',
+              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>)
+            },
+            {
+              n: '05', title: 'Página web IA',
+              desc: 'Sitio web elegante generado automáticamente con tus servicios, precios y chat de IA integrado.',
+              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>)
+            },
+            {
+              n: '06', title: 'Agendamiento automático',
+              desc: 'Calendario conectado al agente. Tus clientes reservan citas solos — sin mensajes ni llamadas manuales.',
+              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>)
+            },
           ].map((f, i) => (
             <div key={i} className="feat-cell" style={{ padding: '48px 40px', borderRight: i % 3 !== 2 ? '1px solid #141414' : 'none', borderBottom: i < 3 ? '1px solid #141414' : 'none', position: 'relative', background: 'transparent' }}>
-              {/* Número decorativo */}
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 88, color: G, opacity: 0.06, position: 'absolute', top: -8, right: 24, lineHeight: 1 }}>{f.n}</div>
-              <div style={{ fontSize: 34, marginBottom: 20 }}>{f.icon}</div>
+              <div style={{ marginBottom: 24, opacity: 0.85 }}>{f.svg}</div>
               <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, marginBottom: 14, color: '#E8E8E8', lineHeight: 1.2 }}>{f.title}</h3>
               <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#3A3A3A', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{f.desc}</p>
             </div>
