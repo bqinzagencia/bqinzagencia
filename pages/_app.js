@@ -2,8 +2,17 @@
 import '../styles/globals.css';
 import { AuthProvider } from '../lib/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
+
+// Carga dinamica para evitar SSR del localStorage
+const ModalBienvenida = dynamic(() => import('../components/ModalBienvenida'), { ssr: false });
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+  // Solo mostrar en la pagina principal
+  const esPaginaPrincipal = router.pathname === '/';
+
   return (
     <AuthProvider>
       <Toaster
@@ -21,6 +30,7 @@ export default function App({ Component, pageProps }) {
         }}
       />
       <Component {...pageProps} />
+      {esPaginaPrincipal && <ModalBienvenida />}
     </AuthProvider>
   );
 }

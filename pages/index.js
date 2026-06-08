@@ -30,7 +30,7 @@ const PLANES = [
 // Tipografía: Abril Fatface (display) · Fraunces (editorial) · Plus Jakarta Sans (cuerpo)
 
 export default function Landing() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -160,14 +160,14 @@ export default function Landing() {
           ))}
         </div>
 
-        {user ? (
+        {!loading && (user ? (
           <Link href="/dashboard"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Panel →</button></Link>
         ) : (
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <Link href="/auth/login"><span style={{ color: '#555', fontSize: 13, cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#555'}>Ingresar</span></Link>
             <Link href="/auth/register"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Empezar gratis</button></Link>
           </div>
-        )}
+        ))}
       </nav>
 
       {/* ── HERO ───────────────────────────────────────────────────────────────── */}
