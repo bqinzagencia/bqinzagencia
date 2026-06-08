@@ -8,11 +8,8 @@ export default function ModalBienvenida() {
   const videoRef = useRef(null);
 
   useEffect(() => {
-    const yaVio = localStorage.getItem('agenciame_bienvenida_v2');
-    if (!yaVio) {
-      const t = setTimeout(() => setVisible(true), 800);
-      return () => clearTimeout(t);
-    }
+    const t = setTimeout(() => setVisible(true), 800);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
@@ -49,10 +46,7 @@ export default function ModalBienvenida() {
   const cerrar = () => {
     setCerrado(true);
     if (videoRef.current) videoRef.current.pause();
-    setTimeout(() => {
-      setVisible(false);
-      localStorage.setItem('agenciame_bienvenida_v2', '1');
-    }, 350);
+    setTimeout(() => setVisible(false), 350);
   };
 
   if (!visible) return null;
