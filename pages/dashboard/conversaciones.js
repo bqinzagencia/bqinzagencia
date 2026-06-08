@@ -61,7 +61,9 @@ export default function Conversaciones() {
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {filtradas.length === 0 ? (
                 <div style={{ padding: 32, textAlign: 'center', color: 'var(--gray5)' }}>
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.5" strokeLinecap="round" style={{margin:'0 auto 10px',display:'block'}}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <div style={{ width:56, height:56, borderRadius:12, overflow:'hidden', margin:'0 auto 12px', border:'2px solid rgba(37,99,235,0.3)' }}>
+                    <img src="https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=112&q=80" alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  </div>
                   <p style={{ fontSize: 14 }}>Sin conversaciones aún</p>
                   <p style={{ fontSize: 12, marginTop: 4, lineHeight: 1.5 }}>Tu agente IA registrará las conversaciones cuando los clientes contacten</p>
                 </div>
@@ -182,7 +184,9 @@ export default function Conversaciones() {
               </>
             ) : (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, color: 'var(--gray5)' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <div style={{ width:72, height:72, borderRadius:14, overflow:'hidden', border:'2px solid rgba(37,99,235,0.3)' }}>
+                  <img src="https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=144&q=80" alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                </div>
                 <p style={{ fontWeight: 600, fontSize: 16 }}>Selecciona una conversación</p>
                 <p style={{ fontSize: 13 }}>Haz clic en un chat para verlo</p>
               </div>

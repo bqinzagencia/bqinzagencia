@@ -8,6 +8,15 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import { getAgentes, crearAgente, updateAgente, deleteAgente } from '../../lib/firebase';
 import { CANALES, PLANES } from '../../lib/utils';
 
+// Fotos reales por tipo de agente
+const TIPO_FOTOS = {
+  ventas:   'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=80&q=80',
+  atencion: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=80&q=80',
+  agenda:   'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=80&q=80',
+  soporte:  'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=80&q=80',
+  info:     'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=80&q=80',
+};
+
 const TIPOS_AGENTE = [
   { value: 'ventas',   label: 'Ventas',             desc: 'Captura leads, cotiza y cierra ventas' },
   { value: 'atencion', label: 'Atención al cliente',  desc: 'Responde preguntas y resuelve dudas' },
@@ -112,10 +121,10 @@ export default function Agentes() {
 
         {/* Agents grid */}
         {agentes.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--gray1)', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.1)' }}>
-            <div style={{ fontSize: 56, marginBottom: 16, display:'flex', justifyContent:'center' }}>
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M15 3.5a3 3 0 0 1 0 5"/></svg>
-          </div>
+          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--gray1)', borderRadius: 16, border: '1px dashed rgba(37,99,235,0.2)' }}>
+            <div style={{ width:80, height:80, borderRadius:16, overflow:'hidden', margin:'0 auto 20px', border:'2px solid rgba(37,99,235,0.3)' }}>
+              <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=160&q=80" alt="Agente IA" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+            </div>
             <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Crea tu primer agente IA</h3>
             <p style={{ color: 'var(--gray5)', marginBottom: 24, maxWidth: 400, margin: '0 auto 24px' }}>Tu agente aprenderá sobre tu negocio y atenderá clientes automáticamente por WhatsApp, web y más canales.</p>
             <button className="btn btn-accent btn-lg" onClick={openNew}>Crear mi primer agente →</button>
@@ -126,8 +135,8 @@ export default function Agentes() {
               <div key={ag.id} style={{ background: 'var(--gray1)', border: `1px solid ${ag.activo ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 16, padding: 24, transition: 'all 0.2s' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: ag.activo ? 'rgba(26,86,255,0.1)' : 'var(--gray2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={ag.activo ? '#1A56FF' : '#6B7280'} strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M15 3.5a3 3 0 0 1 0 5"/></svg>
+            <div style={{ width: 44, height: 44, borderRadius: 12, overflow:'hidden', flexShrink:0, border:`1.5px solid ${ag.activo ? 'rgba(37,99,235,0.5)' : 'rgba(255,255,255,0.1)'}` }}>
+                      <img src={TIPO_FOTOS[ag.tipo] || TIPO_FOTOS.info} alt={ag.tipo} style={{ width:'100%', height:'100%', objectFit:'cover', opacity: ag.activo ? 1 : 0.5 }} />
                     </div>
                     <div>
                       <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16 }}>{ag.nombre}</div>
@@ -184,9 +193,14 @@ export default function Agentes() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {TIPOS_AGENTE.map(t => (
                     <button key={t.value} onClick={() => setForm({...form, tipo: t.value})}
-                      style={{ background: form.tipo === t.value ? 'rgba(0,229,160,0.1)' : 'var(--gray2)', border: `1px solid ${form.tipo === t.value ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10, padding: '10px 12px', cursor: 'pointer', color: form.tipo === t.value ? 'var(--accent)' : 'var(--gray6)', fontSize: 13, textAlign: 'left' }}>
-                      <div style={{ fontWeight: 600 }}>{t.label}</div>
-                      <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>{t.desc}</div>
+                      style={{ background: form.tipo === t.value ? 'rgba(37,99,235,0.12)' : 'var(--gray2)', border: `1px solid ${form.tipo === t.value ? '#2563EB' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10, padding: '10px 12px', cursor: 'pointer', color: form.tipo === t.value ? '#60A5FA' : 'var(--gray6)', fontSize: 13, textAlign: 'left', display:'flex', alignItems:'center', gap:10 }}>
+                      <div style={{ width:32, height:32, borderRadius:7, overflow:'hidden', flexShrink:0, border:`1px solid ${form.tipo === t.value ? 'rgba(37,99,235,0.5)' : 'rgba(255,255,255,0.1)'}` }}>
+                        <img src={TIPO_FOTOS[t.value]} alt={t.label} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{t.label}</div>
+                        <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>{t.desc}</div>
+                      </div>
                     </button>
                   ))}
                 </div>

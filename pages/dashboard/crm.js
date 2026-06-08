@@ -97,8 +97,10 @@ export default function CRM() {
 
         {/* Table */}
         {filtrados.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--gray1)', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.1)' }}>
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.2" strokeLinecap="round" style={{margin:'0 auto 16px',display:'block'}}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--gray1)', borderRadius: 16, border: '1px dashed rgba(37,99,235,0.2)' }}>
+            <div style={{ width:80, height:80, borderRadius:16, overflow:'hidden', margin:'0 auto 20px', border:'2px solid rgba(37,99,235,0.3)' }}>
+              <img src="https://images.unsplash.com/photo-1556745757-8d76bdb6984b?w=160&q=80" alt="CRM" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+            </div>
             <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Sin contactos aún</h3>
             <p style={{ color: 'var(--gray5)', marginBottom: 20 }}>Tu agente IA agregará contactos automáticamente, o puedes crearlos manualmente.</p>
             <button className="btn btn-accent" onClick={() => setShowModal(true)}>Agregar primer contacto</button>

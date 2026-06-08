@@ -91,8 +91,10 @@ export default function Agenda() {
 
         {/* Citas list */}
         {(vista === 'hoy' ? citasHoy : citas).length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--gray1)', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.1)' }}>
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" strokeWidth="1.2" strokeLinecap="round" style={{margin:'0 auto 16px',display:'block'}}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--gray1)', borderRadius: 16, border: '1px dashed rgba(37,99,235,0.2)' }}>
+            <div style={{ width:80, height:80, borderRadius:16, overflow:'hidden', margin:'0 auto 20px', border:'2px solid rgba(37,99,235,0.3)' }}>
+              <img src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=160&q=80" alt="Agenda" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+            </div>
             <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{vista === 'hoy' ? 'Sin citas para hoy' : 'Sin citas agendadas'}</h3>
             <p style={{ color: 'var(--gray5)', marginBottom: 20 }}>Tu agente IA agendará citas automáticamente cuando los clientes lo soliciten.</p>
             <button className="btn btn-accent" onClick={() => setShowModal(true)}>Agendar primera cita</button>

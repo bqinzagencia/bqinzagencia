@@ -63,11 +63,11 @@ export default function DashboardLayout({ children, title }) {
           transition: all 0.15s; border: 1px solid transparent;
           cursor: pointer; background: none; width: 100%; text-align: left;
         }
-        .sb-item:hover { background: rgba(255,255,255,0.05); color: #D1D5DB; border-color: rgba(255,255,255,0.05); }
-        .sb-item.active { background: rgba(0,229,160,0.08); color: #F9FAFB; border-color: rgba(0,229,160,0.15); }
-        .sb-thumb { width: 26px; height: 26px; border-radius: 6px; object-fit: cover; flex-shrink: 0; opacity: 0.65; transition: opacity 0.15s; }
-        .sb-item:hover .sb-thumb, .sb-item.active .sb-thumb { opacity: 1; }
-        .sb-active-dot { width: 5px; height: 5px; border-radius: 50%; background: #00E5A0; flex-shrink: 0; margin-left: auto; }
+        .sb-item:hover { background: rgba(37,99,235,0.08); color: #C8D4E8; border-color: rgba(37,99,235,0.15); }
+        .sb-item.active { background: rgba(37,99,235,0.15); color: #F0F4FF; border-color: rgba(37,99,235,0.3); }
+        .sb-thumb { width: 28px; height: 28px; border-radius: 7px; object-fit: cover; flex-shrink: 0; opacity: 0.65; transition: opacity 0.15s; border: 1px solid rgba(255,255,255,0.08); }
+        .sb-item:hover .sb-thumb, .sb-item.active .sb-thumb { opacity: 1; border-color: rgba(37,99,235,0.4); }
+        .sb-active-dot { width: 5px; height: 5px; border-radius: 50%; background: #2563EB; flex-shrink: 0; margin-left: auto; box-shadow: 0 0 6px rgba(37,99,235,0.7); }
         .sb-logout { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; font-family:'Inter',system-ui,sans-serif; font-size:13px; font-weight:500; color:#EF4444; background:none; border:1px solid transparent; cursor:pointer; width:100%; transition:all 0.15s; }
         .sb-logout:hover { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.15); }
         .db-topbar { font-family:'Inter',system-ui,sans-serif; font-size:17px; font-weight:700; letter-spacing:-0.4px; color:#F9FAFB; }
@@ -79,8 +79,8 @@ export default function DashboardLayout({ children, title }) {
         {/* SIDEBAR */}
         <aside style={{
           width: collapsed ? 58 : 228,
-          background: '#090C11',
-          borderRight: '1px solid rgba(255,255,255,0.05)',
+          background: '#0F1623',
+          borderRight: '1px solid rgba(37,99,235,0.12)',
           display: 'flex', flexDirection: 'column',
           transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
           flexShrink: 0, position: 'sticky',
