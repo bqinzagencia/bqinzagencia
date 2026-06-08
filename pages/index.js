@@ -8,11 +8,15 @@ const INDUSTRIES = [
   { icon: '🔧', title: 'Talleres & Mecánica', desc: 'Agenda citas, historial y presupuestos automáticos.', slug: 'taller', color: '#FF6B35', img: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=600&q=80' },
   { icon: '✂️', title: 'Peluquerías & Spa', desc: 'Reservas 24/7 y portafolio de servicios.', slug: 'peluqueria', color: '#FF4D8B', img: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80' },
   { icon: '🏠', title: 'Inmobiliarias', desc: 'Filtra leads y agenda visitas con IA.', slug: 'inmobiliaria', color: '#4D94FF', img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80' },
-  { icon: '🍕', title: 'Restaurantes', desc: 'Pedidos por WhatsApp y reservas de mesas.', slug: 'restaurante', color: '#FFB830', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80' },
-  { icon: '🛒', title: 'Tiendas & Retail', desc: 'Catálogo digital y asistente de ventas.', slug: 'tienda', color: '#30D988', img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80' },
+  { icon: '🍽️', title: 'Restaurantes', desc: 'Reservas, menu digital y domicilios por WhatsApp.', slug: 'restaurante', color: '#FFB830', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80' },
+  { icon: '🏠🍲', title: 'Restaurante de Barrio', desc: 'Menu diario con fotos, domicilios y pedidos por WhatsApp.', slug: 'restaurante_barrio', color: '#E85D04', img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80' },
+  { icon: '🛒', title: 'Tiendas & Retail', desc: 'Catálogo digital, ventas y domicilios.', slug: 'tienda', color: '#30D988', img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80' },
   { icon: '🏋️', title: 'Gimnasios & Fitness', desc: 'Inscripciones, clases y pagos automáticos.', slug: 'gimnasio', color: '#B8FF6C', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80' },
   { icon: '🏥', title: 'Salud & Clínicas', desc: 'Agenda médica y pre-triage por chat.', slug: 'salud', color: '#00D4FF', img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=80' },
-  { icon: '📋', title: 'Servicios & Papelerías', desc: 'Cotizaciones automáticas y seguimiento.', slug: 'papeleria', color: '#C77DFF', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80' },
+  { icon: '♟️', title: 'Escuelas de Ajedrez', desc: 'Clases niños/adultos, torneos, libros y clases virtuales.', slug: 'ajedrez', color: '#C0962C', img: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=600&q=80' },
+  { icon: '🏗️', title: 'Arquitectura & Construcción', desc: 'Diseño, construcción, renders y consultoría de proyectos.', slug: 'arquitectura', color: '#B5A16E', img: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&q=80' },
+  { icon: '📋', title: 'Servicios & Papelerías', desc: 'Cotizaciones automáticas y seguimiento de pedidos.', slug: 'papeleria', color: '#C77DFF', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80' },
+  { icon: '🎯', title: 'Deporte & Entrenamientos', desc: 'Clases, torneos, inscripciones y seguimiento deportivo.', slug: 'gimnasio', color: '#FF4D6D', img: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80' },
 ];
 
 const PLANES = [
@@ -244,17 +248,30 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Grid fotos reales 4x2 */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
           {INDUSTRIES.map((ind, i) => (
             <Link key={i} href={'/industrias/' + ind.slug}>
-              <div className="ind-wrap" style={{ height: 300, borderRight: i % 4 !== 3 ? '1px solid #141414' : 'none', borderBottom: i < 4 ? '1px solid #141414' : 'none' }}>
+              <div className="ind-wrap" style={{ height: 280, borderRight: i % 4 !== 3 ? '1px solid #141414' : 'none', borderBottom: i < 8 ? '1px solid #141414' : 'none' }}>
                 <img className="ind-img" src={ind.img} alt={ind.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
                 <div className="ind-overlay" />
                 <div className="ind-bar" style={{ background: ind.color }} />
                 {/* Contenido */}
                 <div style={{ position: 'absolute', inset: 0, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                  <div style={{ fontSize: 28, marginBottom: 10 }}>{ind.icon}</div>
+                  {/* Icono SVG profesional segun industria */}
+                  <div style={{ marginBottom: 10, opacity: 0.9 }}>
+                    {ind.slug === 'taller' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
+                    {ind.slug === 'peluqueria' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>}
+                    {ind.slug === 'inmobiliaria' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
+                    {ind.slug === 'restaurante' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>}
+                    {ind.slug === 'restaurante_barrio' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>}
+                    {ind.slug === 'tienda' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>}
+                    {ind.slug === 'gimnasio' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h-5"/><path d="M6 8h5"/><line x1="8" y1="4" x2="8" y2="20"/><line x1="16" y1="4" x2="16" y2="20"/><path d="M21 12h-3"/><path d="M3 12h3"/></svg>}
+                    {ind.slug === 'salud' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>}
+                    {ind.slug === 'ajedrez' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M8 6v2c0 1.1-.9 2-2 2H5l1 10h12l1-10h-1c-1.1 0-2-.9-2-2V6"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
+                    {ind.slug === 'arquitectura' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>}
+                    {ind.slug === 'papeleria' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>}
+                    {(ind.slug !== 'taller' && ind.slug !== 'peluqueria' && ind.slug !== 'inmobiliaria' && ind.slug !== 'restaurante' && ind.slug !== 'restaurante_barrio' && ind.slug !== 'tienda' && ind.slug !== 'gimnasio' && ind.slug !== 'salud' && ind.slug !== 'ajedrez' && ind.slug !== 'arquitectura' && ind.slug !== 'papeleria') && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>}
+                  </div>
                   <h3 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 22, fontWeight: 400, color: '#fff', marginBottom: 6, lineHeight: 1.1 }}>{ind.title}</h3>
                   <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, fontWeight: 300 }}>{ind.desc}</p>
                 </div>
