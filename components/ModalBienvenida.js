@@ -32,6 +32,17 @@ export default function ModalBienvenida() {
     return () => clearTimeout(t);
   }, []);
 
+  // Detectar si el navegador revierte el mute automaticamente
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onVolumeChange = () => {
+      setAudioActivo(!vid.muted && vid.volume > 0);
+    };
+    vid.addEventListener('volumechange', onVolumeChange);
+    return () => vid.removeEventListener('volumechange', onVolumeChange);
+  }, []);
+
   // Rotar stats cada 2s
   useEffect(() => {
     if (!visible) return;
@@ -49,11 +60,26 @@ export default function ModalBienvenida() {
   const iniciarConAudio = () => {
     const vid = videoRef.current;
     if (!vid) return;
-    setIniciado(true);
+    // Primero quitar mute, luego play — orden crítico para el navegador
     vid.muted = false;
-    vid.play()
-      .then(() => setAudioActivo(true))
-      .catch(() => { vid.muted = true; vid.play().catch(()=>{}); setAudioActivo(false); });
+    vid.volume = 1;
+    const p = vid.play();
+    if (p !== undefined) {
+      p.then(() => {
+        // Si el navegador revirtió el mute, detectarlo
+        if (vid.muted) {
+          setAudioActivo(false);
+        } else {
+          setAudioActivo(true);
+        }
+      }).catch(() => {
+        // Fallback: reproducir con mute y mostrar icono apagado
+        vid.muted = true;
+        vid.play().catch(() => {});
+        setAudioActivo(false);
+      });
+    }
+    setIniciado(true);
   };
 
   const toggleAudio = () => {
