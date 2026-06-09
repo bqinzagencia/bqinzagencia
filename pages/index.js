@@ -17,6 +17,8 @@ const INDUSTRIES = [
   { icon: '🏗️', title: 'Arquitectura & Construcción', desc: 'Diseño, construcción, renders y consultoría de proyectos.', slug: 'arquitectura', color: '#B5A16E', img: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&q=80' },
   { icon: '📋', title: 'Servicios & Papelerías', desc: 'Cotizaciones automáticas y seguimiento de pedidos.', slug: 'papeleria', color: '#C77DFF', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80' },
   { icon: '🎯', title: 'Deporte & Entrenamientos', desc: 'Clases, torneos, inscripciones y seguimiento deportivo.', slug: 'gimnasio', color: '#FF4D6D', img: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80' },
+  { icon: '🛃', title: 'Agencias de Aduana', desc: 'Seguimiento de declaraciones, aranceles y estado de mercancias en puerto.', slug: 'aduana', color: '#0EA5E9', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80' },
+  { icon: '🚢', title: 'Operadoras Portuarias', desc: 'Contenedores, ETA de buques, bodegaje y coordinacion con navieras.', slug: 'portuaria', color: '#0F766E', img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
 ];
 
 const PLANES = [
