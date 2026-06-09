@@ -6,7 +6,6 @@ import { INDUSTRIAS_DETALLE, SLUGS_VALIDOS } from '../../lib/industriasData';
 import { Logo } from '../index';
 import { useAuth } from '../../lib/AuthContext';
 
-// ── Fotos reales por industria — sin emojis ─────────────────────────────────
 const INDUSTRY_PHOTOS = {
   taller: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=160&q=90',
   peluqueria: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=160&q=90',
@@ -22,7 +21,6 @@ const INDUSTRY_PHOTOS = {
   deporte: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=160&q=90',
 };
 
-// ── Fotos reales para cada función (6 por industria) ────────────────────────
 const FUNCTION_PHOTOS = {
   taller: [
     'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=80&q=80',
@@ -114,74 +112,91 @@ const FUNCTION_PHOTOS = {
   ],
 };
 
-export async function getStaticPaths() {
-  return {
-    paths: SLUGS_VALIDOS.map(slug => ({ params: { slug } })),
-    fallback: false,
-  };
-}
+const CSS = `
+  *,-webkit-font-smoothing:antialiased,-moz-osx-font-smoothing:grayscale;
+  html,body{background:#0F1623;color:#F0F4FF;font-family:'Inter',system-ui,sans-serif;}
+  .ip *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-feature-settings:'kern' 1;}
+  .ih1{font-family:'Inter',system-ui,sans-serif;font-weight:800;letter-spacing:-0.04em;line-height:1.1;color:#F0F4FF;font-synthesis:none;}
+  .ih2{font-family:'Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-0.03em;line-height:1.2;color:#F0F4FF;font-synthesis:none;}
+  .ih3{font-family:'Inter',system-ui,sans-serif;font-weight:600;letter-spacing:-0.01em;line-height:1.3;color:#9AAAC4;}
+  .ibody{font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.65;color:#C8D4E8;}
+  .ilabel{font-family:'Inter',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;display:block;}
+  .inav{font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:500;color:#9AAAC4;transition:color 0.15s;text-decoration:none;}
+  .inav:hover{color:#F0F4FF;}
+  .ibread{font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:500;color:#9AAAC4;text-decoration:none;}
+  .istat{font-family:'Inter',system-ui,sans-serif;font-weight:800;letter-spacing:-0.04em;line-height:1;font-synthesis:none;}
+  .ictitle{font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:16px;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:10px;margin:0 0 10px;}
+  .icdesc{font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#9AAAC4;line-height:1.65;margin:0;}
+  .icheck{font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;color:#C8D4E8;display:flex;align-items:center;gap:10px;}
+  .itesti{font-family:'Inter',system-ui,sans-serif;font-size:15px;font-style:italic;color:#C8D4E8;line-height:1.65;margin:0 0 20px;}
+  .ifl{font-family:'Inter',system-ui,sans-serif;font-size:13px;color:#6B7A99;text-decoration:none;transition:color 0.15s;}
+  .ifl:hover{color:#9AAAC4;}
+  .ichip{font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;color:#9AAAC4;display:flex;align-items:center;gap:8px;text-decoration:none;transition:all 0.2s;}
+  .isec{background:#141C2F;}
+  .icard{background:#0F1623;}
+`;
 
+export async function getStaticPaths() {
+  return { paths: SLUGS_VALIDOS.map(slug => ({ params: { slug } })), fallback: false };
+}
 export async function getStaticProps({ params }) {
-  const industria = INDUSTRIAS_DETALLE[params.slug] || null;
-  return { props: { industria } };
+  return { props: { industria: INDUSTRIAS_DETALLE[params.slug] || null } };
 }
 
 export default function IndustriaDetalle({ industria }) {
   const { user } = useAuth();
-
   if (!industria) return null;
-
   const { color, colorBg, colorBorder } = industria;
   const indPhoto = INDUSTRY_PHOTOS[industria.slug] || INDUSTRY_PHOTOS.taller;
   const funcPhotos = FUNCTION_PHOTOS[industria.slug] || FUNCTION_PHOTOS.taller;
+  const F = "'Inter', system-ui, sans-serif";
 
   return (
     <>
       <Head>
-        <title>{industria.nombre} — agencIAme Automatización IA</title>
+        <title>{industria.nombre} — agencIAme IA</title>
         <meta name="description" content={industria.descripcion} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
+      <style dangerouslySetInnerHTML={{__html: CSS}} />
 
       {/* NAV */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '18px 60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backdropFilter: 'blur(20px)', background: 'rgba(8,11,15,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <nav className="ip" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'0 60px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between',backdropFilter:'blur(20px)',background:'rgba(15,22,35,0.96)',borderBottom:'1px solid rgba(37,99,235,0.15)' }}>
         <Link href="/"><Logo size={22} /></Link>
-        <div style={{ display: 'flex', gap: 28 }}>
-          <Link href="/#empresas" style={{ color: '#9CA3AF', fontSize: 14, fontWeight: 500 }}>← Todas las empresas</Link>
-          <Link href="/#precios" style={{ color: '#9CA3AF', fontSize: 14 }}>Precios</Link>
+        <div style={{ display:'flex',gap:28,alignItems:'center' }}>
+          <Link href="/#empresas" className="inav">← Todas las empresas</Link>
+          <Link href="/#precios" className="inav">Precios</Link>
         </div>
-        {user ? (
-          <Link href="/dashboard" className="btn btn-accent btn-sm">Mi panel →</Link>
-        ) : (
-          <Link href="/auth/register" className="btn btn-accent btn-sm">Comenzar gratis</Link>
-        )}
+        {user
+          ? <Link href="/dashboard" className="btn btn-accent btn-sm">Mi panel →</Link>
+          : <Link href="/auth/register" className="btn btn-accent btn-sm">Comenzar gratis</Link>
+        }
       </nav>
 
       {/* HERO */}
-      <section style={{ minHeight: '75vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 60px 80px', position: 'relative', overflow: 'hidden' }}>
-        {/* Foto de fondo real de la industria */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(' + indPhoto.replace('w=160', 'w=1400') + ')', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.15) saturate(0.6)' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(8,11,15,0.97) 0%, rgba(8,11,15,0.7) 60%, rgba(8,11,15,0.5) 100%)' }} />
-        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse 70% 70% at 70% 40%, ${colorBg}, transparent)`, pointerEvents: 'none' }} />
+      <section className="ip" style={{ minHeight:'75vh',display:'flex',flexDirection:'column',justifyContent:'center',padding:'120px 60px 80px',position:'relative',overflow:'hidden' }}>
+        <div style={{ position:'absolute',inset:0,backgroundImage:`url(${indPhoto.replace('w=160','w=1400')})`,backgroundSize:'cover',backgroundPosition:'center',filter:'brightness(0.15) saturate(0.6)' }} />
+        <div style={{ position:'absolute',inset:0,background:'linear-gradient(135deg,rgba(15,22,35,0.98) 0%,rgba(15,22,35,0.75) 60%,rgba(15,22,35,0.5) 100%)' }} />
+        <div style={{ position:'absolute',inset:0,background:`radial-gradient(ellipse 70% 70% at 70% 40%,${colorBg},transparent)`,pointerEvents:'none' }} />
 
-        <div style={{ position: 'relative' }}>
+        <div style={{ position:'relative' }}>
           {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
-            <Link href="/#empresas" style={{ color: '#6B7280', fontSize: 13 }}>← Empresas</Link>
-            <span style={{ color: '#3A4150' }}>/</span>
-            <span style={{ color, fontSize: 13, fontWeight: 600 }}>{industria.nombre}</span>
+          <div style={{ display:'flex',alignItems:'center',gap:10,marginBottom:36 }}>
+            <Link href="/#empresas" className="ibread">← Empresas</Link>
+            <span style={{ color:'#3A4D6B',fontFamily:F }}>/ </span>
+            <span style={{ color,fontFamily:F,fontSize:13,fontWeight:700 }}>{industria.nombre}</span>
           </div>
 
-          {/* Foto real como ícono — NO emoji */}
-          <div style={{ width: 88, height: 88, borderRadius: 20, overflow: 'hidden', marginBottom: 28, border: `2px solid ${color}44`, boxShadow: `0 8px 32px ${color}22` }}>
-            <img src={indPhoto} alt={industria.nombre}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ width:88,height:88,borderRadius:20,overflow:'hidden',marginBottom:28,border:`2px solid ${color}44`,boxShadow:`0 8px 32px ${color}22` }}>
+            <img src={indPhoto} alt={industria.nombre} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
           </div>
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: colorBg, border: `1px solid ${colorBorder}`, color, padding: '6px 16px', borderRadius: 100, fontSize: 13, fontWeight: 600, marginBottom: 24 }}>
+          <span className="ilabel" style={{ display:'inline-flex',alignItems:'center',gap:8,background:colorBg,border:`1px solid ${colorBorder}`,color,padding:'6px 16px',borderRadius:100,marginBottom:24,fontSize:12 }}>
             IA para {industria.nombre}
-          </div>
+          </span>
 
-          <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(40px,5.5vw,72px)', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-2px', maxWidth: 760, marginBottom: 20, WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale' }}>
+          <h1 className="ih1" style={{ fontSize:'clamp(38px,5.5vw,72px)',maxWidth:760,marginBottom:20 }}>
             {industria.tagline.split(' ').map((w, i, arr) =>
               i >= arr.length - 2
                 ? <span key={i} style={{ color }}>{w}{i < arr.length - 1 ? ' ' : ''}</span>
@@ -189,105 +204,79 @@ export default function IndustriaDetalle({ industria }) {
             )}
           </h1>
 
-          <p style={{ fontSize: 18, color: '#9CA3AF', maxWidth: 580, lineHeight: 1.65, marginBottom: 48 }}>
-            {industria.descripcion}
-          </p>
+          <p className="ibody" style={{ fontSize:18,maxWidth:580,marginBottom:48 }}>{industria.descripcion}</p>
 
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 60 }}>
-            <Link href="/auth/register" className="btn btn-lg" style={{ background: color, color: '#080B0F', borderRadius: 100, fontWeight: 700, fontSize: 16, padding: '14px 32px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display:'flex',gap:16,flexWrap:'wrap',marginBottom:60 }}>
+            <Link href="/auth/register" style={{ background:color,color:'#080B0F',borderRadius:100,padding:'14px 32px',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,fontFamily:F,fontWeight:700,fontSize:16,letterSpacing:'0.01em' }}>
               Probar 14 días gratis →
             </Link>
             <a href="#flujo" className="btn btn-ghost btn-lg">Ver demo del chat</a>
           </div>
 
-          {/* Stats */}
-          <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
+          <div style={{ display:'flex',gap:48,flexWrap:'wrap' }}>
             {industria.heroStats.map((s, i) => (
               <div key={i}>
-                <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 36, fontWeight: 800, color, lineHeight: 1, WebkitFontSmoothing: 'antialiased' }}>{s.valor}</div>
-                <div style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>{s.label}</div>
+                <div className="istat" style={{ fontSize:36,color }}>{s.valor}</div>
+                <div style={{ fontFamily:F,fontSize:13,fontWeight:500,color:'#9AAAC4',marginTop:4 }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FUNCIONES — fotos reales como íconos */}
-      <section style={{ padding: '100px 60px', background: '#111318' }}>
-        <p style={{ color, fontSize: 13, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Funcionalidades</p>
-        <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(28px,4vw,48px)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 12, WebkitFontSmoothing: 'antialiased' }}>
-          Todo lo que necesitas<br />para tu {industria.nombre.toLowerCase()}
-        </h2>
-        <p style={{ color: '#9CA3AF', fontSize: 17, marginBottom: 60, maxWidth: 520 }}>
-          Funciones diseñadas específicamente para el día a día de tu negocio.
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 20 }}>
+      {/* FUNCIONES */}
+      <section className="ip isec" style={{ padding:'100px 60px' }}>
+        <span className="ilabel" style={{ color,marginBottom:12 }}>Funcionalidades</span>
+        <h2 className="ih2" style={{ fontSize:'clamp(28px,4vw,48px)',marginBottom:12 }}>Todo lo que necesitas<br />para tu {industria.nombre.toLowerCase()}</h2>
+        <p className="ibody" style={{ fontSize:17,marginBottom:60,maxWidth:520 }}>Funciones diseñadas específicamente para el día a día de tu negocio.</p>
+        <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:20 }}>
           {industria.funciones.map((f, i) => (
-            <div key={i} style={{ background: '#080B0F', border: `1px solid ${i === 0 ? colorBorder : 'rgba(255,255,255,0.06)'}`, borderRadius: 16, padding: 28, transition: 'all 0.25s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = colorBorder; e.currentTarget.style.transform = 'translateY(-4px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = i === 0 ? colorBorder : 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
-              {/* Foto real como ícono de función */}
-              <div style={{ width: 56, height: 56, borderRadius: 12, overflow: 'hidden', marginBottom: 18, border: `1px solid ${color}33` }}>
-                <img src={funcPhotos[i] || funcPhotos[0]} alt={f.titulo}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div key={i} className="icard" style={{ border:`1px solid ${i===0?colorBorder:'rgba(255,255,255,0.06)'}`,borderRadius:16,padding:28,transition:'all 0.25s',cursor:'default' }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=colorBorder;e.currentTarget.style.transform='translateY(-4px)';}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=i===0?colorBorder:'rgba(255,255,255,0.06)';e.currentTarget.style.transform='translateY(0)';}}>
+              <div style={{ width:56,height:56,borderRadius:12,overflow:'hidden',marginBottom:18,border:`1px solid ${color}33` }}>
+                <img src={funcPhotos[i]||funcPhotos[0]} alt={f.titulo} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
               </div>
-              <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 17, marginBottom: 10, WebkitFontSmoothing: 'antialiased' }}>{f.titulo}</div>
-              <div style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.65 }}>{f.desc}</div>
+              <p className="ictitle">{f.titulo}</p>
+              <p className="icdesc">{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CHAT DEMO */}
-      <section id="flujo" style={{ padding: '100px 60px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
+      <section id="flujo" className="ip" style={{ padding:'100px 60px',background:'#0F1623' }}>
+        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:60,alignItems:'center' }}>
           <div>
-            <p style={{ color, fontSize: 13, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Demo real</p>
-            <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(28px,3.5vw,44px)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 16, WebkitFontSmoothing: 'antialiased' }}>
-              Así habla tu agente IA con los clientes
-            </h2>
-            <p style={{ color: '#9CA3AF', fontSize: 16, lineHeight: 1.65, marginBottom: 32 }}>
-              Conversación real entre un cliente y el agente IA configurado para {industria.nombre.toLowerCase()}. Respuestas inteligentes, naturales y personalizadas.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Responde en menos de 2 segundos', 'Disponible los 7 días, 24 horas', 'Aprende de tu negocio específico', 'Escala a humano cuando es necesario'].map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#D1D5DB' }}>
-                  <span style={{ width: 20, height: 20, borderRadius: '50%', background: colorBg, border: `1px solid ${colorBorder}`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>✓</span>
+            <span className="ilabel" style={{ color,marginBottom:12 }}>Demo real</span>
+            <h2 className="ih2" style={{ fontSize:'clamp(28px,3.5vw,44px)',marginBottom:16 }}>Así habla tu agente IA con los clientes</h2>
+            <p className="ibody" style={{ fontSize:16,marginBottom:32 }}>Conversación real entre un cliente y el agente IA configurado para {industria.nombre.toLowerCase()}. Respuestas inteligentes y personalizadas.</p>
+            <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+              {['Responde en menos de 2 segundos','Disponible los 7 días, 24 horas','Aprende de tu negocio específico','Escala a humano cuando es necesario'].map((item,i) => (
+                <div key={i} className="icheck">
+                  <span style={{ width:20,height:20,borderRadius:'50%',background:colorBg,border:`1px solid ${colorBorder}`,color,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:700,flexShrink:0 }}>✓</span>
                   {item}
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Chat mockup — foto real en header */}
-          <div style={{ background: '#111318', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, overflow: 'hidden' }}>
-            <div style={{ background: '#25D366', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-              {/* Foto real en el avatar del chat */}
-              <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
-                <img src={indPhoto} alt={industria.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ background:'#141C2F',border:'1px solid rgba(37,99,235,0.15)',borderRadius:20,overflow:'hidden' }}>
+            <div style={{ background:'#25D366',padding:'14px 20px',display:'flex',alignItems:'center',gap:12 }}>
+              <div style={{ width:40,height:40,borderRadius:'50%',overflow:'hidden',flexShrink:0 }}>
+                <img src={indPhoto} alt={industria.nombre} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
               </div>
               <div>
-                <div style={{ fontWeight: 700, color: '#fff', fontSize: 14 }}>Agente IA — {industria.nombre}</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>● En línea ahora</div>
+                <div style={{ fontFamily:F,fontWeight:700,color:'#fff',fontSize:14 }}>Agente IA — {industria.nombre}</div>
+                <div style={{ fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.8)' }}>● En línea ahora</div>
               </div>
             </div>
-            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12, background: '#0a1628', minHeight: 340 }}>
-              {industria.flujoChat.map((msg, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: msg.rol === 'agente' ? 'flex-start' : 'flex-end' }}>
-                  <div style={{
-                    maxWidth: '78%',
-                    background: msg.rol === 'agente' ? '#1F2C34' : '#005C4B',
-                    borderRadius: msg.rol === 'agente' ? '0 12px 12px 12px' : '12px 0 12px 12px',
-                    padding: '10px 14px', fontSize: 13, lineHeight: 1.5,
-                    color: '#E9EDEF', whiteSpace: 'pre-line',
-                  }}>
-                    {msg.rol === 'agente' && (
-                      <div style={{ fontSize: 10, color: '#00E5A0', fontWeight: 700, marginBottom: 4 }}>AGENTE IA</div>
-                    )}
+            <div style={{ padding:20,display:'flex',flexDirection:'column',gap:12,background:'#0a1628',minHeight:340 }}>
+              {industria.flujoChat.map((msg,i) => (
+                <div key={i} style={{ display:'flex',justifyContent:msg.rol==='agente'?'flex-start':'flex-end' }}>
+                  <div style={{ maxWidth:'78%',background:msg.rol==='agente'?'#1F2C34':'#005C4B',borderRadius:msg.rol==='agente'?'0 12px 12px 12px':'12px 0 12px 12px',padding:'10px 14px',fontFamily:F,fontSize:13,lineHeight:1.5,color:'#E9EDEF',whiteSpace:'pre-line' }}>
+                    {msg.rol==='agente' && <div style={{ fontSize:10,color:'#22D3EE',fontWeight:700,marginBottom:4,letterSpacing:'0.08em' }}>AGENTE IA</div>}
                     {msg.texto}
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 4, textAlign: 'right' }}>
-                      {['9:14','9:15','9:15','9:16','9:16','9:16'][i]} ✓✓
-                    </div>
+                    <div style={{ fontSize:10,color:'rgba(255,255,255,0.35)',marginTop:4,textAlign:'right' }}>{['9:14','9:15','9:15','9:16','9:16','9:16'][i]} ✓✓</div>
                   </div>
                 </div>
               ))}
@@ -296,45 +285,35 @@ export default function IndustriaDetalle({ industria }) {
         </div>
       </section>
 
-      {/* CASOS DE ÉXITO */}
-      <section style={{ padding: '100px 60px', background: '#111318' }}>
-        <p style={{ color, fontSize: 13, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Resultados reales</p>
-        <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(28px,3.5vw,44px)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 48, WebkitFontSmoothing: 'antialiased' }}>
-          Negocios que ya lo están usando
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 20 }}>
-          {industria.casos.map((caso, i) => (
-            <div key={i} style={{ background: '#080B0F', border: `1px solid ${colorBorder}`, borderRadius: 16, padding: 28 }}>
-              <div style={{ color: '#F59E0B', fontSize: 14, marginBottom: 16, letterSpacing: 2 }}>★★★★★</div>
-              <p style={{ fontSize: 15, color: '#D1D5DB', lineHeight: 1.65, marginBottom: 20, fontStyle: 'italic' }}>
-                "{caso.resultado}"
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: colorBg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 }}>
-                  {caso.nombre.charAt(0)}
-                </div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{caso.nombre}</div>
+      {/* CASOS */}
+      <section className="ip isec" style={{ padding:'100px 60px' }}>
+        <span className="ilabel" style={{ color,marginBottom:12 }}>Resultados reales</span>
+        <h2 className="ih2" style={{ fontSize:'clamp(28px,3.5vw,44px)',marginBottom:48 }}>Negocios que ya lo están usando</h2>
+        <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:20 }}>
+          {industria.casos.map((caso,i) => (
+            <div key={i} className="icard" style={{ border:`1px solid ${colorBorder}`,borderRadius:16,padding:28 }}>
+              <div style={{ color:'#F59E0B',fontSize:14,marginBottom:16,letterSpacing:2 }}>★★★★★</div>
+              <p className="itesti">"{caso.resultado}"</p>
+              <div style={{ display:'flex',alignItems:'center',gap:10 }}>
+                <div style={{ width:36,height:36,borderRadius:10,background:colorBg,color,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:14,fontWeight:700 }}>{caso.nombre.charAt(0)}</div>
+                <div style={{ fontFamily:F,fontWeight:600,fontSize:14,color:'#F0F4FF' }}>{caso.nombre}</div>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* OTRAS EMPRESAS — fotos reales en los chips */}
-      <section style={{ padding: '80px 60px' }}>
-        <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 700, marginBottom: 32, color: '#9CA3AF' }}>
-          También tenemos soluciones para:
-        </h3>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {Object.values(INDUSTRIAS_DETALLE).filter(ind => ind.slug !== industria.slug).map(ind => (
-            <Link key={ind.slug} href={`/industrias/${ind.slug}`}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#111318', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: '8px 16px 8px 8px', fontSize: 14, color: '#9CA3AF', textDecoration: 'none', transition: 'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = ind.color + '44'; e.currentTarget.style.color = ind.color; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#9CA3AF'; }}>
-              {/* Foto real pequeña en el chip */}
-              <div style={{ width: 24, height: 24, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
-                <img src={INDUSTRY_PHOTOS[ind.slug] || INDUSTRY_PHOTOS.taller} alt={ind.nombre}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {/* OTRAS EMPRESAS */}
+      <section className="ip" style={{ padding:'80px 60px',background:'#0F1623' }}>
+        <h3 className="ih3" style={{ fontSize:18,marginBottom:28 }}>También tenemos soluciones para:</h3>
+        <div style={{ display:'flex',gap:12,flexWrap:'wrap' }}>
+          {Object.values(INDUSTRIAS_DETALLE).filter(ind=>ind.slug!==industria.slug).map(ind=>(
+            <Link key={ind.slug} href={`/industrias/${ind.slug}`} className="ichip"
+              style={{ background:'#141C2F',border:'1px solid rgba(255,255,255,0.08)',borderRadius:100,padding:'8px 16px 8px 8px' }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=ind.color+'44';e.currentTarget.style.color=ind.color;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.08)';e.currentTarget.style.color='#9AAAC4';}}>
+              <div style={{ width:24,height:24,borderRadius:'50%',overflow:'hidden',flexShrink:0 }}>
+                <img src={INDUSTRY_PHOTOS[ind.slug]||INDUSTRY_PHOTOS.taller} alt={ind.nombre} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
               </div>
               {ind.nombre}
             </Link>
@@ -342,43 +321,34 @@ export default function IndustriaDetalle({ industria }) {
         </div>
       </section>
 
-      {/* CTA FINAL — foto real de fondo */}
-      <section style={{ padding: '100px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(' + indPhoto.replace('w=160', 'w=1400') + ')', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.12)' }} />
-        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse 60% 80% at 50% 50%, ${colorBg}, transparent)` }} />
-
-        <div style={{ position: 'relative' }}>
-          {/* Foto real circular — NO emoji */}
-          <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', margin: '0 auto 20px', border: `3px solid ${color}55`, boxShadow: `0 8px 32px ${color}33` }}>
-            <img src={indPhoto} alt={industria.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {/* CTA FINAL */}
+      <section className="ip" style={{ padding:'100px 60px',textAlign:'center',position:'relative',overflow:'hidden' }}>
+        <div style={{ position:'absolute',inset:0,backgroundImage:`url(${indPhoto.replace('w=160','w=1400')})`,backgroundSize:'cover',backgroundPosition:'center',filter:'brightness(0.12)' }} />
+        <div style={{ position:'absolute',inset:0,background:`radial-gradient(ellipse 60% 80% at 50% 50%,${colorBg},transparent)` }} />
+        <div style={{ position:'relative' }}>
+          <div style={{ width:80,height:80,borderRadius:'50%',overflow:'hidden',margin:'0 auto 20px',border:`3px solid ${color}55`,boxShadow:`0 8px 32px ${color}33` }}>
+            <img src={indPhoto} alt={industria.nombre} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
           </div>
-
-          <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(36px,4.5vw,60px)', fontWeight: 800, letterSpacing: '-2px', lineHeight: 1.1, marginBottom: 20, WebkitFontSmoothing: 'antialiased' }}>
+          <h2 className="ih2" style={{ fontSize:'clamp(36px,4.5vw,60px)',marginBottom:20 }}>
             ¿Listo para automatizar<br />tu <span style={{ color }}>{industria.nombre.toLowerCase()}?</span>
           </h2>
-          <p style={{ color: '#9CA3AF', fontSize: 18, marginBottom: 44 }}>
-            14 días gratis · Sin tarjeta de crédito · Configuración en minutos
-          </p>
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/auth/register" className="btn btn-lg" style={{ background: color, color: '#080B0F', borderRadius: 100, fontWeight: 700, fontSize: 16, padding: '14px 36px', textDecoration: 'none' }}>
-              Crear mi cuenta gratis →
-            </Link>
-            <a href="mailto:soportesistemas@soporteia.net" className="btn btn-ghost btn-lg">
-              Hablar con un asesor
-            </a>
+          <p className="ibody" style={{ fontSize:18,marginBottom:44 }}>14 días gratis · Sin tarjeta de crédito · Configuración en minutos</p>
+          <div style={{ display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap' }}>
+            <Link href="/auth/register" style={{ background:color,color:'#080B0F',borderRadius:100,fontFamily:F,fontWeight:700,fontSize:16,padding:'14px 36px',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8 }}>Crear mi cuenta gratis →</Link>
+            <a href="mailto:soportesistemas@soporteia.net" className="btn btn-ghost btn-lg">Hablar con un asesor</a>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '32px 60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+      <footer className="ip" style={{ borderTop:'1px solid rgba(37,99,235,0.12)',padding:'32px 60px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:16,background:'#0F1623' }}>
         <Logo size={20} />
-        <div style={{ display: 'flex', gap: 24 }}>
-          <Link href="/" style={{ color: '#6B7280', fontSize: 13 }}>Inicio</Link>
-          <Link href="/#precios" style={{ color: '#6B7280', fontSize: 13 }}>Precios</Link>
-          <Link href="/auth/register" style={{ color: '#6B7280', fontSize: 13 }}>Registrarse</Link>
+        <div style={{ display:'flex',gap:24 }}>
+          <Link href="/" className="ifl">Inicio</Link>
+          <Link href="/#precios" className="ifl">Precios</Link>
+          <Link href="/auth/register" className="ifl">Registrarse</Link>
         </div>
-        <span style={{ color: '#3A4150', fontSize: 12 }}>© 2026 agencIAme by NexoTI · Cali, Colombia 🇨🇴</span>
+        <span style={{ fontFamily:F,color:'#3A4D6B',fontSize:12 }}>© 2026 agencIAme by NexoTI · Cali, Colombia</span>
       </footer>
     </>
   );
