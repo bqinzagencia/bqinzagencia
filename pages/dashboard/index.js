@@ -104,12 +104,12 @@ const STAT_IMGS = {
 };
 
 const GUIDE_STEPS = [
-  { step: '01', href: '/dashboard/agentes',      title: 'Crea tu Agente IA',        desc: 'Entrena tu primer agente con los servicios y precios de tu negocio. Responderá clientes 24/7.',              color: '#00E5A0', icon: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
-  { step: '02', href: '/dashboard/conocimiento', title: 'Base de conocimiento',      desc: 'Agrega servicios, tarifas, horarios y FAQs. Tu agente usará esta información en cada conversación.',        color: '#3B82F6', icon: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></> },
+  { step: '01', href: '/dashboard/agentes',      title: 'Crea tu Agente IA',        desc: 'Entrena tu primer agente con los servicios y precios de tu negocio. Responderá clientes 24/7.',              color: '#2B6AFF', icon: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
+  { step: '02', href: '/dashboard/conocimiento', title: 'Base de conocimiento',      desc: 'Agrega servicios, tarifas, horarios y FAQs. Tu agente usará esta información en cada conversación.',        color: '#06B6D4', icon: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></> },
   { step: '03', href: '/dashboard/widget',       title: 'Instala el chat en tu web', desc: 'Copia el código widget y pégalo en tu sitio. Tus visitantes chatearán con la IA de inmediato.',             color: '#A78BFA', icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></> },
-  { step: '04', href: '/dashboard/agenda',       title: 'Activa el agendamiento',    desc: 'Configura tu calendario y deja que la IA agende citas automáticamente sin intervención.',                   color: '#F59E0B', icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></> },
-  { step: '05', href: '/dashboard/voz',          title: 'Configura Voz IA',          desc: 'Conecta tu número para que la IA conteste llamadas y confirme citas automáticamente.',                       color: '#F97316', icon: <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></> },
-  { step: '06', href: '/dashboard/web',          title: 'Publica tu página web',     desc: 'Activa tu micrositio con servicios, fotos y chat integrado. Incluido en todos los planes.',                  color: '#EC4899', icon: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></> },
+  { step: '04', href: '/dashboard/agenda',       title: 'Activa el agendamiento',    desc: 'Configura tu calendario y deja que la IA agende citas automáticamente sin intervención.',                   color: '#FF6B00', icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></> },
+  { step: '05', href: '/dashboard/voz',          title: 'Configura Voz IA',          desc: 'Conecta tu número para que la IA conteste llamadas y confirme citas automáticamente.',                       color: '#10B981', icon: <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></> },
+  { step: '06', href: '/dashboard/web',          title: 'Publica tu página web',     desc: 'Activa tu micrositio con servicios, fotos y chat integrado. Incluido en todos los planes.',                  color: '#8B5CF6', icon: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></> },
 ];
 
 export default function Dashboard() {
@@ -172,27 +172,27 @@ export default function Dashboard() {
       <Head><title>Dashboard — {empresa.nombreEmpresa} · agencIAme</title></Head>
       <style dangerouslySetInnerHTML={{__html:`
         .db-page { font-family:${F}; }
-        .db-card { background:#0C0F14; border:1px solid rgba(255,255,255,0.06); border-radius:12px; }
-        .db-stitle { font-family:${F}; font-size:14px; font-weight:600; color:#F9FAFB; letter-spacing:-0.1px; }
-        .db-stat-val { font-family:${F}; font-size:34px; font-weight:800; letter-spacing:-1px; line-height:1; }
-        .db-stat-lbl { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:#4B5563; font-family:${F}; }
-        .db-stat-sub { font-size:12px; color:#374151; margin-top:6px; font-family:${F}; }
-        .db-lnk { color:#00E5A0; font-size:12px; font-weight:500; text-decoration:none; font-family:${F}; }
-        .db-lnk:hover { text-decoration:underline; }
-        .db-gcard { background:#0C0F14; border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:18px; transition:border-color 0.2s,transform 0.2s; cursor:pointer; text-decoration:none; display:block; }
-        .db-gcard:hover { border-color:rgba(255,255,255,0.14); transform:translateY(-2px); }
-        .db-abtn { display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:500; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:#9CA3AF; text-decoration:none; transition:all 0.15s; font-family:${F}; }
-        .db-abtn:hover { background:rgba(255,255,255,0.07); color:#F9FAFB; border-color:rgba(255,255,255,0.14); }
-        .db-bconf { background:rgba(0,229,160,0.1); color:#00E5A0; border:1px solid rgba(0,229,160,0.2); border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; font-family:${F}; }
-        .db-bpend { background:rgba(245,158,11,0.1); color:#F59E0B; border:1px solid rgba(245,158,11,0.2); border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; font-family:${F}; }
-        .stat-img-wrap { width:38px; height:38px; border-radius:9px; overflow:hidden; flex-shrink:0; }
+        .db-card { background:#111827; border:1px solid rgba(255,255,255,0.07); border-radius:18px; }
+        .db-stitle { font-family:${F}; font-size:14px; font-weight:700; color:#EFF4FF; letter-spacing:-0.02em; }
+        .db-stat-val { font-family:${F}; font-size:36px; font-weight:900; letter-spacing:-0.04em; line-height:1; }
+        .db-stat-lbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#4B6080; font-family:${F}; }
+        .db-stat-sub { font-size:12px; color:#4B6080; margin-top:6px; font-family:${F}; }
+        .db-lnk { color:#2B6AFF; font-size:12px; font-weight:600; text-decoration:none; font-family:${F}; }
+        .db-lnk:hover { color:#6DA4FF; }
+        .db-gcard { background:#111827; border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:18px; transition:border-color 0.2s,transform 0.2s; cursor:pointer; text-decoration:none; display:block; }
+        .db-gcard:hover { border-color:rgba(43,106,255,0.28); transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,0,0,0.4); }
+        .db-abtn { display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:100px; font-size:13px; font-weight:600; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:#8A9BB5; text-decoration:none; transition:all 0.15s; font-family:${F}; }
+        .db-abtn:hover { background:rgba(43,106,255,0.09); color:#EFF4FF; border-color:rgba(43,106,255,0.22); }
+        .db-bconf { background:rgba(16,185,129,0.14); color:#34D399; border:1px solid rgba(16,185,129,0.22); border-radius:100px; padding:3px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; font-family:${F}; }
+        .db-bpend { background:rgba(245,158,11,0.14); color:#FBB040; border:1px solid rgba(245,158,11,0.22); border-radius:100px; padding:3px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; font-family:${F}; }
+        .stat-img-wrap { width:38px; height:38px; border-radius:10px; overflow:hidden; flex-shrink:0; }
         .stat-img-wrap img { width:100%; height:100%; object-fit:cover; }
       `}} />
 
       <div className="db-page">
 
         {/* ── Hero banner ── */}
-        <div style={{ position:'relative', borderRadius:16, overflow:'hidden', height:200, marginBottom:28 }}>
+        <div style={{ position:'relative', borderRadius:20, overflow:'hidden', height:200, marginBottom:28 }}>
           <img src={heroBg} alt={ind.label} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 40%' }} />
           <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,rgba(8,11,15,0.93) 0%,rgba(8,11,15,0.6) 55%,rgba(8,11,15,0.15) 100%)' }} />
           <div style={{ position:'relative', height:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 28px' }}>
@@ -208,7 +208,7 @@ export default function Dashboard() {
                 {new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
               </p>
             </div>
-            <Link href="/dashboard/agentes" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#00E5A0', color:'#080B0F', padding:'10px 22px', borderRadius:9, fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:F, boxShadow:'0 4px 20px rgba(0,229,160,0.3)', whiteSpace:'nowrap' }}>
+            <Link href="/dashboard/agentes" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#2B6AFF', color:'#fff', padding:'10px 22px', borderRadius:100, fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:F, boxShadow:'0 4px 20px rgba(43,106,255,0.4)', whiteSpace:'nowrap' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Nuevo Agente IA
             </Link>

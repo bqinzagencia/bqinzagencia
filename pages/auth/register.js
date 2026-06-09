@@ -221,9 +221,9 @@ export default function Register() {
         <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{__html:`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: ${BG}; color: #E8E8E8; font-family: 'Inter', system-ui, sans-serif;
+        body { background: ${BG}; color: #E8E8E8; font-family: Inter, system-ui, sans-serif;
           -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         input:focus { border-color: ${G} !important; outline: none; }
         input::placeholder { color: #333; }
@@ -231,9 +231,9 @@ export default function Register() {
         .ind-btn:hover { border-color: rgba(37,99,235,0.3) !important; }
         .ind-btn.active { background: rgba(37,99,235,0.12) !important; border-color: #2563EB !important; color: #60A5FA !important; }
         .btn-back { background: transparent; color: #4B5563; border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 13px 20px;
-          font-family: 'Inter', system-ui, sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+          font-family: Inter, system-ui, sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
         .btn-back:hover { border-color: rgba(255,255,255,0.2); color: #9AAAC4; }
-      `}</style>
+      `}} />
 
       {/* Fondo con foto sutil */}
       <div style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>

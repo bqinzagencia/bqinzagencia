@@ -73,13 +73,13 @@ export default function DashboardLayout({ children, title }) {
         .db-main { font-family:'Inter',system-ui,sans-serif; }
       `}} />
 
-      <div style={{ display: 'flex', minHeight: '100vh', background: '#080B0F' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0F1E' }}>
 
         {/* SIDEBAR */}
         <aside style={{
-          width: collapsed ? 58 : 228,
-          background: '#0F1623',
-          borderRight: '1px solid rgba(37,99,235,0.12)',
+          width: collapsed ? 58 : 232,
+          background: '#0D1420',
+          borderRight: '1px solid rgba(255,255,255,0.06)',
           display: 'flex', flexDirection: 'column',
           transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
           flexShrink: 0, position: 'sticky',
@@ -183,12 +183,12 @@ export default function DashboardLayout({ children, title }) {
         </aside>
 
         {/* MAIN */}
-        <main className="db-main" style={{ flex: 1, overflow: 'auto', background: '#080B0F' }}>
+        <main className="db-main" style={{ flex: 1, overflow: 'auto', background: '#0A0F1E' }}>
           {/* Topbar */}
           <div style={{
             position: 'sticky', top: 0, zIndex: 10,
-            background: 'rgba(8,11,15,0.94)', backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(255,255,255,0.04)',
+            background: 'rgba(10,15,30,0.96)', backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
             padding: '0 32px', height: 56,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
@@ -244,19 +244,24 @@ export default function DashboardLayout({ children, title }) {
 
 function PlanBadge({ plan }) {
   const map = {
-    emprendedor: { color: '#6B7280', label: 'Emprendedor' },
-    profesional: { color: '#00E5A0', label: 'Profesional' },
+    emprendedor: { color: '#8A9BB5', label: 'Emprendedor' },
+    profesional: { color: '#2B6AFF', label: 'Profesional' },
     agencia:     { color: '#A78BFA', label: 'Agencia' },
   };
   const p = map[plan];
   if (!p) return null;
   return (
     <span style={{
-      background: p.color + '15', color: p.color,
-      border: `1px solid ${p.color}30`, borderRadius: 6,
-      padding: '3px 10px', fontSize: 11, fontWeight: 700,
-      textTransform: 'uppercase', letterSpacing: 0.6,
-      fontFamily: "'Inter', sans-serif",
+      background:    p.color + '18',
+      color:         p.color,
+      border:        `1px solid ${p.color}30`,
+      borderRadius:  100,
+      padding:       '4px 12px',
+      fontSize:      11,
+      fontWeight:    700,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      fontFamily:    "'Inter', sans-serif",
     }}>
       {p.label}
     </span>
