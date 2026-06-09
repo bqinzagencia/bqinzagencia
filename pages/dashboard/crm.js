@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../lib/AuthContext';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { getContactos, crearContacto, updateContacto } from '../../lib/firebase';
-import { iniciales, formatFecha, tiempoRelativo } from '../../lib/utils';
+import { iniciales, formatFecha, tiempoRelativo, verificarLimite, PLANES } from '../../lib/utils';
 
 const ESTADOS = [
   { value: 'nuevo', label: 'Nuevo', color: '#3B82F6' },
@@ -39,6 +39,13 @@ export default function CRM() {
 
   const handleSave = async () => {
     if (!form.nombre) { toast.error('El nombre es requerido'); return; }
+    // ── BLOQUEO POR PLAN ──
+    const check = verificarLimite(empresa?.plan, 'crm', contactos.length);
+    if (!check.ok) {
+      toast.error(check.mensaje);
+      return;
+    }
+    if (check.advertencia) toast(check.mensaje, { icon: '⚠️' });
     setSaving(true);
     try {
       await crearContacto(user.uid, form);
@@ -80,6 +87,29 @@ export default function CRM() {
           </select>
           <button className="btn btn-accent" onClick={() => setShowModal(true)}>+ Nuevo contacto</button>
         </div>
+
+        {/* Contador CRM por plan */}
+        {(() => {
+          const limiteCRM = PLANES[empresa?.plan]?.crm;
+          if (limiteCRM === -1) return null;
+          const pct = Math.round((contactos.length / limiteCRM) * 100);
+          const color = pct >= 100 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#2563EB';
+          return (
+            <div style={{ background: 'var(--gray1)', border: `1px solid ${color}33`, borderRadius: 10, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, color: 'var(--gray5)', marginBottom: 6 }}>
+                  Contactos en CRM: <strong style={{ color }}>{contactos.length}</strong> de {limiteCRM} ({pct}%)
+                </div>
+                <div style={{ height: 4, background: 'var(--gray3)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ width: Math.min(pct, 100) + '%', height: '100%', background: color, borderRadius: 2, transition: 'width 0.3s' }} />
+                </div>
+              </div>
+              {pct >= 100 && (
+                <a href="/dashboard/planes" style={{ fontSize: 12, fontWeight: 700, color: '#EF4444', textDecoration: 'none', whiteSpace: 'nowrap' }}>Actualizar plan →</a>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Stats bar */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>

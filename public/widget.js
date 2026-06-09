@@ -4,7 +4,7 @@
   var NEXOIA_ID = window.NEXOIA_ID;
   var NEXOIA_COLOR = window.NEXOIA_COLOR || '#00E5A0';
   var NEXOIA_NAME = window.NEXOIA_NAME || 'Asistente';
-  var NEXOIA_API = 'https://nexoia-eight.vercel.app';
+  var NEXOIA_API = 'https://agenciame.com';
 
   if (!NEXOIA_ID) { console.warn('[NEXOIA] Falta NEXOIA_ID'); return; }
   if (document.getElementById('nexoia-widget')) return;
@@ -61,7 +61,7 @@
     '    <input id="nexoia-input" placeholder="Escribe un mensaje..." />',
     '    <button id="nexoia-send">➤</button>',
     '  </div>',
-    '  <div id="nexoia-powered">Powered by <a href="https://nexoia-eight.vercel.app" target="_blank">NEXOIA</a></div>',
+    '  <div id="nexoia-powered">Powered by <a href="https://agenciame.com" target="_blank">agenc<span style="color:' + NEXOIA_COLOR + '">IA</span>me</a></div>',
     '</div>',
   ].join('');
   document.body.appendChild(container);

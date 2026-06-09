@@ -156,6 +156,14 @@ export default function DashboardLayout({ children, title }) {
 
           {/* Footer: Configuración + Cerrar sesión */}
           <div style={{ padding: '8px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          {/* Botón Guía — siempre visible, llama la atención */}
+            <Link href="/dashboard/guia"
+              className={`sb-item${router.pathname === '/dashboard/guia' ? ' active' : ''}`}
+              style={{ background: router.pathname === '/dashboard/guia' ? 'rgba(37,99,235,0.15)' : 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.2)', marginBottom: 4 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(37,99,235,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14 }}>?</div>
+              {!collapsed && <span style={{ color: '#60A5FA', fontWeight: 600 }}>¿Cómo funciona todo?</span>}
+            </Link>
+
             <Link href="/dashboard/configuracion"
               className={`sb-item${router.pathname === '/dashboard/configuracion' ? ' active' : ''}`}>
               <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=48&q=80" alt="" className="sb-thumb" />

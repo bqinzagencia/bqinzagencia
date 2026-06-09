@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../lib/AuthContext';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { getAgentes, crearAgente, updateAgente, deleteAgente } from '../../lib/firebase';
-import { CANALES, PLANES } from '../../lib/utils';
+import { CANALES, PLANES, verificarLimite, canalPermitido } from '../../lib/utils';
 
 // Fotos reales por tipo de agente
 const TIPO_FOTOS = {
@@ -209,13 +209,35 @@ export default function Agentes() {
               <div className="form-group">
                 <label className="form-label">Canales de atención</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {Object.entries(CANALES).map(([key, c]) => (
-                    <button key={key} onClick={() => toggleCanal(key)}
-                      style={{ background: form.canales.includes(key) ? 'rgba(0,229,160,0.1)' : 'var(--gray2)', border: `1px solid ${form.canales.includes(key) ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 100, padding: '6px 14px', cursor: 'pointer', color: form.canales.includes(key) ? 'var(--accent)' : 'var(--gray6)', fontSize: 13 }}>
-                      {c.icon} {c.label}
-                    </button>
-                  ))}
+                  {Object.entries(CANALES).map(([key, c]) => {
+                    const permitido = canalPermitido(empresa?.plan, key);
+                    return (
+                      <button key={key}
+                        onClick={() => {
+                          if (!permitido) {
+                            toast.error(`El canal ${c.label} no está disponible en el plan ${empresa?.plan}. Actualiza tu plan.`);
+                            return;
+                          }
+                          toggleCanal(key);
+                        }}
+                        style={{
+                          background: !permitido ? 'rgba(255,255,255,0.02)' : form.canales.includes(key) ? 'rgba(37,99,235,0.12)' : 'var(--gray2)',
+                          border: `1px solid ${!permitido ? 'rgba(255,255,255,0.04)' : form.canales.includes(key) ? '#2563EB' : 'rgba(255,255,255,0.06)'}`,
+                          borderRadius: 100, padding: '6px 14px',
+                          cursor: permitido ? 'pointer' : 'not-allowed',
+                          color: !permitido ? 'var(--gray4)' : form.canales.includes(key) ? '#60A5FA' : 'var(--gray6)',
+                          fontSize: 13, opacity: permitido ? 1 : 0.5,
+                          position: 'relative',
+                        }}>
+                        {c.icon} {c.label}
+                        {!permitido && <span style={{ fontSize: 10, marginLeft: 4 }}>🔒</span>}
+                      </button>
+                    );
+                  })}
                 </div>
+                <p style={{ fontSize: 11, color: 'var(--gray5)', marginTop: 8 }}>
+                  Los canales bloqueados (🔒) requieren un plan superior.
+                </p>
               </div>
 
               <div className="form-group">
