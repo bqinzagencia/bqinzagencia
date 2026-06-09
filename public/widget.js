@@ -1,11 +1,11 @@
 (function() {
   'use strict';
 
-  var NEXOIA_ID = window.NEXOIA_ID;
-  var NEXOIA_COLOR = window.NEXOIA_COLOR || '#00E5A0';
-  var NEXOIA_NAME = window.NEXOIA_NAME || 'Asistente';
-  // URL permanente del proyecto en Vercel — sin redirects, sin CORS issues
-  var NEXOIA_API = 'https://nexoia-soporteias-projects.vercel.app';
+  var NEXOIA_ID    = window.NEXOIA_ID;
+  var NEXOIA_COLOR  = window.NEXOIA_COLOR  || '#FF6B00';
+  var NEXOIA_NAME   = window.NEXOIA_NAME   || 'Asistente';
+  var NEXOIA_BOTTOM = window.NEXOIA_BOTTOM || '24px'; // configurable para no chocar con WhatsApp
+  var NEXOIA_API    = 'https://nexoia-soporteias-projects.vercel.app';
 
   if (!NEXOIA_ID) { console.warn('[NEXOIA] Falta NEXOIA_ID'); return; }
   if (document.getElementById('nexoia-widget')) return;
@@ -17,9 +17,9 @@
   // Estilos
   var style = document.createElement('style');
   style.textContent = [
-    '#nexoia-btn{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:' + NEXOIA_COLOR + ';border:none;cursor:pointer;font-size:22px;box-shadow:0 8px 24px ' + NEXOIA_COLOR + '55;z-index:99999;transition:all 0.3s;display:flex;align-items:center;justify-content:center;}',
+    '#nexoia-btn{position:fixed;bottom:' + NEXOIA_BOTTOM + ';right:24px;width:56px;height:56px;border-radius:50%;background:' + NEXOIA_COLOR + ';border:none;cursor:pointer;font-size:22px;box-shadow:0 8px 24px ' + NEXOIA_COLOR + '55;z-index:99999;transition:all 0.3s;display:flex;align-items:center;justify-content:center;}',
     '#nexoia-btn:hover{transform:scale(1.1);}',
-    '#nexoia-chat{position:fixed;bottom:92px;right:24px;width:340px;height:480px;background:#13161a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.5);display:none;flex-direction:column;z-index:99999;overflow:hidden;font-family:sans-serif;}',
+    '#nexoia-chat{position:fixed;bottom:calc(' + NEXOIA_BOTTOM + ' + 68px);right:24px;width:340px;height:480px;background:#13161a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.5);display:none;flex-direction:column;z-index:99999;overflow:hidden;font-family:sans-serif;}',
     '#nexoia-chat.open{display:flex;}',
     '#nexoia-header{padding:14px 18px;background:#1a1d22;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;}',
     '#nexoia-avatar{width:36px;height:36px;border-radius:10px;background:' + NEXOIA_COLOR + '22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}',
