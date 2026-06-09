@@ -113,27 +113,172 @@ const FUNCTION_PHOTOS = {
 };
 
 const CSS = `
-  *,-webkit-font-smoothing:antialiased,-moz-osx-font-smoothing:grayscale;
-  html,body{background:#0F1623;color:#F0F4FF;font-family:'Inter',system-ui,sans-serif;}
-  .ip *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-feature-settings:'kern' 1;}
-  .ih1{font-family:'Inter',system-ui,sans-serif;font-weight:800;letter-spacing:-0.04em;line-height:1.1;color:#F0F4FF;font-synthesis:none;}
-  .ih2{font-family:'Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-0.03em;line-height:1.2;color:#F0F4FF;font-synthesis:none;}
-  .ih3{font-family:'Inter',system-ui,sans-serif;font-weight:600;letter-spacing:-0.01em;line-height:1.3;color:#9AAAC4;}
-  .ibody{font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.65;color:#C8D4E8;}
-  .ilabel{font-family:'Inter',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;display:block;}
-  .inav{font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:500;color:#9AAAC4;transition:color 0.15s;text-decoration:none;}
-  .inav:hover{color:#F0F4FF;}
-  .ibread{font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:500;color:#9AAAC4;text-decoration:none;}
-  .istat{font-family:'Inter',system-ui,sans-serif;font-weight:800;letter-spacing:-0.04em;line-height:1;font-synthesis:none;}
-  .ictitle{font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:16px;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:10px;margin:0 0 10px;}
-  .icdesc{font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#9AAAC4;line-height:1.65;margin:0;}
-  .icheck{font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;color:#C8D4E8;display:flex;align-items:center;gap:10px;}
-  .itesti{font-family:'Inter',system-ui,sans-serif;font-size:15px;font-style:italic;color:#C8D4E8;line-height:1.65;margin:0 0 20px;}
-  .ifl{font-family:'Inter',system-ui,sans-serif;font-size:13px;color:#6B7A99;text-decoration:none;transition:color 0.15s;}
-  .ifl:hover{color:#9AAAC4;}
-  .ichip{font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;color:#9AAAC4;display:flex;align-items:center;gap:8px;text-decoration:none;transition:all 0.2s;}
-  .isec{background:#141C2F;}
-  .icard{background:#0F1623;}
+  /* ─ Antialiasing global ──────────────────────────────── */
+  *, *::before, *::after {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    box-sizing: border-box;
+  }
+  html, body {
+    background: #0F1623;
+    color: #F0F4FF;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+  }
+
+  /* ─ H1 — impacto máximo, peso 900, tracking ultra compacto ── */
+  .ih1 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 1.0;
+    color: #F0F4FF;
+    font-synthesis: none;
+  }
+
+  /* ─ H2 — secciones, fuerte pero más aireado ────────── */
+  .ih2 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    color: #F0F4FF;
+    font-synthesis: none;
+  }
+
+  /* ─ H3 — subtitulos secundarios ───────────────── */
+  .ih3 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: #9AAAC4;
+  }
+
+  /* ─ Cuerpo de párrafo — regular, legible, cálido ─── */
+  .ibody {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.75;
+    letter-spacing: 0.01em;
+    color: #C8D4E8;
+  }
+
+  /* ─ Label uppercase pequeño ─────────────────── */
+  .ilabel {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: block;
+  }
+
+  /* ─ Nav links ────────────────────────────── */
+  .inav {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: #9AAAC4;
+    transition: color 0.15s;
+    text-decoration: none;
+  }
+  .inav:hover { color: #F0F4FF; }
+
+  /* ─ Breadcrumb ──────────────────────────── */
+  .ibread {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #9AAAC4;
+    text-decoration: none;
+  }
+
+  /* ─ Números de estadisticas ────────────────── */
+  .istat {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    font-synthesis: none;
+  }
+
+  /* ─ Título de tarjeta ──────────────────────── */
+  .ictitle {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    color: #F0F4FF;
+    margin: 0 0 10px;
+  }
+
+  /* ─ Descripción de tarjeta ──────────────────── */
+  .icdesc {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: #9AAAC4;
+    margin: 0;
+  }
+
+  /* ─ Check items ─────────────────────────── */
+  .icheck {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #C8D4E8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ─ Testimonio ───────────────────────────── */
+  .itesti {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.75;
+    color: #C8D4E8;
+    margin: 0 0 20px;
+  }
+
+  /* ─ Footer links ─────────────────────────── */
+  .ifl {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #6B7A99;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .ifl:hover { color: #9AAAC4; }
+
+  /* ─ Chips de industria ─────────────────────── */
+  .ichip {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: #9AAAC4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  /* ─ Fondos de secciones ────────────────────── */
+  .isec  { background: #141C2F; }
+  .icard { background: #0F1623; }
+  .ip    {}
 `;
 
 export async function getStaticPaths() {
@@ -157,7 +302,8 @@ export default function IndustriaDetalle({ industria }) {
         <title>{industria.nombre} — agencIAme IA</title>
         <meta name="description" content={industria.descripcion} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
       </Head>
       <style dangerouslySetInnerHTML={{__html: CSS}} />
 
@@ -196,7 +342,7 @@ export default function IndustriaDetalle({ industria }) {
             IA para {industria.nombre}
           </span>
 
-          <h1 className="ih1" style={{ fontSize:'clamp(38px,5.5vw,72px)',maxWidth:760,marginBottom:20 }}>
+          <h1 className="ih1" style={{ fontSize:'clamp(48px,6.5vw,80px)',maxWidth:800,marginBottom:24 }}>
             {industria.tagline.split(' ').map((w, i, arr) =>
               i >= arr.length - 2
                 ? <span key={i} style={{ color }}>{w}{i < arr.length - 1 ? ' ' : ''}</span>
