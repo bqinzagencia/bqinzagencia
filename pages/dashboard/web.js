@@ -221,16 +221,17 @@ export default function Web() {
   const label = { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--gray5)', marginBottom: 8, display: 'block' };
 
   const TABS = [
-    { key: 'foto', label: '🖼️ Foto Hero' },
-    { key: 'galeria', label: '📸 Galería' },
-    ...(esRestaurante(empresa.industria) ? [{ key: 'menu', label: '🍽️ Menú Diario' }] : []),
-    ...(esTiendaORestaurante ? [{ key: 'domicilio', label: '🛵 Domicilio' }] : []),
+    { key: 'foto',      label: 'Foto Hero' },
+    { key: 'galeria',   label: 'Galería' },
+    { key: 'config',    label: 'Configuración Web' },
+    ...(esRestaurante(empresa.industria) ? [{ key: 'menu', label: 'Menú Diario' }] : []),
+    ...(esTiendaORestaurante ? [{ key: 'domicilio', label: 'Domicilio' }] : []),
   ];
 
   return (
     <>
-      <Head><title>Mi Web — agencIAme</title></Head>
-      <DashboardLayout title="Mi Página Web">
+      <Head><title>Crea tu Web con un Click — agencIAme</title></Head>
+      <DashboardLayout title="Crea tu Web con un Click">
 
         {step === 1 && (
           <>
@@ -356,6 +357,11 @@ export default function Web() {
                 )}
                 <p style={{ fontSize: 11, color: 'var(--gray5)', marginTop: 10 }}>{fotosGaleria.length}/12 fotos · Las fotos se guardan automáticamente</p>
               </div>
+            )}
+
+            {/* TAB: Configuración Web — integrada desde /dashboard/conocimiento */}
+            {tab === 'config' && (
+              <ConfiguracionWeb uid={user.uid} empresa={empresa} />
             )}
 
             {/* TAB: Menú Diario */}
@@ -500,5 +506,175 @@ export default function Web() {
         )}
       </DashboardLayout>
     </>
+  );
+}
+
+// ── Componente ConfiguracionWeb integrado ────────────────────────────────────
+import { serverTimestamp } from 'firebase/firestore';
+const DIAS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
+
+function ConfiguracionWeb({ uid, empresa }) {
+  const [saving, setSaving] = useState(false);
+  const [cargando, setCargando] = useState(true);
+  const [servicios, setServicios] = useState([{ nombre: '', precio: '', duracion: '', descripcion: '' }]);
+  const [horarios, setHorarios] = useState({
+    Lunes: { activo: true, desde: '08:00', hasta: '18:00' },
+    Martes: { activo: true, desde: '08:00', hasta: '18:00' },
+    Miercoles: { activo: true, desde: '08:00', hasta: '18:00' },
+    Jueves: { activo: true, desde: '08:00', hasta: '18:00' },
+    Viernes: { activo: true, desde: '08:00', hasta: '18:00' },
+    Sabado: { activo: true, desde: '08:00', hasta: '14:00' },
+    Domingo: { activo: false, desde: '08:00', hasta: '12:00' },
+  });
+  const [info, setInfo] = useState({
+    direccion: '', ciudad: '', telefono: '', whatsapp: '',
+    descripcionNegocio: '', politicaCancelacion: '',
+    formasPago: [], preguntasFrecuentes: [{ pregunta: '', respuesta: '' }],
+  });
+
+  useEffect(() => {
+    if (!uid) return;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'empresas', uid, 'config', 'conocimiento'));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.servicios) setServicios(d.servicios);
+          if (d.horarios) setHorarios(d.horarios);
+          if (d.info) setInfo(d.info);
+        } else if (empresa) {
+          setInfo(i => ({ ...i, ciudad: empresa.ciudad || '', telefono: empresa.telefono || '' }));
+        }
+      } catch (e) { console.error(e); }
+      finally { setCargando(false); }
+    })();
+  }, [uid]);
+
+  const addSv = () => setServicios(s => [...s, { nombre: '', precio: '', duracion: '', descripcion: '' }]);
+  const rmSv  = (i) => setServicios(s => s.filter((_, idx) => idx !== i));
+  const updSv = (i, f, v) => setServicios(s => s.map((sv, idx) => idx === i ? { ...sv, [f]: v } : sv));
+  const addFaq  = () => setInfo(i => ({ ...i, preguntasFrecuentes: [...(i.preguntasFrecuentes || []), { pregunta: '', respuesta: '' }] }));
+  const rmFaq   = (i) => setInfo(inf => ({ ...inf, preguntasFrecuentes: inf.preguntasFrecuentes.filter((_, idx) => idx !== i) }));
+  const updFaq  = (i, f, v) => setInfo(inf => ({ ...inf, preguntasFrecuentes: inf.preguntasFrecuentes.map((fq, idx) => idx === i ? { ...fq, [f]: v } : fq) }));
+  const togPago = (p) => setInfo(i => ({ ...i, formasPago: i.formasPago.includes(p) ? i.formasPago.filter(x => x !== p) : [...i.formasPago, p] }));
+
+  const guardar = async () => {
+    if (!servicios.some(s => s.nombre)) { toast.error('Agrega al menos un servicio'); return; }
+    setSaving(true);
+    try {
+      await setDoc(doc(db, 'empresas', uid, 'config', 'conocimiento'), {
+        servicios, horarios, info,
+        actualizadoEn: serverTimestamp(),
+      });
+      toast.success('Configuración web guardada');
+    } catch (e) { toast.error('Error al guardar'); }
+    finally { setSaving(false); }
+  };
+
+  const card  = { background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: 24, marginBottom: 20 };
+  const lbl   = { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--gray5)', marginBottom: 8, display: 'block' };
+
+  if (cargando) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray5)' }}>Cargando...</div>;
+
+  return (
+    <div>
+      <p style={{ color: 'var(--gray5)', fontSize: 14, marginBottom: 24 }}>
+        Esta información la usa tu agente IA para responder correctamente a tus clientes.
+      </p>
+
+      {/* SERVICIOS */}
+      <div style={card}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h3 style={{ fontWeight: 700, fontSize: 15 }}>Servicios y precios</h3>
+          <button className="btn btn-ghost btn-sm" onClick={addSv}>+ Agregar servicio</button>
+        </div>
+        {servicios.map((sv, i) => (
+          <div key={i} style={{ background: 'var(--gray2)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 10 }}>
+              <div><span style={lbl}>Nombre *</span><input className="form-input" placeholder="Ej: Corte de cabello" value={sv.nombre} onChange={e => updSv(i, 'nombre', e.target.value)} /></div>
+              <div><span style={lbl}>Precio COP</span><input className="form-input" placeholder="25000" value={sv.precio} onChange={e => updSv(i, 'precio', e.target.value)} /></div>
+              <div><span style={lbl}>Duración min</span><input className="form-input" placeholder="30" value={sv.duracion} onChange={e => updSv(i, 'duracion', e.target.value)} /></div>
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}><span style={lbl}>Descripción</span><input className="form-input" placeholder="Detalles del servicio" value={sv.descripcion} onChange={e => updSv(i, 'descripcion', e.target.value)} /></div>
+              {servicios.length > 1 && <button className="btn btn-danger btn-sm" onClick={() => rmSv(i)}>Quitar</button>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* HORARIOS */}
+      <div style={card}>
+        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Horarios de atención</h3>
+        {DIAS.map(dia => (
+          <div key={dia} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ width: 110, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input type="checkbox" checked={horarios[dia]?.activo || false}
+                onChange={e => setHorarios(h => ({ ...h, [dia]: { ...h[dia], activo: e.target.checked } }))}
+                style={{ width: 16, height: 16, cursor: 'pointer' }} />
+              <span style={{ fontSize: 14, fontWeight: 600, color: horarios[dia]?.activo ? 'var(--white)' : 'var(--gray5)' }}>{dia}</span>
+            </div>
+            {horarios[dia]?.activo ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="time" className="form-input" style={{ width: 120, padding: '6px 10px' }} value={horarios[dia]?.desde || '08:00'} onChange={e => setHorarios(h => ({ ...h, [dia]: { ...h[dia], desde: e.target.value } }))} />
+                <span style={{ color: 'var(--gray5)' }}>a</span>
+                <input type="time" className="form-input" style={{ width: 120, padding: '6px 10px' }} value={horarios[dia]?.hasta || '18:00'} onChange={e => setHorarios(h => ({ ...h, [dia]: { ...h[dia], hasta: e.target.value } }))} />
+              </div>
+            ) : <span style={{ fontSize: 13, color: 'var(--gray5)', fontStyle: 'italic' }}>Cerrado</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* INFO NEGOCIO */}
+      <div style={card}>
+        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Información del negocio</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <div><span style={lbl}>Dirección</span><input className="form-input" placeholder="Calle 5 # 10-20" value={info.direccion} onChange={e => setInfo(i => ({ ...i, direccion: e.target.value }))} /></div>
+          <div><span style={lbl}>Ciudad</span><input className="form-input" placeholder="Cali" value={info.ciudad} onChange={e => setInfo(i => ({ ...i, ciudad: e.target.value }))} /></div>
+          <div><span style={lbl}>Teléfono</span><input className="form-input" placeholder="3105056616" value={info.telefono} onChange={e => setInfo(i => ({ ...i, telefono: e.target.value }))} /></div>
+          <div><span style={lbl}>WhatsApp</span><input className="form-input" placeholder="3105056616" value={info.whatsapp} onChange={e => setInfo(i => ({ ...i, whatsapp: e.target.value }))} /></div>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <span style={lbl}>Descripción del negocio</span>
+          <textarea className="form-input" rows={3} placeholder="Somos una peluquería especializada en cortes modernos..." value={info.descripcionNegocio} onChange={e => setInfo(i => ({ ...i, descripcionNegocio: e.target.value }))} style={{ resize: 'vertical' }} />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <span style={lbl}>Política de cancelación</span>
+          <input className="form-input" placeholder="Cancelaciones con mínimo 2 horas de anticipación" value={info.politicaCancelacion} onChange={e => setInfo(i => ({ ...i, politicaCancelacion: e.target.value }))} />
+        </div>
+        <div>
+          <span style={lbl}>Formas de pago</span>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {['Efectivo', 'Nequi', 'Daviplata', 'Transferencia', 'Tarjeta débito', 'Tarjeta crédito'].map(p => (
+              <button key={p} onClick={() => togPago(p)}
+                style={{ background: info.formasPago?.includes(p) ? 'rgba(37,99,235,0.12)' : 'var(--gray2)', border: '1px solid ' + (info.formasPago?.includes(p) ? '#2563EB' : 'rgba(255,255,255,0.06)'), borderRadius: 100, padding: '6px 14px', cursor: 'pointer', color: info.formasPago?.includes(p) ? '#60A5FA' : 'var(--gray6)', fontSize: 13, fontFamily: "'Inter', system-ui, sans-serif" }}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FAQ */}
+      <div style={card}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h3 style={{ fontWeight: 700, fontSize: 15 }}>Preguntas frecuentes</h3>
+          <button className="btn btn-ghost btn-sm" onClick={addFaq}>+ Agregar pregunta</button>
+        </div>
+        {(info.preguntasFrecuentes || []).map((faq, i) => (
+          <div key={i} style={{ background: 'var(--gray2)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
+            <div style={{ marginBottom: 10 }}><span style={lbl}>Pregunta</span><input className="form-input" placeholder="¿Tienen estacionamiento?" value={faq.pregunta} onChange={e => updFaq(i, 'pregunta', e.target.value)} /></div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}><span style={lbl}>Respuesta</span><input className="form-input" placeholder="Sí, tenemos parqueadero gratuito." value={faq.respuesta} onChange={e => updFaq(i, 'respuesta', e.target.value)} /></div>
+              {(info.preguntasFrecuentes || []).length > 1 && <button className="btn btn-danger btn-sm" onClick={() => rmFaq(i)}>Quitar</button>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button className="btn btn-accent btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={guardar} disabled={saving}>
+        {saving ? 'Guardando...' : 'Guardar configuración web'}
+      </button>
+    </div>
   );
 }
