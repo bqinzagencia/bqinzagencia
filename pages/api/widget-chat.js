@@ -17,11 +17,17 @@ function getAdminDb() {
 }
 
 export default async function handler(req, res) {
-  // CORS — permitir cualquier origen
+  // CORS — headers en todas las respuestas
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400'); // cache preflight 24h
+
+  // Preflight OPTIONS — responder inmediatamente con 200
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metodo no permitido' });
 
   const { messages, empresaId } = req.body;
