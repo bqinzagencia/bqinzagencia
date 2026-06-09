@@ -53,16 +53,21 @@ export default function Register() {
 
   // Fotos por industria para el fondo
   const INDUSTRY_PHOTOS = {
-    taller: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1400&q=80',
-    peluqueria: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1400&q=80',
-    inmobiliaria: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400&q=80',
-    restaurante: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1400&q=80',
-    tienda: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1400&q=80',
-    gimnasio: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1400&q=80',
-    salud: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1400&q=80',
-    papeleria: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80',
-    educacion: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80',
-    otro: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80',
+    taller:             'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1400&q=80',
+    peluqueria:         'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1400&q=80',
+    inmobiliaria:       'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400&q=80',
+    restaurante:        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1400&q=80',
+    restaurante_barrio: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1400&q=80',
+    tienda:             'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1400&q=80',
+    gimnasio:           'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1400&q=80',
+    salud:              'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1400&q=80',
+    papeleria:          'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80',
+    ajedrez:            'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1400&q=80',
+    arquitectura:       'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1400&q=80',
+    educacion:          'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80',
+    aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1400&q=80',
+    portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1400&q=80',
+    otro:               'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80',
   };
   // bgPhoto usa una ref para no re-renderizar mientras el popup de Google esta abierto
   // El fondo solo cambia cuando el usuario llega al step de industria, no antes
