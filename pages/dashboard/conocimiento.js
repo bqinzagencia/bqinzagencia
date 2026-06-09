@@ -155,8 +155,8 @@ export default function Conocimiento() {
 
   return (
     <>
-      <Head><title>Base de Conocimiento — NEXOIA</title></Head>
-      <DashboardLayout title="Base de Conocimiento">
+      <Head><title>Configuración Web — agencIAme</title></Head>
+      <DashboardLayout title="Configuración Web">
 
         <p style={{ color: 'var(--gray5)', marginBottom: 28, fontSize: 14 }}>
           Esta informacion es usada por tu agente IA para responder correctamente a tus clientes.

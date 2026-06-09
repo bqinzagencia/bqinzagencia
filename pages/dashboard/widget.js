@@ -66,8 +66,8 @@ useEffect(() => {
 
   return (
     <>
-      <Head><title>Widget Embebible — NEXOIA</title></Head>
-      <DashboardLayout title="Widget para tu sitio web">
+      <Head><title>Integra Chat IA a tu Web — agencIAme</title></Head>
+      <DashboardLayout title="Integra Chat IA a tu Web">
 
         <p style={{ color: 'var(--gray5)', marginBottom: 32, fontSize: 15, maxWidth: 600 }}>
           Integra el chat de IA en cualquier sitio web existente con solo 3 líneas de código. Tus clientes pueden chatear con el agente sin salir de tu página.

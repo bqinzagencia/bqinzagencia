@@ -25,16 +25,16 @@ const INDUSTRY_PHOTOS = {
 };
 
 const NAV_ITEMS = [
-  { href: '/dashboard',                label: 'Dashboard',      img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=48&q=80' },
-  { href: '/dashboard/agentes',        label: 'Mis Agentes IA', img: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=48&q=80' },
-  { href: '/dashboard/conversaciones', label: 'Conversaciones', img: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=48&q=80' },
-  { href: '/dashboard/crm',            label: 'Clientes / CRM', img: 'https://images.unsplash.com/photo-1556745757-8d76bdb6984b?w=48&q=80' },
-  { href: '/dashboard/agenda',         label: 'Agenda',         img: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=48&q=80' },
-  { href: '/dashboard/web',            label: 'Mi Web',         img: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=48&q=80' },
-  { href: '/dashboard/reportes',       label: 'Reportes',       img: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=48&q=80' },
-  { href: '/dashboard/voz',            label: 'Voz IA',         img: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=48&q=80' },
-  { href: '/dashboard/conocimiento',   label: 'Conocimiento',   img: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=48&q=80' },
-  { href: '/dashboard/widget',         label: 'Widget Web',     img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=48&q=80' },
+  { href: '/dashboard',                label: 'Dashboard',                  img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=48&q=80' },
+  { href: '/dashboard/agentes',        label: 'Mis Agentes IA',             img: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=48&q=80' },
+  { href: '/dashboard/conversaciones', label: 'Conversaciones',             img: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=48&q=80' },
+  { href: '/dashboard/crm',            label: 'Clientes / CRM',             img: 'https://images.unsplash.com/photo-1556745757-8d76bdb6984b?w=48&q=80' },
+  { href: '/dashboard/agenda',         label: 'Agenda',                     img: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=48&q=80' },
+  { href: '/dashboard/web',            label: 'Mi Web',                     img: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=48&q=80' },
+  { href: '/dashboard/conocimiento',   label: 'Configuración Web',          img: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=48&q=80' },
+  { href: '/dashboard/widget',         label: 'Integra Chat IA a tu Web',   img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=48&q=80' },
+  { href: '/dashboard/reportes',       label: 'Reportes',                   img: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=48&q=80' },
+  { href: '/dashboard/voz',            label: 'Voz IA',                     img: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=48&q=80' },
 ];
 
 export default function DashboardLayout({ children, title }) {
