@@ -13,8 +13,9 @@ import {
 } from '../../lib/firebase';
 import { INDUSTRIAS } from '../../lib/utils';
 
-const G = '#B8FF6C';
-const BG = '#080808';
+const G = '#2563EB';
+const G2 = '#06B6D4';
+const BG = '#0F1623';
 
 // Detecta si ya existe empresa para el usuario social
 async function completarRegistroSocial(user, datos) {
@@ -63,7 +64,11 @@ export default function Register() {
     educacion: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80',
     otro: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80',
   };
-  const bgPhoto = form.industria ? (INDUSTRY_PHOTOS[form.industria] || INDUSTRY_PHOTOS.otro) : 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=70';
+  // bgPhoto usa una ref para no re-renderizar mientras el popup de Google esta abierto
+  // El fondo solo cambia cuando el usuario llega al step de industria, no antes
+  const bgPhoto = (flow === 'form-step2' || flow === 'social-industry') && form.industria
+    ? (INDUSTRY_PHOTOS[form.industria] || INDUSTRY_PHOTOS.otro)
+    : 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=70';
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -176,9 +181,9 @@ export default function Register() {
   };
 
   const btnLima = {
-    width: '100%', background: G, color: '#000', border: 'none', borderRadius: 4,
+    width: '100%', background: G, color: '#fff', border: 'none', borderRadius: 4,
     padding: '14px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
-    fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: 0.3,
+    fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: 0.3,
     transition: 'all 0.2s',
   };
 
@@ -218,14 +223,16 @@ export default function Register() {
 
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: ${BG}; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; }
-        input:focus { border-color: ${G} !important; }
+        body { background: ${BG}; color: #E8E8E8; font-family: 'Inter', system-ui, sans-serif;
+          -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        input:focus { border-color: ${G} !important; outline: none; }
         input::placeholder { color: #333; }
-        .social-btn:hover { border-color: #333 !important; background: #151515 !important; }
-        .ind-btn:hover { border-color: #333 !important; }
-        .ind-btn.active { background: ${G}15 !important; border-color: ${G} !important; color: ${G} !important; }
-        .btn-back { background: transparent; color: #444; border: 1px solid #1A1A1A; border-radius: 4px; padding: 13px 20px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
-        .btn-back:hover { border-color: #333; color: #888; }
+        .social-btn:hover { border-color: rgba(37,99,235,0.4) !important; background: #141C2F !important; }
+        .ind-btn:hover { border-color: rgba(37,99,235,0.3) !important; }
+        .ind-btn.active { background: rgba(37,99,235,0.12) !important; border-color: #2563EB !important; color: #60A5FA !important; }
+        .btn-back { background: transparent; color: #4B5563; border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 13px 20px;
+          font-family: 'Inter', system-ui, sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .btn-back:hover { border-color: rgba(255,255,255,0.2); color: #9AAAC4; }
       `}</style>
 
       {/* Fondo con foto sutil */}
