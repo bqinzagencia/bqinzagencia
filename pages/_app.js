@@ -9,9 +9,9 @@ import dynamic from 'next/dynamic';
 // ── Inter cargada nativamente con next/font — sin parpadeo, sin FOUT, máxima nitidez
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
   display: 'swap',
-  variable: '--font-inter',  // usable como var CSS en cualquier selector
+  variable: '--font-inter',
   preload: true,
 });
 
