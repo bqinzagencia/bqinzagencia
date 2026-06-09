@@ -1,242 +1,338 @@
 // components/layout/DashboardLayout.js
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../lib/AuthContext';
 import { logoutUser } from '../../lib/firebase';
-import { getIndustriaInfo, iniciales } from '../../lib/utils';
+import { getIndustriaInfo } from '../../lib/utils';
 import toast from 'react-hot-toast';
 import TrialFloatButton from '../TrialFloatButton';
 
-// Fotos Unsplash por industria para el avatar de la empresa
 const INDUSTRY_PHOTOS = {
-  taller:           'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=80&q=80',
-  peluqueria:       'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=80&q=80',
-  inmobiliaria:     'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=80&q=80',
-  restaurante:      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=80&q=80',
-  restaurante_barrio:'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=80&q=80',
-  tienda:           'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=80&q=80',
-  gimnasio:         'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&q=80',
-  salud:            'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=80&q=80',
-  ajedrez:          'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=80&q=80',
-  arquitectura:     'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=80&q=80',
-  papeleria:        'https://images.unsplash.com/photo-1497366216548-37526070297c?w=80&q=80',
-  default:          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&q=80',
+  taller:             'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=80&q=80',
+  peluqueria:         'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=80&q=80',
+  inmobiliaria:       'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=80&q=80',
+  restaurante:        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=80&q=80',
+  restaurante_barrio: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=80&q=80',
+  tienda:             'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=80&q=80',
+  gimnasio:           'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&q=80',
+  salud:              'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=80&q=80',
+  ajedrez:            'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=80&q=80',
+  arquitectura:       'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=80&q=80',
+  papeleria:          'https://images.unsplash.com/photo-1497366216548-37526070297c?w=80&q=80',
+  aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=80&q=80',
+  portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=80&q=80',
+  default:            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&q=80',
 };
 
 const NAV_ITEMS = [
-  { href: '/dashboard',                label: 'Dashboard',                  img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=48&q=80' },
-  { href: '/dashboard/agentes',        label: 'Mis Agentes IA',             img: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=48&q=80' },
-  { href: '/dashboard/conversaciones', label: 'Conversaciones',             img: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=48&q=80' },
-  { href: '/dashboard/crm',            label: 'Clientes / CRM',             img: 'https://images.unsplash.com/photo-1556745757-8d76bdb6984b?w=48&q=80' },
-  { href: '/dashboard/agenda',         label: 'Agenda',                     img: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=48&q=80' },
-  { href: '/dashboard/web',            label: 'Crea tu Web con un Click',   img: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=48&q=80' },
-  { href: '/dashboard/widget',         label: 'Integra Chat IA a tu Web',   img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=48&q=80' },
-  { href: '/dashboard/reportes',       label: 'Reportes',                   img: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=48&q=80' },
-  { href: '/dashboard/voz',            label: 'Voz IA',                     img: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=48&q=80' },
+  { href: '/dashboard',                label: 'Dashboard',       icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+  { href: '/dashboard/agentes',        label: 'Mis Agentes IA',  icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2' },
+  { href: '/dashboard/conversaciones', label: 'Conversaciones',  icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+  { href: '/dashboard/crm',            label: 'Clientes / CRM',  icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+  { href: '/dashboard/agenda',         label: 'Agenda',          icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  { href: '/dashboard/web',            label: 'Crea tu Web',     icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9' },
+  { href: '/dashboard/widget',         label: 'Integra Chat IA', icon: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4' },
+  { href: '/dashboard/reportes',       label: 'Reportes',        icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+  { href: '/dashboard/voz',            label: 'Voz IA',          icon: 'M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z' },
 ];
 
 export default function DashboardLayout({ children, title }) {
   const { empresa, esAdmin } = useAuth();
-  const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
-  const ind = getIndustriaInfo(empresa?.industria);
+  const router    = useRouter();
+  const [open, setOpen]       = useState(false);
+  const [mobile, setMobile]   = useState(false);
+  const ind         = getIndustriaInfo(empresa?.industria);
   const empresaFoto = INDUSTRY_PHOTOS[empresa?.industria] || INDUSTRY_PHOTOS.default;
 
-  const handleLogout = async () => {
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    fn();
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+
+  // Cerrar menú al navegar en móvil
+  useEffect(() => { if (mobile) setOpen(false); }, [router.pathname]);
+
+  const logout = async () => {
     await logoutUser();
     toast.success('Sesión cerrada');
     router.push('/');
-    setTimeout(() => window.location.href = '/', 300);
   };
+
+  const Icon = ({ d }) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  );
+
+  // ── Contenido del sidebar ─────────────────────────────────────────────────
+  const Sidebar = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+
+      {/* Logo + cerrar (móvil) */}
+      <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <Link href="/dashboard" style={{ fontFamily: "'Inter',sans-serif", fontSize: 15, fontWeight: 900, letterSpacing: '-0.04em', color: '#EFF4FF', textDecoration: 'none' }}>
+          agenc<span style={{ color: '#FF6B00' }}>IA</span>me
+        </Link>
+        {mobile && (
+          <button onClick={() => setOpen(false)}
+            style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', color: '#8A9BB5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Info empresa */}
+      {empresa && (
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <img src={empresaFoto} alt="" style={{ width: 36, height: 36, borderRadius: 9, objectFit: 'cover', border: `2px solid ${ind.color}44` }} />
+              <div style={{ position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%', background: '#10B981', border: '2px solid #0D1420' }} />
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#EFF4FF', fontFamily: "'Inter',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {empresa.nombreEmpresa}
+              </div>
+              <div style={{ fontSize: 10, color: '#4B6080', fontFamily: "'Inter',sans-serif", marginTop: 1 }}>
+                {ind.label}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navegación */}
+      <nav style={{ flex: 1, padding: '6px 6px 0', overflowY: 'auto' }}>
+        {NAV_ITEMS.map(item => {
+          const active = router.pathname === item.href;
+          return (
+            <Link key={item.href} href={item.href}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 9,
+                padding: '8px 9px', borderRadius: 9, marginBottom: 1,
+                fontFamily: "'Inter',sans-serif", fontSize: 13,
+                fontWeight: active ? 600 : 500,
+                color: active ? '#EFF4FF' : '#6B7A99',
+                textDecoration: 'none',
+                background: active ? 'rgba(43,106,255,0.14)' : 'transparent',
+                border: `1px solid ${active ? 'rgba(43,106,255,0.3)' : 'transparent'}`,
+                transition: 'all 0.15s',
+              }}>
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: active ? 'rgba(43,106,255,0.2)' : 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: active ? '#6DA4FF' : '#4B6080' }}>
+                <Icon d={item.icon} />
+              </div>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+              {active && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#2B6AFF', flexShrink: 0 }} />}
+            </Link>
+          );
+        })}
+
+        {esAdmin && (
+          <>
+            <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '6px 4px' }} />
+            <Link href="/admin" style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px', borderRadius: 9, fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 500, color: '#F59E0B', textDecoration: 'none', background: 'rgba(245,158,11,0.06)' }}>
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(245,158,11,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.9" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              Super Admin
+            </Link>
+          </>
+        )}
+      </nav>
+
+      {/* Pie del sidebar */}
+      <div style={{ padding: '6px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 6, flexShrink: 0 }}>
+        <Link href="/dashboard/guia"
+          style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px', borderRadius: 9, marginBottom: 3, fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 600, color: '#60A5FA', textDecoration: 'none', background: 'rgba(43,106,255,0.08)', border: '1px solid rgba(43,106,255,0.18)' }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(43,106,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 800, fontSize: 13, color: '#6DA4FF' }}>?</div>
+          ¿Cómo funciona?
+        </Link>
+        <Link href="/dashboard/configuracion"
+          style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px', borderRadius: 9, marginBottom: 3, fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 500, color: '#6B7A99', textDecoration: 'none' }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#4B6080' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </div>
+          Configuración
+        </Link>
+        <button onClick={logout}
+          style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px', borderRadius: 9, width: '100%', fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 500, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(239,68,68,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </div>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
       <style dangerouslySetInnerHTML={{__html:`
-        .sb-item {
-          display: flex; align-items: center; gap: 10px;
-          padding: 7px 10px; border-radius: 8px; margin-bottom: 2px;
-          font-family: 'Inter', system-ui, sans-serif;
-          font-size: 13px; font-weight: 500; letter-spacing: -0.1px;
-          color: #6B7280; text-decoration: none;
-          transition: all 0.15s; border: 1px solid transparent;
-          cursor: pointer; background: none; width: 100%; text-align: left;
+        /* ── Reset móvil ── */
+        *, *::before, *::after { box-sizing: border-box; }
+        html { overflow-x: hidden; }
+        body { overflow-x: hidden; }
+
+        /* ── Tipografía dashboard ── */
+        .db-main { font-family: 'Inter', system-ui, sans-serif; }
+        .db-topbar { font-family: 'Inter', system-ui, sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -0.03em; color: #EFF4FF; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* ── Overlay fondo oscuro al abrir menú ── */
+        .sb-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 199; backdrop-filter: blur(3px); }
+
+        /* ── Grids responsivos — aplica a TODAS las subpáginas ── */
+        .db-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .db-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .db-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .db-grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+
+        @media (max-width: 767px) {
+          /* Grids a 1 columna en móvil */
+          .db-grid-2,
+          .db-grid-3,
+          .db-grid-4 { grid-template-columns: 1fr !important; }
+
+          /* Grids inline con style en cada página */
+          [style*="grid-template-columns: 1fr 1fr"],
+          [style*="grid-template-columns: repeat(2"],
+          [style*="grid-template-columns: repeat(3"],
+          [style*="grid-template-columns: repeat(4"],
+          [style*="gridTemplateColumns: '1fr 1fr'"],
+          [style*="gridTemplateColumns: 'repeat(2"],
+          [style*="gridTemplateColumns: 'repeat(3"],
+          [style*="gridTemplateColumns: 'repeat(4"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Topbar título más pequeño */
+          .db-topbar { font-size: 14px; max-width: 160px; }
+
+          /* Padding del contenido */
+          .db-content { padding: 16px 14px !important; }
+
+          /* Tablas — scroll horizontal */
+          table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+          /* Pre / código — scroll */
+          pre { overflow-x: auto !important; white-space: pre !important; }
+
+          /* Cards — ancho completo */
+          .card, [class*="card"] { width: 100% !important; }
+
+          /* Botones en fila — apilan en móvil */
+          .db-btn-row { flex-direction: column !important; align-items: stretch !important; }
+          .db-btn-row .btn { text-align: center; justify-content: center; }
+
+          /* Hero banner altura menor en móvil */
+          .db-hero { height: 160px !important; }
+
+          /* Stat cards en 2 columnas en móvil */
+          .db-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
         }
-        .sb-item:hover { background: rgba(37,99,235,0.08); color: #C8D4E8; border-color: rgba(37,99,235,0.15); }
-        .sb-item.active { background: rgba(37,99,235,0.15); color: #F0F4FF; border-color: rgba(37,99,235,0.3); }
-        .sb-thumb { width: 28px; height: 28px; border-radius: 7px; object-fit: cover; flex-shrink: 0; opacity: 0.65; transition: opacity 0.15s; border: 1px solid rgba(255,255,255,0.08); }
-        .sb-item:hover .sb-thumb, .sb-item.active .sb-thumb { opacity: 1; border-color: rgba(37,99,235,0.4); }
-        .sb-active-dot { width: 5px; height: 5px; border-radius: 50%; background: #2563EB; flex-shrink: 0; margin-left: auto; box-shadow: 0 0 6px rgba(37,99,235,0.7); }
-        .sb-logout { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; font-family:'Inter',system-ui,sans-serif; font-size:13px; font-weight:500; color:#EF4444; background:none; border:1px solid transparent; cursor:pointer; width:100%; transition:all 0.15s; }
-        .sb-logout:hover { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.15); }
-        .db-topbar { font-family:'Inter',system-ui,sans-serif; font-size:17px; font-weight:700; letter-spacing:-0.4px; color:#F9FAFB; }
-        .db-main { font-family:'Inter',system-ui,sans-serif; }
+
+        @media (max-width: 380px) {
+          /* Pantallas muy pequeñas — stat cards a 1 columna */
+          .db-stats-grid { grid-template-columns: 1fr !important; }
+          .db-topbar { max-width: 120px; font-size: 13px; }
+        }
       `}} />
 
-      <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0F1E' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0F1E', position: 'relative', overflow: 'hidden' }}>
 
-        {/* SIDEBAR */}
+        {/* Backdrop móvil */}
+        {mobile && open && (
+          <div className="sb-backdrop" onClick={() => setOpen(false)} />
+        )}
+
+        {/* ── SIDEBAR ── */}
         <aside style={{
-          width: collapsed ? 58 : 232,
+          width: 236,
           background: '#0D1420',
           borderRight: '1px solid rgba(255,255,255,0.06)',
-          display: 'flex', flexDirection: 'column',
-          transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
-          flexShrink: 0, position: 'sticky',
-          top: 0, height: '100vh', overflow: 'hidden',
+          flexShrink: 0,
+          ...(mobile ? {
+            position:  'fixed',
+            top:       0,
+            left:      0,
+            height:    '100vh',
+            zIndex:    200,
+            transform: open ? 'translateX(0)' : 'translateX(-100%)',
+            transition:'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
+          } : {
+            position:  'sticky',
+            top:       0,
+            height:    '100vh',
+            overflowY: 'auto',
+          }),
         }}>
-
-          {/* Logo + colapsar */}
-          <div style={{ padding: '16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.04)', marginBottom: 6 }}>
-            {!collapsed && (
-              <Link href="/dashboard" style={{ fontFamily: "'Inter',sans-serif", fontSize: 15, fontWeight: 800, letterSpacing: '-0.5px', color: '#F9FAFB', textDecoration: 'none' }}>
-                agenc<span style={{ color: '#FF6B00' }}>IA</span>me
-              </Link>
-            )}
-            <button onClick={() => setCollapsed(c => !c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#374151', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: collapsed ? 'auto' : 0, marginRight: collapsed ? 'auto' : 0 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                {collapsed ? <polyline points="9 18 15 12 9 6"/> : <polyline points="15 18 9 12 15 6"/>}
-              </svg>
-            </button>
-          </div>
-
-          {/* Empresa con FOTO REAL de la industria */}
-          {empresa && (
-            <div style={{ padding: '10px 12px 12px', borderBottom: '1px solid rgba(255,255,255,0.04)', marginBottom: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {/* Foto real de la industria como avatar */}
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <img
-                    src={empresaFoto}
-                    alt={empresa.nombreEmpresa}
-                    style={{ width: 36, height: 36, borderRadius: 9, objectFit: 'cover', border: `2px solid ${ind.color}40` }}
-                  />
-                  {/* Dot verde activo */}
-                  <div style={{ position: 'absolute', bottom: -1, right: -1, width: 10, height: 10, borderRadius: '50%', background: '#00E5A0', border: '2px solid #090C11' }} />
-                </div>
-                {!collapsed && (
-                  <div style={{ overflow: 'hidden', flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#E5E7EB', fontFamily: "'Inter',sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {empresa.nombreEmpresa}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#374151', fontFamily: "'Inter',sans-serif", marginTop: 1 }}>
-                      {ind.label}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Nav */}
-          <nav style={{ flex: 1, padding: '0 8px', overflowY: 'auto' }}>
-            {NAV_ITEMS.map(item => {
-              const active = router.pathname === item.href;
-              return (
-                <Link key={item.href} href={item.href}
-                  className={`sb-item${active ? ' active' : ''}`}
-                  title={collapsed ? item.label : undefined}>
-                  <img src={item.img} alt="" className="sb-thumb" />
-                  {!collapsed && <span style={{ flex: 1 }}>{item.label}</span>}
-                  {!collapsed && active && <span className="sb-active-dot" />}
-                </Link>
-              );
-            })}
-
-            {esAdmin && (
-              <>
-                <div style={{ height: 1, background: 'rgba(255,255,255,0.04)', margin: '8px 2px' }} />
-                <Link href="/admin" className="sb-item" style={{ color: '#F59E0B' }}>
-                  <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=48&q=80" alt="" className="sb-thumb" />
-                  {!collapsed && <span>Super Admin</span>}
-                </Link>
-              </>
-            )}
-          </nav>
-
-          {/* Footer: Configuración + Cerrar sesión */}
-          <div style={{ padding: '8px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-          {/* Botón Guía — siempre visible, llama la atención */}
-            <Link href="/dashboard/guia"
-              className={`sb-item${router.pathname === '/dashboard/guia' ? ' active' : ''}`}
-              style={{ background: router.pathname === '/dashboard/guia' ? 'rgba(37,99,235,0.15)' : 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.2)', marginBottom: 4 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(37,99,235,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14 }}>?</div>
-              {!collapsed && <span style={{ color: '#60A5FA', fontWeight: 600 }}>¿Cómo funciona todo?</span>}
-            </Link>
-
-            <Link href="/dashboard/configuracion"
-              className={`sb-item${router.pathname === '/dashboard/configuracion' ? ' active' : ''}`}>
-              <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=48&q=80" alt="" className="sb-thumb" />
-              {!collapsed && <span>Configuración</span>}
-            </Link>
-
-            {/* BOTÓN CERRAR SESIÓN — visible siempre, rojo */}
-            <button onClick={handleLogout} className="sb-logout" title={collapsed ? 'Cerrar sesión' : undefined}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-              {!collapsed && <span>Cerrar sesión</span>}
-            </button>
-          </div>
+          <Sidebar />
         </aside>
 
-        {/* MAIN */}
-        <main className="db-main" style={{ flex: 1, overflow: 'auto', background: '#0A0F1E' }}>
+        {/* ── MAIN ── */}
+        <main className="db-main" style={{ flex: 1, minWidth: 0, overflow: 'auto', background: '#0A0F1E' }}>
+
           {/* Topbar */}
           <div style={{
-            position: 'sticky', top: 0, zIndex: 10,
-            background: 'rgba(10,15,30,0.96)', backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            padding: '0 32px', height: 56,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            position:       'sticky',
+            top:            0,
+            zIndex:         10,
+            background:     'rgba(10,15,30,0.97)',
+            backdropFilter: 'blur(20px)',
+            borderBottom:   '1px solid rgba(255,255,255,0.06)',
+            padding:        mobile ? '0 14px' : '0 28px',
+            height:         54,
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: 'space-between',
+            gap:            10,
           }}>
-            <h1 className="db-topbar">{title}</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <PlanBadge plan={empresa?.plan} />
-              {/* Avatar topbar con foto real */}
-              <img
-                src={INDUSTRY_PHOTOS[empresa?.industria] || INDUSTRY_PHOTOS.default}
-                alt={empresa?.nombreEmpresa}
-                style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,229,160,0.25)' }}
-              />
-              {/* Cerrar sesión — siempre visible en topbar */}
-              <button
-                onClick={handleLogout}
-                title="Cerrar sesión"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'rgba(239,68,68,0.08)',
-                  border: '1px solid rgba(239,68,68,0.2)',
-                  borderRadius: 8, padding: '6px 12px',
-                  cursor: 'pointer', color: '#EF4444',
-                  fontFamily: "'Inter', system-ui, sans-serif",
-                  fontSize: 12, fontWeight: 600,
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)'; }}
-              >
+            {/* Izquierda: hamburguesa + título */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+              {mobile && (
+                <button onClick={() => setOpen(true)}
+                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: '#8A9BB5' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round">
+                    <line x1="3" y1="6"  x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                  </svg>
+                </button>
+              )}
+              <h1 className="db-topbar">{title}</h1>
+            </div>
+
+            {/* Derecha: badge + avatar + salir */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              {!mobile && <PlanBadge plan={empresa?.plan} />}
+              <img src={INDUSTRY_PHOTOS[empresa?.industria] || INDUSTRY_PHOTOS.default}
+                alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(43,106,255,0.3)' }} />
+              <button onClick={logout}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: mobile ? '7px 8px' : '6px 12px', cursor: 'pointer', color: '#EF4444', fontFamily: "'Inter',sans-serif", fontSize: 12, fontWeight: 600 }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
                   <polyline points="16 17 21 12 16 7"/>
                   <line x1="21" y1="12" x2="9" y2="12"/>
                 </svg>
-                Cerrar sesión
+                {!mobile && 'Salir'}
               </button>
             </div>
           </div>
 
-          {/* Contenido */}
-          <div style={{ padding: '28px 32px' }}>
+          {/* Contenido de cada página */}
+          <div className="db-content" style={{ padding: mobile ? '16px 14px' : '28px 32px' }}>
             {children}
           </div>
         </main>
       </div>
 
-      {/* Botón flotante de trial — visible en todo el dashboard */}
       <TrialFloatButton />
     </>
   );
@@ -245,24 +341,13 @@ export default function DashboardLayout({ children, title }) {
 function PlanBadge({ plan }) {
   const map = {
     emprendedor: { color: '#8A9BB5', label: 'Emprendedor' },
-    profesional: { color: '#2B6AFF', label: 'Profesional' },
+    profesional: { color: '#2B6AFF', label: 'Pro' },
     agencia:     { color: '#A78BFA', label: 'Agencia' },
   };
   const p = map[plan];
   if (!p) return null;
   return (
-    <span style={{
-      background:    p.color + '18',
-      color:         p.color,
-      border:        `1px solid ${p.color}30`,
-      borderRadius:  100,
-      padding:       '4px 12px',
-      fontSize:      11,
-      fontWeight:    700,
-      textTransform: 'uppercase',
-      letterSpacing: 0.6,
-      fontFamily:    "'Inter', sans-serif",
-    }}>
+    <span style={{ background: p.color+'18', color: p.color, border: `1px solid ${p.color}30`, borderRadius: 100, padding: '3px 10px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: "'Inter',sans-serif", whiteSpace: 'nowrap' }}>
       {p.label}
     </span>
   );

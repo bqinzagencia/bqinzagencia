@@ -6,6 +6,7 @@ export default function Document() {
     <Html lang="es">
       <Head>
         <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
         <link rel="icon" href="/favicon.ico" />
         <meta name="theme-color" content="#0F1623" />
         <meta name="description" content="agencIAme — Automatización empresarial con Inteligencia Artificial. Agentes IA, chat multicanal, CRM y más para tu negocio en Colombia." />
