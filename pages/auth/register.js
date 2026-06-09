@@ -12,6 +12,7 @@ import {
   auth
 } from '../../lib/firebase';
 import { INDUSTRIAS } from '../../lib/utils';
+import { useAuth } from '../../lib/AuthContext';
 
 const G = '#2563EB';
 const G2 = '#06B6D4';
@@ -37,6 +38,7 @@ async function completarRegistroSocial(user, datos) {
 export default function Register() {
   const router = useRouter();
   const { plan } = router.query;
+  const { setEmpresa } = useAuth();
 
   // Flujo: 'social-choice' | 'form-step0' | 'form-step1' | 'form-step2' | 'social-complete'
   const [flow, setFlow] = useState('social-choice');
@@ -139,15 +141,17 @@ export default function Register() {
     setLoading(true);
     try {
       const cred = await registerUser(form.email, form.password);
-      await crearEmpresa(cred.user.uid, {
+      const datosEmpresa = {
         email: form.email,
         nombreEmpresa: form.nombreEmpresa,
         telefono: form.telefono,
         ciudad: form.ciudad,
         industria: form.industria,
         plan: form.plan,
-      });
-      toast.success('¡Bienvenido a NEXOIA! 🎉');
+      };
+      await crearEmpresa(cred.user.uid, datosEmpresa);
+      setEmpresa({ ...datosEmpresa }); // contexto inmediato — evita spinner
+      toast.success('¡Bienvenido a agencIAme! 🎉');
       router.push('/dashboard');
     } catch (err) {
       const msgs = {
@@ -164,8 +168,17 @@ export default function Register() {
     if (!form.nombreEmpresa || !form.telefono) { toast.error('Completa nombre y teléfono'); return; }
     setLoading(true);
     try {
+      const datosEmpresa = {
+        email: socialUser.email,
+        nombreEmpresa: form.nombreEmpresa,
+        telefono: form.telefono,
+        ciudad: form.ciudad,
+        industria: form.industria,
+        plan: form.plan || 'emprendedor',
+      };
       await completarRegistroSocial(socialUser, { ...form });
-      toast.success('¡Bienvenido a NEXOIA! 🎉');
+      setEmpresa({ ...datosEmpresa }); // contexto inmediato — evita spinner
+      toast.success('¡Bienvenido a agencIAme! 🎉');
       router.push('/dashboard');
     } catch (err) {
       toast.error('Error al guardar datos: ' + err.message);
