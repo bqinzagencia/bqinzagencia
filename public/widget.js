@@ -4,7 +4,8 @@
   var NEXOIA_ID = window.NEXOIA_ID;
   var NEXOIA_COLOR = window.NEXOIA_COLOR || '#00E5A0';
   var NEXOIA_NAME = window.NEXOIA_NAME || 'Asistente';
-  var NEXOIA_API = 'https://nexoia.vercel.app';
+  // URL permanente del proyecto en Vercel — sin redirects, sin CORS issues
+  var NEXOIA_API = 'https://nexoia-soporteias-projects.vercel.app';
 
   if (!NEXOIA_ID) { console.warn('[NEXOIA] Falta NEXOIA_ID'); return; }
   if (document.getElementById('nexoia-widget')) return;
