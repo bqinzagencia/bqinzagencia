@@ -23,6 +23,8 @@ const HERO_BG = {
   ajedrez:            'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1400&q=85',
   arquitectura:       'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1400&q=85',
   papeleria:          'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85',
+  aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1400&q=85',
+  portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1400&q=85',
   default:            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=85',
 };
 
@@ -94,6 +96,18 @@ const STAT_IMGS = {
     'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=72&q=80',
     'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=72&q=80',
     'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=72&q=80',
+  ],
+  aduana: [
+    'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=72&q=80',
+    'https://images.unsplash.com/photo-1494412651409-8963ce7935a7?w=72&q=80',
+    'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=72&q=80',
+    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=72&q=80',
+  ],
+  portuaria: [
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=72&q=80',
+    'https://images.unsplash.com/photo-1494412651409-8963ce7935a7?w=72&q=80',
+    'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=72&q=80',
+    'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=72&q=80',
   ],
   default: [
     'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=72&q=80',
@@ -187,28 +201,68 @@ export default function Dashboard() {
         .db-bpend { background:rgba(245,158,11,0.14); color:#FBB040; border:1px solid rgba(245,158,11,0.22); border-radius:100px; padding:3px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; font-family:${F}; }
         .stat-img-wrap { width:38px; height:38px; border-radius:10px; overflow:hidden; flex-shrink:0; }
         .stat-img-wrap img { width:100%; height:100%; object-fit:cover; }
+
+        /* ── Mobile fixes hero ── */
+        @media (max-width: 767px) {
+          .db-hero-inner {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            justify-content: center !important;
+            gap: 14px !important;
+            padding: 0 18px !important;
+          }
+          .db-hero-title { font-size: 19px !important; margin-bottom: 2px !important; }
+          .db-hero-date  { font-size: 11px !important; }
+          .db-hero-btn   { width: 100% !important; justify-content: center !important; padding: 10px 0 !important; font-size: 13px !important; }
+          .db-hero-wrap  { height: 220px !important; border-radius: 14px !important; }
+          .db-conv-grid  { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 400px) {
+          .db-hero-title { font-size: 16px !important; }
+          .db-hero-wrap  { height: 200px !important; }
+        }
       `}} />
 
       <div className="db-page">
 
         {/* ── Hero banner ── */}
-        <div style={{ position:'relative', borderRadius:20, overflow:'hidden', height:200, marginBottom:28 }}>
-          <img src={heroBg} alt={ind.label} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 40%' }} />
-          <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,rgba(8,11,15,0.93) 0%,rgba(8,11,15,0.6) 55%,rgba(8,11,15,0.15) 100%)' }} />
-          <div style={{ position:'relative', height:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 28px' }}>
-            <div>
-              <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:ind.color+'22', border:`1px solid ${ind.color}44`, borderRadius:100, padding:'4px 12px', marginBottom:12 }}>
+        <div className="db-hero-wrap" style={{ position:'relative', borderRadius:20, overflow:'hidden', height:200, marginBottom:28 }}>
+          {/* Imagen de fondo — centrada y visible en móvil */}
+          <img
+            src={heroBg}
+            alt={ind.label}
+            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center center' }}
+          />
+          {/* Gradiente oscuro que cubre bien en móvil */}
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(8,11,15,0.95) 0%,rgba(8,11,15,0.75) 50%,rgba(8,11,15,0.45) 100%)' }} />
+          {/* Contenido interior — apila en móvil */}
+          <div
+            className="db-hero-inner"
+            style={{ position:'relative', height:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 28px' }}
+          >
+            <div style={{ minWidth:0, flex:1 }}>
+              <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:ind.color+'22', border:`1px solid ${ind.color}44`, borderRadius:100, padding:'4px 12px', marginBottom:10 }}>
                 <div style={{ width:6, height:6, borderRadius:'50%', background:ind.color }} />
                 <span style={{ fontFamily:F, fontSize:11, fontWeight:600, color:ind.color, letterSpacing:0.5 }}>{ind.label}</span>
               </div>
-              <h2 style={{ fontFamily:F, fontSize:26, fontWeight:800, color:'#F9FAFB', letterSpacing:'-0.5px', marginBottom:4, lineHeight:1.2 }}>
+              <h2
+                className="db-hero-title"
+                style={{ fontFamily:F, fontSize:26, fontWeight:800, color:'#F9FAFB', letterSpacing:'-0.5px', marginBottom:4, lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}
+              >
                 {saludo}, {empresa.nombreEmpresa}
               </h2>
-              <p style={{ fontFamily:F, fontSize:13, color:'rgba(255,255,255,0.4)' }}>
+              <p
+                className="db-hero-date"
+                style={{ fontFamily:F, fontSize:13, color:'rgba(255,255,255,0.4)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
+              >
                 {new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
               </p>
             </div>
-            <Link href="/dashboard/agentes" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#2B6AFF', color:'#fff', padding:'10px 22px', borderRadius:100, fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:F, boxShadow:'0 4px 20px rgba(43,106,255,0.4)', whiteSpace:'nowrap' }}>
+            <Link
+              href="/dashboard/agentes"
+              className="db-hero-btn"
+              style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#2B6AFF', color:'#fff', padding:'10px 22px', borderRadius:100, fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:F, boxShadow:'0 4px 20px rgba(43,106,255,0.4)', whiteSpace:'nowrap', flexShrink:0, marginLeft:12 }}
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Nuevo Agente IA
             </Link>
@@ -260,7 +314,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Conversaciones + Citas ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
+        <div className="db-conv-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
           <div className="db-card" style={{ padding:22 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
               <span className="db-stitle">Últimas conversaciones</span>

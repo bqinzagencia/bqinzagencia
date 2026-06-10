@@ -41,7 +41,10 @@ export default function DashboardLayout({ children, title }) {
   const { empresa, esAdmin } = useAuth();
   const router    = useRouter();
   const [open, setOpen]       = useState(false);
-  const [mobile, setMobile]   = useState(false);
+  // Iniciar mobile en true si el viewport es angosto — evita flash negro en móvil
+  const [mobile, setMobile]   = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
   const ind         = getIndustriaInfo(empresa?.industria);
   const empresaFoto = INDUSTRY_PHOTOS[empresa?.industria] || INDUSTRY_PHOTOS.default;
 
@@ -200,18 +203,6 @@ export default function DashboardLayout({ children, title }) {
           .db-grid-3,
           .db-grid-4 { grid-template-columns: 1fr !important; }
 
-          /* Grids inline con style en cada página */
-          [style*="grid-template-columns: 1fr 1fr"],
-          [style*="grid-template-columns: repeat(2"],
-          [style*="grid-template-columns: repeat(3"],
-          [style*="grid-template-columns: repeat(4"],
-          [style*="gridTemplateColumns: '1fr 1fr'"],
-          [style*="gridTemplateColumns: 'repeat(2"],
-          [style*="gridTemplateColumns: 'repeat(3"],
-          [style*="gridTemplateColumns: 'repeat(4"] {
-            grid-template-columns: 1fr !important;
-          }
-
           /* Topbar título más pequeño */
           .db-topbar { font-size: 14px; max-width: 160px; }
 
@@ -224,15 +215,9 @@ export default function DashboardLayout({ children, title }) {
           /* Pre / código — scroll */
           pre { overflow-x: auto !important; white-space: pre !important; }
 
-          /* Cards — ancho completo */
-          .card, [class*="card"] { width: 100% !important; }
-
           /* Botones en fila — apilan en móvil */
           .db-btn-row { flex-direction: column !important; align-items: stretch !important; }
           .db-btn-row .btn { text-align: center; justify-content: center; }
-
-          /* Hero banner altura menor en móvil */
-          .db-hero { height: 160px !important; }
 
           /* Stat cards en 2 columnas en móvil */
           .db-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
@@ -245,7 +230,7 @@ export default function DashboardLayout({ children, title }) {
         }
       `}} />
 
-      <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0F1E', position: 'relative', overflow: 'hidden' }}>
+      <div className="db-shell" style={{ display: 'flex', minHeight: '100vh', background: '#0A0F1E', position: 'relative', overflowX: 'hidden' }}>
 
         {/* Backdrop móvil */}
         {mobile && open && (
@@ -253,7 +238,7 @@ export default function DashboardLayout({ children, title }) {
         )}
 
         {/* ── SIDEBAR ── */}
-        <aside style={{
+        <aside data-sidebar style={{
           width: 236,
           background: '#0D1420',
           borderRight: '1px solid rgba(255,255,255,0.06)',
@@ -277,7 +262,7 @@ export default function DashboardLayout({ children, title }) {
         </aside>
 
         {/* ── MAIN ── */}
-        <main className="db-main" style={{ flex: 1, minWidth: 0, overflow: 'auto', background: '#0A0F1E' }}>
+        <main className="db-main" style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto', background: '#0A0F1E', width: mobile ? '100vw' : 'auto' }}>
 
           {/* Topbar */}
           <div style={{
@@ -312,8 +297,19 @@ export default function DashboardLayout({ children, title }) {
             {/* Derecha: badge + avatar + salir */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               {!mobile && <PlanBadge plan={empresa?.plan} />}
-              <img src={INDUSTRY_PHOTOS[empresa?.industria] || INDUSTRY_PHOTOS.default}
-                alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(43,106,255,0.3)' }} />
+              <img
+                src={INDUSTRY_PHOTOS[empresa?.industria] || INDUSTRY_PHOTOS.default}
+                alt=""
+                style={{
+                  width: 32, height: 32,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  objectPosition: 'center center',
+                  border: '2px solid rgba(43,106,255,0.35)',
+                  flexShrink: 0,
+                  display: 'block',
+                }}
+              />
               <button onClick={logout}
                 style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: mobile ? '7px 8px' : '6px 12px', cursor: 'pointer', color: '#EF4444', fontFamily: "'Inter',sans-serif", fontSize: 12, fontWeight: 600 }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">

@@ -562,6 +562,25 @@ tr:hover td      { background: rgba(43,106,255,0.04); }
 .divider       { height: 1px; background: var(--border); margin: 24px 0; }
 .glow-accent   { box-shadow: 0 0 24px var(--accent-glow); }
 
+/* ─── MOBILE DASHBOARD FIX ──────────────────────────────── */
+/* Evita flash negro antes de que JS detecte el viewport      */
+@media (max-width: 767px) {
+  /* Sidebar oculto por defecto en móvil — JS lo muestra al abrir */
+  aside[data-sidebar] {
+    transform: translateX(-100%) !important;
+  }
+  /* Main ocupa todo el ancho — no depende del sidebar */
+  main.db-main {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+  /* Wrapper principal sin overflow hidden que bloquee render */
+  .db-shell {
+    overflow-x: hidden !important;
+  }
+}
+
 /* ─── SCROLLBAR ────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }

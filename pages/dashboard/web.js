@@ -14,17 +14,20 @@ const CLOUD_NAME = 'dsomqay6y';
 const UPLOAD_PRESET = 'cadegran_fotos';
 
 const INDUSTRIAS_CONFIG = {
-  peluqueria: { img: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80', label: 'Peluquería / Spa' },
-  taller: { img: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=800&q=80', label: 'Taller / Mecánica' },
-  restaurante: { img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80', label: 'Restaurante' },
+  peluqueria:         { img: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80', label: 'Peluquería / Spa' },
+  taller:             { img: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=800&q=80', label: 'Taller / Mecánica' },
+  restaurante:        { img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80', label: 'Restaurante' },
   restaurante_barrio: { img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80', label: 'Restaurante de Barrio' },
-  inmobiliaria: { img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80', label: 'Inmobiliaria' },
-  tienda: { img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&q=80', label: 'Tienda / Retail' },
-  gimnasio: { img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80', label: 'Gimnasio / Fitness' },
-  salud: { img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80', label: 'Salud / Clínica' },
-  ajedrez: { img: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=800&q=80', label: 'Escuela de Ajedrez' },
-  arquitectura: { img: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=80', label: 'Arquitectura & Construcción' },
-  papeleria: { img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80', label: 'Servicios / Papelería' },
+  inmobiliaria:       { img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80', label: 'Inmobiliaria' },
+  tienda:             { img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&q=80', label: 'Tienda / Retail' },
+  gimnasio:           { img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80', label: 'Gimnasio / Fitness' },
+  salud:              { img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80', label: 'Salud / Clínica' },
+  ajedrez:            { img: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=800&q=80', label: 'Escuela de Ajedrez' },
+  arquitectura:       { img: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=80', label: 'Arquitectura & Construcción' },
+  papeleria:          { img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80', label: 'Servicios / Papelería' },
+  aduana:             { img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80', label: 'Agencia de Aduana' },
+  portuaria:          { img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80', label: 'Operadora Portuaria' },
+  default:            { img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80', label: 'Mi Negocio' },
 };
 
 const esRestaurante = (ind) => ind === 'restaurante' || ind === 'restaurante_barrio';
@@ -96,7 +99,7 @@ export default function Web() {
 
   const slug = (empresa?.nombreEmpresa || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const siteUrl = (typeof window !== 'undefined' ? window.location.origin : 'https://agenciame.com') + '/sitio/' + slug;
-  const indConfig = INDUSTRIAS_CONFIG[empresa?.industria] || INDUSTRIAS_CONFIG.papeleria;
+  const indConfig = INDUSTRIAS_CONFIG[empresa?.industria] || INDUSTRIAS_CONFIG.default;
 
   // ── Subir foto hero ──────────────────────────────────────────────────────
   const subirFoto = async (file, onSuccess, setUploading) => {

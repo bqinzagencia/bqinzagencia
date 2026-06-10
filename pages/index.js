@@ -65,10 +65,77 @@ export default function Landing() {
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         .btn-ghost { background: transparent; color: #aaa; border: 1px solid #333; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
         .btn-ghost:hover { border-color: #666; color: #E8E8E8; }
+
+        /* ── MOBILE ── */
+        @media (max-width: 768px) {
+          /* NAV */
+          .lnd-nav { padding: 0 20px !important; }
+          .lnd-nav-links { display: none !important; }
+          .lnd-nav-cta span { display: none !important; }
+
+          /* HERO */
+          .lnd-hero { min-height: 100svh !important; }
+          .lnd-hero-img {
+            object-position: center center !important;
+            object-fit: cover !important;
+          }
+          .lnd-hero-content {
+            padding: 0 22px !important;
+            align-items: flex-start !important;
+          }
+          .lnd-hero-inner { max-width: 100% !important; }
+          .lnd-hero-h1 { font-size: clamp(44px, 13vw, 80px) !important; letter-spacing: -1.5px !important; }
+          .lnd-hero-sub { font-size: 16px !important; margin-bottom: 32px !important; }
+          .lnd-hero-ctas { flex-direction: column !important; gap: 10px !important; }
+          .lnd-hero-ctas button { width: 100% !important; text-align: center !important; justify-content: center !important; }
+          .lnd-hero-proof { margin-top: 32px !important; }
+          .lnd-hero-stats { display: none !important; }
+
+          /* SECCIONES */
+          .lnd-section-pad { padding: 64px 22px !important; }
+          .lnd-header-pad  { padding: 64px 22px 48px !important; }
+
+          /* INDUSTRIAS */
+          .lnd-ind-grid { grid-template-columns: 1fr 1fr !important; }
+
+          /* FUNCIONES SPLIT */
+          .lnd-split { grid-template-columns: 1fr !important; }
+          .lnd-split-img { min-height: 240px !important; }
+          .lnd-split-text { padding: 40px 22px !important; border-left: none !important; border-top: 1px solid #141414 !important; }
+          .lnd-feat-grid  { grid-template-columns: 1fr !important; }
+          .lnd-feat-cell  { border-right: none !important; padding: 36px 22px !important; }
+
+          /* PASOS */
+          .lnd-steps-pad  { padding: 64px 22px !important; }
+          .lnd-steps-grid { grid-template-columns: 1fr !important; }
+          .lnd-steps-header { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+
+          /* PLANES */
+          .lnd-planes-pad  { padding: 0 22px 80px !important; grid-template-columns: 1fr !important; }
+
+          /* TESTIMONIOS */
+          .lnd-test-grid { grid-template-columns: 1fr !important; }
+          .lnd-test-pad  { padding: 64px 22px !important; }
+          .lnd-test-header { flex-direction: column !important; gap: 16px !important; }
+
+          /* CTA FINAL */
+          .lnd-cta-pad { padding: 80px 22px !important; }
+          .lnd-cta-h2  { font-size: clamp(38px, 11vw, 72px) !important; }
+          .lnd-cta-btns { flex-direction: column !important; gap: 10px !important; }
+          .lnd-cta-btns button { width: 100% !important; justify-content: center !important; }
+
+          /* FOOTER */
+          .lnd-footer-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+          .lnd-footer-pad  { padding: 56px 22px 32px !important; }
+          .lnd-footer-copy { flex-direction: column !important; gap: 8px !important; }
+        }
+        @media (max-width: 400px) {
+          .lnd-ind-grid { grid-template-columns: 1fr !important; }
+        }
       `}} />
 
       {/* ── NAV ────────────────────────────────────────────────────────────────── */}
-      <nav style={{
+      <nav className="lnd-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
         padding: '0 64px', height: 68,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -77,75 +144,76 @@ export default function Landing() {
         borderBottom: scrolled ? '1px solid #1A1A1A' : 'none',
         transition: 'all 0.5s ease',
       }}>
-        {/* Logo — agencIAme */}
+        {/* Logo */}
         <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 20, letterSpacing: '-0.5px', color: '#E8E8E8' }}>
           agenc<span style={{ color: '#FF6B00', fontSize: 23, fontWeight: 900 }}>IA</span>me
         </div>
 
-        <div style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
+        <div className="lnd-nav-links" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
           {['Empresas', 'Funciones', 'Precios'].map(item => (
             <a key={item} href={'#' + item.toLowerCase()}
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#555', fontSize: 13, fontWeight: 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
               onMouseEnter={e => e.target.style.color = '#E8E8E8'}
               onMouseLeave={e => e.target.style.color = '#555'}>
-              {item === 'Empresas' ? 'Empresas' : item}
+              {item}
             </a>
           ))}
         </div>
 
-        {!loading && (user ? (
-          <Link href="/dashboard"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Panel →</button></Link>
-        ) : (
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <Link href="/auth/login"><span style={{ color: '#555', fontSize: 13, cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#555'}>Ingresar</span></Link>
-            <Link href="/auth/register"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Empezar gratis</button></Link>
-          </div>
-        ))}
+        <div className="lnd-nav-cta">
+          {!loading && (user ? (
+            <Link href="/dashboard"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Panel →</button></Link>
+          ) : (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Link href="/auth/login"><span style={{ color: '#555', fontSize: 13, cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#555'}>Ingresar</span></Link>
+              <Link href="/auth/register"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Empezar gratis</button></Link>
+            </div>
+          ))}
+        </div>
       </nav>
 
-      {/* ── HERO ───────────────────────────────────────────────────────────────── */}
-      <section style={{ position: 'relative', height: '100vh', minHeight: 720, overflow: 'hidden' }}>
-        {/* Foto viva */}
-        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=90" alt="Oficina"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%' }} />
-        {/* Capas de gradiente */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(108deg, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.78) 52%, rgba(8,8,8,0.45) 100%)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280, background: 'linear-gradient(to top, #080808, transparent)' }} />
-        {/* Acento de luz lima */}
-        <div style={{ position: 'absolute', top: '20%', left: '45%', width: 480, height: 480, background: `radial-gradient(circle, ${G}09 0%, transparent 70%)`, pointerEvents: 'none' }} />
+      {/* ── HERO ────────────────────────────────────────────────────────────────────── */}
+      <section className="lnd-hero" style={{ position: 'relative', height: '100vh', minHeight: 620, overflow: 'hidden' }}>
+        {/* Imagen — centrada y visible desde el primer frame en móvil */}
+        <img className="lnd-hero-img"
+          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=90" alt="Oficina"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }} />
+        {/* Gradiente — más oscuro y homogéneo para que el texto sea legible en móvil */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.85) 50%, rgba(8,8,8,0.65) 100%)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, background: 'linear-gradient(to top, #080808, transparent)' }} />
 
-        {/* Contenido — izquierda */}
-        <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', padding: '0 80px' }}>
-          <div style={{ maxWidth: 740 }}>
+        {/* Contenido — se apila en móvil gracias a .lnd-hero-content */}
+        <div className="lnd-hero-content" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', padding: '0 80px' }}>
+          <div className="lnd-hero-inner" style={{ maxWidth: 740 }}>
 
             {/* Badge */}
             <div className="slide-up" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: `1px solid ${G}30`, borderRadius: 1, padding: '7px 16px', marginBottom: 44 }}>
-              <span style={{ width: 5, height: 5, background: G, borderRadius: '50%', animation: 'blink 2.2s infinite', flexShrink: 0 }} />
+              <span style={{ width: 5, height: 5, background: G, borderRadius: '50%', flexShrink: 0 }} />
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: G, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase' }}>
                 Tu negocio atendido por Inteligencia Artificial
               </span>
             </div>
 
-            {/* Título — Abril Fatface impacto */}
-            <h1 className="slide-up d1" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(60px, 8.5vw, 120px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '-2px', color: '#FAFAFA', marginBottom: 36 }}>
+            {/* Título */}
+            <h1 className="slide-up d1 lnd-hero-h1" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(60px, 8.5vw, 120px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '-2px', color: '#FAFAFA', marginBottom: 36 }}>
               agenc<span style={{ color: '#FF6B00' }}>IA</span>me<br />
               <span style={{ fontSize: '55%', color: 'rgba(240,240,240,0.7)', fontStyle: 'normal' }}>tu negocio en<br /></span>
               <span style={{ color: G }}>piloto automático.</span>
             </h1>
 
-            {/* Subtítulo — Fraunces italic */}
-            <p className="slide-up d2" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 21, color: 'rgba(255,255,255,0.5)', maxWidth: 500, marginBottom: 52, lineHeight: 1.65, fontWeight: 300 }}>
+            {/* Sub */}
+            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 21, color: 'rgba(255,255,255,0.5)', maxWidth: 500, marginBottom: 52, lineHeight: 1.65, fontWeight: 300 }}>
               La IA que atiende tus clientes, agenda citas y vende por ti — las 24 horas, los 7 días de la semana.
             </p>
 
             {/* CTAs */}
-            <div className="slide-up d3" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            <div className="slide-up d3 lnd-hero-ctas" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <Link href="/auth/register"><button className="btn-lima" style={{ fontSize: 16, padding: '16px 44px' }}>Probar 14 días gratis →</button></Link>
               <a href="#industrias"><button className="btn-ghost" style={{ fontSize: 16, padding: '16px 44px' }}>Ver industrias</button></a>
             </div>
 
             {/* Social proof */}
-            <div className="slide-up d4" style={{ marginTop: 60, display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div className="slide-up d4 lnd-hero-proof" style={{ marginTop: 60, display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ display: 'flex' }}>
                 {['#FF6B35','#FF4D8B','#4D94FF','#FFB830','#B8FF6C'].map((c, i) => (
                   <div key={i} style={{ width: 34, height: 34, borderRadius: '50%', background: c + '33', border: `2px solid ${c}66`, marginLeft: i === 0 ? 0 : -10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600, color: c, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -153,17 +221,15 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <div>
-                <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, color: '#888' }}>
-                  <span style={{ color: '#E8E8E8', fontWeight: 600 }}>+240 empresas</span> colombianas ya automatizan con NEXOIA
-                </div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, color: '#888' }}>
+                <span style={{ color: '#E8E8E8', fontWeight: 600 }}>+240 empresas</span> colombianas ya automatizan con agenc<span style={{ color: '#FF6B00' }}>IA</span>me
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats — derecha sobre foto */}
-        <div style={{ position: 'absolute', right: 80, bottom: 80, display: 'flex', gap: 48 }}>
+        {/* Stats — ocultas en móvil via .lnd-hero-stats */}
+        <div className="lnd-hero-stats" style={{ position: 'absolute', right: 80, bottom: 80, display: 'flex', gap: 48 }}>
           {[{ v: '24/7', l: 'Disponible' }, { v: '<2s', l: 'Respuesta' }, { v: '94%', l: 'Satisfacción' }].map((s, i) => (
             <div key={i} style={{ textAlign: 'right' }}>
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 44, color: G, lineHeight: 1 }}>{s.v}</div>
