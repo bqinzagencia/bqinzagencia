@@ -143,6 +143,17 @@ export default function Landing() {
           .lnd-feat-grid  { grid-template-columns: 1fr !important; }
           .feat-cell { border-right: none !important; padding: 36px 22px !important; }
 
+          /* GRIDS GENERALES SIN CLASE — override por selector */
+          section > div[style*="grid-template-columns: repeat(3"] {
+            grid-template-columns: 1fr !important;
+          }
+          section > div[style*="grid-template-columns: repeat(4"] {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          section > div > div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+          }
+
           /* PASOS */
           .lnd-steps-inner { padding: 60px 22px !important; }
           .lnd-steps-header { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
@@ -217,7 +228,7 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ────────────────────────────────────────────────────────────────────── */}
-      <section className="lnd-hero" style={{ position: 'relative', height: '100vh', minHeight: 620, overflow: 'hidden' }}>
+      <section className="lnd-hero" style={{ position: 'relative', height: '100svh', minHeight: 580, overflow: 'hidden' }}>
         {/* Imagen — centrada y visible desde el primer frame en móvil */}
         <img className="lnd-hero-img"
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=90" alt="Oficina"
