@@ -27,6 +27,7 @@ const INDUSTRIAS_CONFIG = {
   papeleria:          { img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80', label: 'Servicios / Papelería' },
   aduana:             { img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80', label: 'Agencia de Aduana' },
   portuaria:          { img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80', label: 'Operadora Portuaria' },
+  tecnico:            { img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80', label: 'Soporte Técnico / Electrónica' },
   default:            { img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80', label: 'Mi Negocio' },
 };
 

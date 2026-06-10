@@ -25,6 +25,7 @@ const HERO_BG = {
   papeleria:          'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85',
   aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1400&q=85',
   portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1400&q=85',
+  tecnico:            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&q=85',
   default:            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=85',
 };
 
@@ -108,6 +109,12 @@ const STAT_IMGS = {
     'https://images.unsplash.com/photo-1494412651409-8963ce7935a7?w=72&q=80',
     'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=72&q=80',
     'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=72&q=80',
+  ],
+  tecnico: [
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=72&q=80',
+    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=72&q=80',
+    'https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?w=72&q=80',
+    'https://images.unsplash.com/photo-1601524909162-ae8725290836?w=72&q=80',
   ],
   default: [
     'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=72&q=80',

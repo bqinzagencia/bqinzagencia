@@ -22,6 +22,7 @@ const INDUSTRY_PHOTOS = {
   papeleria:          'https://images.unsplash.com/photo-1497366216548-37526070297c?w=80&q=80',
   aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=80&q=80',
   portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=80&q=80',
+  tecnico:            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=80&q=80',
   default:            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&q=80',
 };
 

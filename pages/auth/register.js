@@ -69,6 +69,7 @@ export default function Register() {
     educacion:          'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80',
     aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1400&q=80',
     portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1400&q=80',
+    tecnico:            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&q=80',
     otro:               'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80',
   };
   // bgPhoto usa una ref para no re-renderizar mientras el popup de Google esta abierto

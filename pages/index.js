@@ -19,6 +19,7 @@ const INDUSTRIES = [
   { icon: '🎯', title: 'Deporte & Entrenamientos', desc: 'Clases, torneos, inscripciones y seguimiento deportivo.', slug: 'gimnasio', color: '#FF4D6D', img: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80' },
   { icon: '🛃', title: 'Agencias de Aduana', desc: 'Seguimiento de declaraciones, aranceles y estado de mercancias en puerto.', slug: 'aduana', color: '#0EA5E9', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80' },
   { icon: '🚢', title: 'Operadoras Portuarias', desc: 'Contenedores, ETA de buques, bodegaje y coordinacion con navieras.', slug: 'portuaria', color: '#0F766E', img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
+  { icon: '💻', title: 'Soporte Técnico & Electrónica', desc: 'Celulares, computadoras y electrónica. Recepción, presupuestos y seguimiento.', slug: 'tecnico', color: '#6366F1', img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80' },
 ];
 
 const PLANES = [
