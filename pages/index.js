@@ -88,6 +88,9 @@ export default function Landing() {
           .lnd-nav { padding: 0 20px !important; height: 58px !important; }
           .lnd-nav-links { display: none !important; }
 
+          /* AVATAR BIENVENIDA — solo visible en movil */
+          .lnd-hero-avatar-wrap { display: block !important; }
+
           /* HERO — visible desde arriba en movil */
           .lnd-hero {
             height: 100dvh !important;
@@ -240,6 +243,20 @@ export default function Landing() {
         {/* Contenido — se apila en móvil gracias a .lnd-hero-content */}
         <div className="lnd-hero-content" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', padding: '68px 80px 0' }}>
           <div className="lnd-hero-inner" style={{ maxWidth: 740 }}>
+
+            {/* Avatar bienvenida — visible en movil arriba del texto */}
+            <div className="lnd-hero-avatar-wrap" style={{ display: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(15,22,35,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(43,106,255,0.25)', borderRadius: 16, padding: '12px 16px', marginBottom: 24 }}>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #2563EB, #06B6D4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🤖</div>
+                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRadius: '50%', background: '#10B981', border: '2px solid #0A0F1E' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 700, color: '#EFF4FF' }}>Agente IA — agencIAme</div>
+                  <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#6DA4FF', marginTop: 2 }}>● En línea · Responde al instante</div>
+                </div>
+              </div>
+            </div>
 
             {/* Badge */}
             <div className="slide-up" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: `1px solid ${G}30`, borderRadius: 1, padding: '7px 16px', marginBottom: 44 }}>
