@@ -152,8 +152,12 @@ export default function CRM() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{ width: 34, height: 34, borderRadius: 10, background: color + '22', color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{iniciales(c.nombre)}</div>
                             <div>
-                              <div style={{ fontWeight: 600, color: 'var(--white)', fontSize: 14 }}>{c.nombre}</div>
-                              <div style={{ fontSize: 12, color: 'var(--gray5)' }}>{c.email || '—'}</div>
+                              <div style={{ fontWeight: 600, color: 'var(--white)', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {c.nombre}
+                                {c.canal === 'whatsapp' && <span style={{ fontSize: 10, background: 'rgba(37,211,102,0.15)', color: '#25D366', borderRadius: 100, padding: '1px 7px', fontWeight: 700 }}>WhatsApp</span>}
+                                {c.canal === 'web' && <span style={{ fontSize: 10, background: 'rgba(43,106,255,0.15)', color: '#6DA4FF', borderRadius: 100, padding: '1px 7px', fontWeight: 700 }}>Web</span>}
+                              </div>
+                              <div style={{ fontSize: 12, color: 'var(--gray5)' }}>{c.telefono || c.email || '—'}</div>
                             </div>
                           </div>
                         </td>

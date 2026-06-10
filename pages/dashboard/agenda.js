@@ -114,7 +114,12 @@ export default function Agenda() {
                     <div style={{ fontSize: 12, color: 'var(--gray5)', marginTop: 4 }}>{fecha.getHours().toString().padStart(2,'0')}:{fecha.getMinutes().toString().padStart(2,'0')}</div>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{cita.nombreCliente}</div>
+                    <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {cita.nombreCliente}
+                      {cita.canal === 'whatsapp' && (
+                        <span style={{ fontSize: 10, background: 'rgba(37,211,102,0.15)', color: '#25D366', borderRadius: 100, padding: '2px 8px', fontWeight: 700, flexShrink: 0 }}>📱 WhatsApp</span>
+                      )}
+                    </div>
                     <div style={{ color: 'var(--gray5)', fontSize: 14 }}>{cita.servicio || 'Servicio'}{cita.telefono ? ` · ${cita.telefono}` : ''}</div>
                     {cita.notas && <div style={{ fontSize: 12, color: 'var(--gray5)', marginTop: 4, fontStyle: 'italic' }}>{cita.notas}</div>}
                   </div>
