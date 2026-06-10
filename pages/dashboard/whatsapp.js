@@ -33,26 +33,29 @@ export default function WhatsApp() {
     if (!loading && !user) router.push('/auth/login');
   }, [user, loading]);
 
-  // Leer estado inicial desde empresa
-  useEffect(() => {
-    if (empresa) {
-      const wa = empresa.whatsapp || {};
-      if (wa.status === 'connected') {
-        setStatus('connected');
-        setNumero(wa.numero || null);
-      } else if (wa.status === 'qr_ready' && wa.qrBase64) {
-        setStatus('qr_ready');
-        setQrBase64(wa.qrBase64);
-        iniciarPolling();
-      }
-    }
-  }, [empresa]);
-
   useEffect(() => () => clearInterval(pollRef.current), []);
 
   if (loading || !empresa) return <div className="page-loader"><div className="spinner" /></div>;
 
-  const empresaId = user.uid;
+  const empresaId = empresa.id; // CORRECTO: usar empresa.id no user.uid
+
+  // Verificar estado real en Railway al cargar la pagina
+  useEffect(() => {
+    if (!empresa?.id) return;
+    fetch(`/api/wa-status?empresaId=${empresa.id}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.status === 'connected') {
+          setStatus('connected');
+          setNumero(d.numero);
+        } else if (d.status === 'qr_ready') {
+          setStatus('qr_ready');
+          iniciarPolling();
+        } else {
+          setStatus('idle');
+        }
+      }).catch(() => setStatus('idle'));
+  }, [empresa?.id]);
 
   // ── Polling: verificar si ya se escaneó el QR ────────────────────────
   function iniciarPolling() {
