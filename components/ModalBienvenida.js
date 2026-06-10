@@ -131,11 +131,38 @@ export default function ModalBienvenida() {
         .bv-cerrar:hover { background: rgba(255,255,255,0.18) !important; }
         .bv-mini-card { transition: transform 0.2s, border-color 0.2s; }
         .bv-mini-card:hover { transform: translateY(-3px); border-color: rgba(255,107,0,0.4) !important; }
+
+        /* ── MÓVIL VERTICAL: solo mostrar la tarjeta de video centrada ── */
+        @media (max-width: 767px) and (orientation: portrait) {
+          .bv-overlay {
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 20px !important;
+            gap: 0 !important;
+          }
+          .bv-texto-col  { display: none !important; }
+          .bv-panel-col  { display: none !important; }
+          .bv-video-col {
+            width: min(300px, 85vw) !important;
+            flex-shrink: 0 !important;
+          }
+        }
+        /* MÓVIL HORIZONTAL: mostrar todo pero compacto */
+        @media (max-width: 900px) and (orientation: landscape) {
+          .bv-overlay {
+            gap: 16px !important;
+            padding: 12px !important;
+          }
+          .bv-video-card { width: 180px !important; }
+          .bv-texto-col  { max-width: 200px !important; }
+          .bv-panel-col  { width: 200px !important; }
+          .bv-panel-col > div:first-child { display: none !important; }
+        }
       `}} />
 
       {/* ── Overlay ── */}
       <div
-        className={cerrado ? 'bv-overlay-out' : 'bv-overlay-in'}
+        className={cerrado ? 'bv-overlay-out bv-overlay' : 'bv-overlay-in bv-overlay'}
         onClick={cerrar}
         style={{
           position: 'fixed', inset: 0,
@@ -152,7 +179,7 @@ export default function ModalBienvenida() {
 
         {/* ── Tarjeta video ── */}
         <div
-          className={cerrado ? 'bv-card-out' : 'bv-card-in'}
+          className={cerrado ? 'bv-card-out bv-video-col' : 'bv-card-in bv-video-col'}
           onClick={e => e.stopPropagation()}
           style={{
             position: 'relative', width: 260, flexShrink: 0,
@@ -246,7 +273,7 @@ export default function ModalBienvenida() {
 
         {/* ── Texto central ── */}
         <div
-          className={cerrado ? '' : 'bv-texto-in'}
+          className={cerrado ? 'bv-texto-col' : 'bv-texto-in bv-texto-col'}
           onClick={e => e.stopPropagation()}
           style={{ maxWidth: 260, opacity: 0, flexShrink: 0 }}
         >
@@ -267,7 +294,7 @@ export default function ModalBienvenida() {
 
         {/* ── Panel derecho — el espacio que estaba vacío ── */}
         <div
-          className={cerrado ? '' : 'bv-panel-in'}
+          className={cerrado ? 'bv-panel-col' : 'bv-panel-in bv-panel-col'}
           onClick={e => e.stopPropagation()}
           style={{
             width: 300, opacity: 0, flexShrink: 0,
