@@ -20,9 +20,9 @@ export default function Conversaciones() {
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !empresa) return;
     const q = query(
-      collection(db, 'empresas', user.uid, 'conversaciones'),
+      collection(db, 'empresas', empresa.id, 'conversaciones'),
       orderBy('ultimoMensaje', 'desc'),
       limit(50)
     );
@@ -30,7 +30,7 @@ export default function Conversaciones() {
       setConversaciones(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
-  }, [user]);
+  }, [user, empresa]); // recarga al cambiar empresa
 
   const filtradas = conversaciones.filter(c =>
     !filtro ||

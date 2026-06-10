@@ -23,7 +23,7 @@ export default function Configuracion() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateEmpresa(user.uid, form);
+      await updateEmpresa(empresa.id, form);  // usar empresa.id
       setEmpresa(e => ({ ...e, ...form }));
       toast.success('Configuración guardada');
     } catch { toast.error('Error al guardar'); }

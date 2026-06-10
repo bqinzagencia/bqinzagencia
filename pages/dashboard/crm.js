@@ -30,25 +30,21 @@ export default function CRM() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
-  useEffect(() => { if (user) loadContactos(); }, [user]);
+  useEffect(() => { if (user && empresa) loadContactos(); }, [user, empresa]);  // recarga al cambiar empresa
 
   const loadContactos = async () => {
-    const c = await getContactos(user.uid);
+    const c = await getContactos(empresa.id);  // usar empresa.id, NO user.uid
     setContactos(c);
   };
 
   const handleSave = async () => {
     if (!form.nombre) { toast.error('El nombre es requerido'); return; }
-    // ── BLOQUEO POR PLAN ──
     const check = verificarLimite(empresa?.plan, 'crm', contactos.length);
-    if (!check.ok) {
-      toast.error(check.mensaje);
-      return;
-    }
+    if (!check.ok) { toast.error(check.mensaje); return; }
     if (check.advertencia) toast(check.mensaje, { icon: '⚠️' });
     setSaving(true);
     try {
-      await crearContacto(user.uid, form);
+      await crearContacto(empresa.id, form);  // usar empresa.id
       toast.success('Contacto agregado al CRM');
       setShowModal(false);
       setForm({ nombre: '', email: '', telefono: '', empresa: '', estado: 'nuevo', notas: '' });
@@ -58,7 +54,7 @@ export default function CRM() {
   };
 
   const cambiarEstado = async (id, estado) => {
-    await updateContacto(user.uid, id, { estado });
+    await updateContacto(empresa.id, id, { estado });  // usar empresa.id
     toast.success('Estado actualizado');
     loadContactos();
     if (vistaDetalle?.id === id) setVistaDetalle(c => ({ ...c, estado }));

@@ -18,10 +18,10 @@ export default function Agenda() {
   const [vista, setVista] = useState('lista');
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
-  useEffect(() => { if (user) loadCitas(); }, [user]);
+  useEffect(() => { if (user && empresa) loadCitas(); }, [user, empresa]);
 
   const loadCitas = async () => {
-    try { const c = await getCitas(user.uid); setCitas(c); }
+    try { const c = await getCitas(empresa.id); setCitas(c); }
     catch (e) { console.error(e); }
   };
 
@@ -29,7 +29,7 @@ export default function Agenda() {
     if (!form.nombreCliente || !form.fechaHora) { toast.error('Nombre y fecha/hora son requeridos'); return; }
     setSaving(true);
     try {
-      await crearCita(user.uid, { ...form, fechaHora: new Date(form.fechaHora) });
+    await crearCita(empresa.id, { ...form, fechaHora: new Date(form.fechaHora) });
       toast.success('Cita agendada ✅');
       setShowModal(false);
       setForm({ nombreCliente: '', telefono: '', servicio: '', fechaHora: '', duracion: 60, notas: '' });
@@ -39,7 +39,7 @@ export default function Agenda() {
   };
 
   const cambiarEstado = async (id, estado) => {
-    await updateCita(user.uid, id, { estado });
+    await updateCita(empresa.id, id, { estado });
     toast.success('Estado actualizado');
     loadCitas();
   };

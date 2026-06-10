@@ -146,12 +146,12 @@ export default function Dashboard() {
   useEffect(() => { if (!loading && user && sinEmpresa) router.push('/auth/register'); }, [loading, user, sinEmpresa]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !empresa) return;
     (async () => {
       try {
         const [convs, agts, conts, cits] = await Promise.all([
-          getConversaciones(user.uid, 5), getAgentes(user.uid),
-          getContactos(user.uid), getCitas(user.uid),
+          getConversaciones(empresa.id, 5), getAgentes(empresa.id),
+          getContactos(empresa.id), getCitas(empresa.id),
         ]);
         setConversaciones(convs);
         setCitas(cits.slice(0, 5));
@@ -160,7 +160,7 @@ export default function Dashboard() {
       } catch (e) { console.error(e); }
       finally { setDataLoading(false); }
     })();
-  }, [user]);
+  }, [user, empresa]);  // recarga al cambiar empresa
 
   if (loading || !empresa) return <div className="page-loader"><div className="spinner" /></div>;
 
