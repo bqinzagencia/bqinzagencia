@@ -6,29 +6,96 @@ export default function Document() {
     <Html lang="es">
       <Head>
         <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+        {/* Sin zoom con dedos, ancho fijo al dispositivo */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <link rel="icon" href="/favicon.ico" />
         <meta name="theme-color" content="#0A0F1E" />
         <style dangerouslySetInnerHTML={{__html: `
-          /* Previene flash negro en móvil antes de que JS hidrate */
           html, body {
             background: #0A0F1E;
             margin: 0;
             padding: 0;
             -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+            touch-action: pan-y;
           }
           * { box-sizing: border-box; }
+
+          /* ── Dashboard móvil ──────────────────────────── */
+          @media (max-width: 768px) {
+
+            /* Sidebar oculto por defecto — se abre con drawer */
+            .db-sidebar {
+              transform: translateX(-100%) !important;
+              position: fixed !important;
+              z-index: 1000 !important;
+              height: 100vh !important;
+              top: 0 !important;
+            }
+            .db-sidebar.open {
+              transform: translateX(0) !important;
+            }
+
+            /* Main content ocupa todo el ancho */
+            .db-main {
+              margin-left: 0 !important;
+              width: 100% !important;
+              padding: 16px !important;
+            }
+
+            /* Topbar en móvil */
+            .db-topbar {
+              padding: 0 16px !important;
+              height: 56px !important;
+            }
+
+            /* Avatar sidebar — visible y bien posicionado */
+            .db-avatar-wrap {
+              padding: 16px 16px 12px !important;
+            }
+            .db-avatar-img {
+              width: 48px !important;
+              height: 48px !important;
+            }
+            .db-avatar-name {
+              font-size: 13px !important;
+            }
+            .db-avatar-role {
+              font-size: 11px !important;
+            }
+
+            /* Grids de 2 columnas → 1 columna */
+            .db-grid-2 { grid-template-columns: 1fr !important; }
+            .db-grid-3 { grid-template-columns: 1fr !important; }
+            .db-grid-4 { grid-template-columns: 1fr 1fr !important; }
+
+            /* Botones flotantes — separados para no pisarse */
+            .tfb-wrap { bottom: 20px !important; right: 20px !important; }
+            .sp-btn   { bottom: 20px !important; left: 20px !important; padding: 10px 16px !important; font-size: 12px !important; }
+
+            /* Ocultar columnas secundarias en tablas */
+            .db-table-hide { display: none !important; }
+
+            /* Hero dashboard */
+            .db-hero-wrap { height: 160px !important; border-radius: 12px !important; }
+            .db-hero-inner { padding: 0 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+            .db-hero-title { font-size: 17px !important; }
+            .db-hero-btn   { width: 100% !important; text-align: center !important; justify-content: center !important; margin-left: 0 !important; }
+
+            /* Conversaciones — lista full width en móvil */
+            .conv-split { flex-direction: column !important; height: auto !important; }
+            .conv-lista  { width: 100% !important; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.06) !important; max-height: 40vh !important; }
+          }
+
+          @media (max-width: 420px) {
+            .db-grid-4 { grid-template-columns: 1fr !important; }
+            .db-main   { padding: 12px !important; }
+          }
         `}} />
-        <meta name="description" content="agencIAme — Automatización empresarial con Inteligencia Artificial. Agentes IA, chat multicanal, CRM y más para tu negocio en Colombia." />
+        <meta name="description" content="agencIAme — Automatización empresarial con Inteligencia Artificial." />
         <meta property="og:title" content="agencIAme — Tu negocio en piloto automático con IA" />
-        <meta property="og:description" content="Automatiza ventas, atención al cliente y operaciones con agentes de IA para talleres, restaurantes, inmobiliarias y más." />
+        <meta property="og:description" content="Automatiza ventas, atención al cliente y operaciones con agentes de IA." />
         <meta property="og:type" content="website" />
-        {/*
-          next/font/google inyecta los @font-face automáticamente de forma óptima.
-          NO agregar @import de Google Fonts aquí — genera duplicados y FOUT.
-          Las fuentes de la landing (Abril Fatface, Fraunces, Plus Jakarta Sans)
-          sí se cargan en globals.css porque son solo para la landing, no toda la app.
-        */}
       </Head>
       <body>
         <Main />
