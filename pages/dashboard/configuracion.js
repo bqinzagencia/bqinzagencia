@@ -5,15 +5,17 @@ import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../lib/AuthContext';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { updateEmpresa } from '../../lib/firebase';
+import { updateEmpresa, desvincularEmpresa, logoutUser } from '../../lib/firebase';
 import { INDUSTRIAS, PLANES, formatPrecio } from '../../lib/utils';
 
 export default function Configuracion() {
-  const { user, empresa, setEmpresa, loading } = useAuth();
+  const { user, empresa, setEmpresa, empresas, loading } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState('negocio');
+  const [bajaConfirm, setBajaConfirm] = useState(false);
+  const [dandoDeBaja, setDandoDeBaja] = useState(false);
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
   useEffect(() => { if (empresa) setForm({ nombreEmpresa: empresa.nombreEmpresa || '', telefono: empresa.telefono || '', ciudad: empresa.ciudad || '', industria: empresa.industria || '', web: empresa.web || '', descripcion: empresa.descripcion || '', horario: empresa.horario || '', }); }, [empresa]);
@@ -151,11 +153,46 @@ export default function Configuracion() {
                 <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{empresa.plan}</span>
               </div>
               <div style={{ marginTop: 24, padding: 20, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12 }}>
-                <p style={{ fontWeight: 600, marginBottom: 8 }}>Zona de peligro</p>
-                <p style={{ color: 'var(--gray5)', fontSize: 13, marginBottom: 16 }}>Para cancelar tu cuenta o eliminar datos, contacta nuestro soporte.</p>
-                <a href="mailto:soportesistemas@soporteia.net?subject=Cancelar cuenta NEXOIA" className="btn btn-danger btn-sm">
-                  Contactar soporte
-                </a>
+                <p style={{ fontWeight: 600, marginBottom: 8 }}>Darse de baja de esta empresa</p>
+                <p style={{ color: 'var(--gray5)', fontSize: 13, marginBottom: 16 }}>
+                  Al darte de baja te desvinculamos de <strong>{empresa.nombreEmpresa}</strong>. Los datos de la empresa se conservan. Si quieres registrarla de nuevo, deberás completar el proceso de registro.
+                </p>
+                {!bajaConfirm ? (
+                  <button className="btn btn-danger btn-sm" onClick={() => setBajaConfirm(true)}>
+                    Desvincularse de esta empresa
+                  </button>
+                ) : (
+                  <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: 16 }}>
+                    <p style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>¿Confirmar baja?</p>
+                    <p style={{ color: 'var(--gray5)', fontSize: 12, marginBottom: 14 }}>
+                      Esto te desvinculará de <strong style={{ color: '#EFF4FF' }}>{empresa.nombreEmpresa}</strong>.
+                      {empresas.length > 1 ? ' Pasarás a tu otra empresa.' : ' Cerraremos tu sesión.'}
+                    </p>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setBajaConfirm(false)}>Cancelar</button>
+                      <button className="btn btn-danger btn-sm" disabled={dandoDeBaja} onClick={async () => {
+                        setDandoDeBaja(true);
+                        try {
+                          await desvincularEmpresa(user.uid, empresa.id);
+                          toast.success('Te has desvinculado de ' + empresa.nombreEmpresa);
+                          // Si tenia mas empresas, el AuthContext la recargara; si no, logout
+                          if (empresas.length <= 1) {
+                            await logoutUser();
+                            router.push('/');
+                          } else {
+                            router.push('/dashboard');
+                            router.reload();
+                          }
+                        } catch (e) {
+                          toast.error('Error al darse de baja');
+                          setDandoDeBaja(false);
+                        }
+                      }}>
+                        {dandoDeBaja ? 'Procesando...' : 'Confirmar baja'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
