@@ -196,7 +196,7 @@ export default function ModalBienvenida() {
             borderRadius: 100, letterSpacing: '0.08em',
             fontFamily: F, textTransform: 'uppercase',
             boxShadow: '0 4px 16px rgba(255,107,0,0.5)',
-          }}>👋 Bienvenida</div>
+          }}>👋 Bienvenido</div>
 
           {/* Cerrar */}
           <button className="bv-cerrar" onClick={cerrar} style={{
