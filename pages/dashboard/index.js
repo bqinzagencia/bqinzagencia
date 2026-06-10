@@ -134,7 +134,7 @@ const GUIDE_STEPS = [
 ];
 
 export default function Dashboard() {
-  const { user, empresa, loading } = useAuth();
+  const { user, empresa, loading, sinEmpresa } = useAuth();
   const router = useRouter();
   const [stats, setStats]                   = useState({ conversaciones: 0, citas: 0, contactos: 0, agentes: 0 });
   const [conversaciones, setConversaciones] = useState([]);
@@ -143,6 +143,7 @@ export default function Dashboard() {
   const [guideVisible, setGuideVisible]     = useState(true);
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
+  useEffect(() => { if (!loading && user && sinEmpresa) router.push('/auth/register'); }, [loading, user, sinEmpresa]);
 
   useEffect(() => {
     if (!user) return;
