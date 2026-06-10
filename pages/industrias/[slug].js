@@ -60,6 +60,7 @@ const CSS = `
     color: ${WHITE};
     font-family: ${F};
     font-size: 16px;
+    overflow-x: hidden;
   }
   .ih1 { font-family:${F}; font-weight:900; letter-spacing:-0.045em; line-height:1.0; color:${WHITE}; font-synthesis:none; }
   .ih2 { font-family:${F}; font-weight:800; letter-spacing:-0.035em; line-height:1.1; color:${WHITE}; font-synthesis:none; }
@@ -98,6 +99,50 @@ const CSS = `
     gap: 8px;
   }
   .btn-ghost-ind:hover { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.35); }
+
+  /* ─── MOBILE ───────────────────────────── */
+  @media (max-width: 768px) {
+    /* NAV */
+    nav { padding: 0 20px !important; height: 56px !important; }
+    nav a:not(:first-child):not(:last-child) { display: none !important; }
+
+    /* HERO — avatar visible desde el top */
+    .ind-hero-section {
+      padding: 76px 20px 56px !important;
+      min-height: auto !important;
+    }
+    .ind-hero-avatar {
+      width: 64px !important;
+      height: 64px !important;
+      border-radius: 16px !important;
+      margin-bottom: 20px !important;
+    }
+    .ih1 { font-size: clamp(34px, 10vw, 52px) !important; }
+    .ibody { font-size: 15px !important; }
+    .ind-hero-ctas { flex-direction: column !important; gap: 10px !important; }
+    .ind-hero-ctas a { width: 100% !important; justify-content: center !important; text-align: center !important; }
+    .ind-hero-stats { gap: 24px !important; }
+    .ind-hero-stats > div .istat { font-size: 28px !important; }
+
+    /* SECCIONES */
+    .isec, section { padding-left: 20px !important; padding-right: 20px !important; }
+    .ind-split-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+    .ind-funcs-grid { grid-template-columns: 1fr !important; }
+    .ind-casos-grid { grid-template-columns: 1fr !important; }
+    .ind-chips-wrap { gap: 8px !important; }
+
+    /* CTA FINAL */
+    .ind-cta-btns { flex-direction: column !important; gap: 10px !important; }
+    .ind-cta-btns a { width: 100% !important; justify-content: center !important; }
+    .ind-cta-avatar {
+      width: 60px !important;
+      height: 60px !important;
+    }
+
+    /* FOOTER */
+    footer { padding: 20px !important; flex-direction: column !important; gap: 16px !important; text-align: center !important; }
+    footer > div { justify-content: center !important; }
+  }
 `;
 
 export async function getStaticPaths() {
@@ -139,7 +184,7 @@ export default function IndustriaDetalle({ industria }) {
       </nav>
 
       {/* HERO */}
-      <section style={{ minHeight:'75vh',display:'flex',flexDirection:'column',justifyContent:'center',padding:'120px 60px 80px',position:'relative',overflow:'hidden',background:BG }}>
+      <section className="ind-hero-section" style={{ minHeight:'75vh',display:'flex',flexDirection:'column',justifyContent:'center',padding:'120px 60px 80px',position:'relative',overflow:'hidden',background:BG }}>
         <div style={{ position:'absolute',inset:0,backgroundImage:`url(${indPhoto.replace('w=160','w=1400')})`,backgroundSize:'cover',backgroundPosition:'center',filter:'brightness(0.12) saturate(0.5)' }} />
         <div style={{ position:'absolute',inset:0,background:`linear-gradient(135deg,rgba(10,15,30,0.98) 0%,rgba(10,15,30,0.80) 55%,rgba(10,15,30,0.55) 100%)` }} />
         <div style={{ position:'absolute',inset:0,background:`radial-gradient(ellipse 65% 65% at 70% 40%,${colorBg},transparent)`,pointerEvents:'none' }} />
@@ -153,7 +198,7 @@ export default function IndustriaDetalle({ industria }) {
           </div>
 
           {/* Foto industria */}
-          <div style={{ width:88,height:88,borderRadius:20,overflow:'hidden',marginBottom:28,border:`2px solid ${color}44`,boxShadow:`0 8px 32px ${color}22` }}>
+          <div className="ind-hero-avatar" style={{ width:88,height:88,borderRadius:20,overflow:'hidden',marginBottom:28,border:`2px solid ${color}44`,boxShadow:`0 8px 32px ${color}22` }}>
             <img src={indPhoto} alt={industria.nombre} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
           </div>
 
@@ -174,7 +219,7 @@ export default function IndustriaDetalle({ industria }) {
           <p className="ibody" style={{ fontSize:18,maxWidth:560,marginBottom:44 }}>{industria.descripcion}</p>
 
           {/* CTAs */}
-          <div style={{ display:'flex',gap:14,flexWrap:'wrap',marginBottom:56 }}>
+          <div className="ind-hero-ctas" style={{ display:'flex',gap:14,flexWrap:'wrap',marginBottom:56 }}>
             <Link href="/auth/register" style={{ background:color,color:'#080B0F',borderRadius:100,padding:'14px 32px',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,fontFamily:F,fontWeight:800,fontSize:15,letterSpacing:'0.01em',boxShadow:`0 6px 24px ${color}44` }}>
               Probar 14 días gratis →
             </Link>
@@ -182,7 +227,7 @@ export default function IndustriaDetalle({ industria }) {
           </div>
 
           {/* Stats */}
-          <div style={{ display:'flex',gap:44,flexWrap:'wrap' }}>
+          <div className="ind-hero-stats" style={{ display:'flex',gap:44,flexWrap:'wrap' }}>
             {industria.heroStats.map((s, i) => (
               <div key={i}>
                 <div className="istat" style={{ fontSize:38,color }}>{s.valor}</div>
@@ -215,7 +260,7 @@ export default function IndustriaDetalle({ industria }) {
 
       {/* CHAT DEMO */}
       <section id="flujo" style={{ padding:'96px 60px',background:BG }}>
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:56,alignItems:'center' }}>
+        <div className="ind-split-grid" style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:56,alignItems:'center' }}>
           <div>
             <span className="ilabel" style={{ color,marginBottom:10 }}>Demo real</span>
             <h2 className="ih2" style={{ fontSize:'clamp(26px,3.5vw,42px)',marginBottom:16 }}>Así habla tu agente IA<br />con los clientes</h2>
@@ -296,14 +341,14 @@ export default function IndustriaDetalle({ industria }) {
         <div style={{ position:'absolute',inset:0,backgroundImage:`url(${indPhoto.replace('w=160','w=1400')})`,backgroundSize:'cover',backgroundPosition:'center',filter:'brightness(0.08)' }} />
         <div style={{ position:'absolute',inset:0,background:`radial-gradient(ellipse 55% 75% at 50% 50%,${colorBg},transparent)` }} />
         <div style={{ position:'relative' }}>
-          <div style={{ width:80,height:80,borderRadius:'50%',overflow:'hidden',margin:'0 auto 20px',border:`3px solid ${color}55`,boxShadow:`0 8px 32px ${color}33` }}>
+          <div className="ind-cta-avatar" style={{ width:80,height:80,borderRadius:'50%',overflow:'hidden',margin:'0 auto 20px',border:`3px solid ${color}55`,boxShadow:`0 8px 32px ${color}33` }}>
             <img src={indPhoto} alt={industria.nombre} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
           </div>
           <h2 className="ih2" style={{ fontSize:'clamp(32px,4.5vw,58px)',marginBottom:18 }}>
             ¿Listo para automatizar<br />tu <span style={{ color }}>{industria.nombre.toLowerCase()}?</span>
           </h2>
           <p className="ibody" style={{ fontSize:17,marginBottom:40 }}>14 días gratis · Sin tarjeta de crédito · Configuración en minutos</p>
-          <div style={{ display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap' }}>
+          <div className="ind-cta-btns" style={{ display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap' }}>
             <Link href="/auth/register" style={{ background:color,color:'#080B0F',borderRadius:100,fontFamily:F,fontWeight:800,fontSize:16,padding:'14px 36px',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,boxShadow:`0 6px 24px ${color}44` }}>
               Crear mi cuenta gratis →
             </Link>

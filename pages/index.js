@@ -96,7 +96,7 @@ export default function Landing() {
             object-position: 60% center !important;
           }
           .lnd-hero-content {
-            padding: 80px 22px 40px !important;
+            padding: 72px 22px 40px !important;
             align-items: flex-start !important;
             justify-content: flex-start !important;
           }
