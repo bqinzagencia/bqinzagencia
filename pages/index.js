@@ -35,12 +35,21 @@ const PLANES = [
 export default function Landing() {
   const { user, loading } = useAuth();
   const [scrolled, setScrolled] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [videoCerrado, setVideoCerrado] = useState(false);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', fn);
-    return () => window.removeEventListener('scroll', fn);
+    // Mostrar video despues de 1 segundo
+    const t = setTimeout(() => setShowVideo(true), 1000);
+    return () => { window.removeEventListener('scroll', fn); clearTimeout(t); };
   }, []);
+
+  const cerrarVideo = () => {
+    setShowVideo(false);
+    setVideoCerrado(true);
+  };
 
   const G = '#2563EB';   // azul safiro
   const G2 = '#06B6D4';  // cyan vivo
@@ -89,7 +98,7 @@ export default function Landing() {
           .lnd-nav-links { display: none !important; }
 
           /* AVATAR BIENVENIDA — solo visible en movil */
-          .lnd-hero-avatar-wrap { display: block !important; }
+          .lnd-hero-avatar-wrap { display: none !important; }
 
           /* HERO — visible desde arriba en movil */
           .lnd-hero {
@@ -193,6 +202,37 @@ export default function Landing() {
         }`}} />
 
       {/* ── NAV ────────────────────────────────────────────────────────────────── */}
+      {/* POPUP VIDEO BIENVENIDA */}
+      {showVideo && (
+        <>
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes vp-in { from{opacity:0;transform:scale(0.85) translateY(30px)} to{opacity:1;transform:scale(1) translateY(0)} }
+            .vp-wrap{position:fixed;bottom:24px;left:24px;z-index:9999;animation:vp-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both}
+            .vp-card{width:260px;background:#0C0F14;border:1px solid rgba(255,255,255,0.12);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7)}
+            .vp-badge{position:absolute;top:12px;left:12px;background:rgba(249,115,22,0.92);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;font-family:'Plus Jakarta Sans',sans-serif}
+            .vp-close{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.65);border:none;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center}
+            .vp-video{width:100%;display:block;aspect-ratio:9/16;object-fit:cover;max-height:420px;background:#000}
+            .vp-footer{padding:12px 16px;background:#0C0F14;display:flex;align-items:center;gap:10px}
+            @media(max-width:768px){.vp-wrap{left:50%;transform:translateX(-50%);bottom:16px}.vp-card{width:min(300px,85vw)}}
+          `}} />
+          <div className="vp-wrap">
+            <div className="vp-card" style={{position:'relative'}}>
+              <span className="vp-badge">&#9679; BIENVENIDA</span>
+              <button className="vp-close" onClick={cerrarVideo}>&#x2715;</button>
+              <video className="vp-video" src="/bienvenida.mp4" autoPlay playsInline onEnded={cerrarVideo} />
+              <div className="vp-footer">
+                <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#2563EB,#06B6D4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>&#x1F916;</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:12,fontWeight:700,color:'#EFF4FF'}}>Alexander Borrero</div>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:10,color:'#4B6080'}}>Fundador &middot; agencIAme</div>
+                </div>
+                <a href="/auth/register" style={{background:'#F97316',color:'#fff',borderRadius:100,padding:'6px 14px',fontSize:11,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",textDecoration:'none',whiteSpace:'nowrap',flexShrink:0}}>Comenzar &#8594;</a>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       <nav className="lnd-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
         padding: '0 64px', height: 68,
