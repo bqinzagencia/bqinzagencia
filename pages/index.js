@@ -90,14 +90,14 @@ export default function Landing() {
 
           /* HERO — visible desde arriba en movil */
           .lnd-hero {
-            height: 100svh !important;
+            height: 100dvh !important;
             min-height: 580px !important;
           }
           .lnd-hero-img {
-            object-position: 60% center !important;
+            object-position: 50% 30% !important;
           }
           .lnd-hero-content {
-            padding: 72px 22px 40px !important;
+            padding: 80px 22px 40px !important;
             align-items: flex-start !important;
             justify-content: flex-start !important;
           }

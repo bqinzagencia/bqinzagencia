@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import {
-  registerUser, crearEmpresa, getEmpresa,
+  registerUser, crearEmpresa, getEmpresa, getEmpresasDeUsuario,
   loginWithGoogle, loginWithGithub, loginWithMicrosoft,
   auth
 } from '../../lib/firebase';
@@ -38,11 +38,12 @@ async function completarRegistroSocial(user, datos) {
 export default function Register() {
   const router = useRouter();
   const { plan } = router.query;
-  const { setEmpresa } = useAuth();
+  const { setEmpresa, agregarEmpresa } = useAuth();
 
   // Flujo: 'social-choice' | 'form-step0' | 'form-step1' | 'form-step2' | 'social-complete'
   const [flow, setFlow] = useState('social-choice');
-  const [socialUser, setSocialUser] = useState(null); // usuario ya autenticado con social
+  const [socialUser, setSocialUser] = useState(null);
+  const [empresas, setEmpresas] = useState([]); // empresas existentes del usuario
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
 
@@ -102,11 +103,12 @@ export default function Register() {
       const user = result.user;
       setSocialUser(user);
 
-      // Verificar si ya tiene empresa (ya registrado antes)
-      const empresa = await getEmpresa(user.uid);
-      if (empresa) {
-        toast.success('¡Bienvenido de nuevo, ' + (user.displayName || user.email) + '!');
-        router.push('/dashboard');
+      // Verificar cuantas empresas ya tiene
+      const emps = await getEmpresasDeUsuario(user.uid);
+      if (emps.length > 0) {
+        // Ya tiene empresas — mostrar selector
+        setEmpresas(emps);
+        setFlow('select-empresa');
         return;
       }
 
@@ -177,9 +179,9 @@ export default function Register() {
         industria: form.industria,
         plan: form.plan || 'emprendedor',
       };
-      await completarRegistroSocial(socialUser, { ...form });
-      setEmpresa({ ...datosEmpresa }); // contexto inmediato — evita spinner
-      toast.success('¡Bienvenido a agencIAme! 🎉');
+      await crearEmpresa(socialUser.uid, datosEmpresa);
+      agregarEmpresa({ ...datosEmpresa });
+      toast.success('Empresa creada! Bienvenido a agencIAme');
       router.push('/dashboard');
     } catch (err) {
       toast.error('Error al guardar datos: ' + err.message);
@@ -320,7 +322,54 @@ export default function Register() {
               </>
             )}
 
-            {/* ── STEP 0: Email + password ── */}
+            {/* ── SELECTOR DE EMPRESA EXISTENTE ── */}
+            {flow === 'select-empresa' && socialUser && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: G + '10', border: `1px solid ${G}22`, borderRadius: 4, padding: '12px 16px', marginBottom: 24 }}>
+                  {socialUser.photoURL && <img src={socialUser.photoURL} alt="" style={{ width: 36, height: 36, borderRadius: '50%' }} />}
+                  <div>
+                    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 600, color: G }}>{socialUser.displayName || socialUser.email}</div>
+                    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#444' }}>{socialUser.email}</div>
+                  </div>
+                </div>
+
+                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', color: '#2A2A2A', marginBottom: 16 }}>Tus empresas</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+                  {empresas.map(emp => (
+                    <button key={emp.id} onClick={() => {
+                      agregarEmpresa(emp);
+                      toast.success('¡Bienvenido, ' + emp.nombreEmpresa + '!');
+                      router.push('/dashboard');
+                    }} style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#111', border: '1px solid #1E1E1E', borderRadius: 6, padding: '14px 16px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s', width: '100%' }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = G + '66'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = '#1E1E1E'}>
+                      <div style={{ width: 40, height: 40, borderRadius: 10, background: G + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>\uD83C\uDFE2</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#E8E8E8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.nombreEmpresa}</div>
+                        <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#444', marginTop: 2 }}>{emp.industria} · Plan {emp.plan}</div>
+                      </div>
+                      <span style={{ color: G, fontSize: 13, fontWeight: 700, flexShrink: 0 }}>Entrar →</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ height: 1, background: '#161616', marginBottom: 20 }} />
+
+                <button onClick={() => {
+                  set('email', socialUser.email || '');
+                  setFlow('social-complete');
+                }} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'transparent', border: `1px dashed ${G}44`, borderRadius: 6, padding: '14px 16px', cursor: 'pointer', color: G, fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 600, justifyContent: 'center' }}>
+                  + Agregar nueva empresa
+                </button>
+
+                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#222', textAlign: 'center', marginTop: 16, lineHeight: 1.6 }}>
+                  Cada empresa tiene su propio plan y facturación independiente.
+                </p>
+              </>
+            )}
+
+
             {flow === 'form-step0' && (
               <>
                 {stepProgress()}

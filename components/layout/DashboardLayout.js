@@ -40,11 +40,11 @@ const NAV_ITEMS = [
 ];
 
 export default function DashboardLayout({ children, title }) {
-  const { empresa, esAdmin } = useAuth();
+  const { empresa, empresas, esAdmin, seleccionarEmpresa } = useAuth();
   const router    = useRouter();
-  const [open, setOpen]       = useState(false);
-  // Iniciar mobile en true si el viewport es angosto — evita flash negro en móvil
-  const [mobile, setMobile]   = useState(
+  const [open, setOpen]           = useState(false);
+  const [selectorOpen, setSelectorOpen] = useState(false);
+  const [mobile, setMobile]       = useState(
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   );
   const ind         = getIndustriaInfo(empresa?.industria);
@@ -92,7 +92,7 @@ export default function DashboardLayout({ children, title }) {
         )}
       </div>
 
-      {/* Info empresa */}
+      {/* Info empresa + selector */}
       {empresa && (
         <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -108,7 +108,45 @@ export default function DashboardLayout({ children, title }) {
                 {ind.label}
               </div>
             </div>
+            {/* Boton selector si hay mas de una empresa */}
+            {empresas.length > 1 && (
+              <button onClick={() => setSelectorOpen(s => !s)}
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: '#6B7A99' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            )}
           </div>
+
+          {/* Dropdown selector de empresas */}
+          {selectorOpen && empresas.length > 1 && (
+            <div style={{ marginTop: 8, background: '#0A0F1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, overflow: 'hidden' }}>
+              {empresas.map(e => (
+                <button key={e.id} onClick={() => { seleccionarEmpresa(e.id); setSelectorOpen(false); router.push('/dashboard'); }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: e.id === empresa.id ? 'rgba(43,106,255,0.1)' : 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left' }}>
+                  <img src={INDUSTRY_PHOTOS[e.industria] || INDUSTRY_PHOTOS.default} alt="" style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: e.id === empresa.id ? '#6DA4FF' : '#EFF4FF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Inter',sans-serif" }}>{e.nombreEmpresa}</div>
+                    <div style={{ fontSize: 10, color: '#4B6080', fontFamily: "'Inter',sans-serif" }}>{e.industria}</div>
+                  </div>
+                  {e.id === empresa.id && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2B6AFF', flexShrink: 0 }} />}
+                </button>
+              ))}
+              <button onClick={() => { setSelectorOpen(false); router.push('/auth/register?nueva=1'); }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#10B981', fontFamily: "'Inter',sans-serif", fontSize: 12, fontWeight: 600 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</div>
+                Agregar empresa
+              </button>
+            </div>
+          )}
+
+          {/* Boton agregar empresa si solo tiene una */}
+          {empresas.length === 1 && (
+            <button onClick={() => router.push('/auth/register?nueva=1')}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 4px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#4B6080', fontFamily: "'Inter',sans-serif", fontSize: 11, marginTop: 6, borderRadius: 6 }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar otra empresa
+            </button>
+          )}
         </div>
       )}
 
