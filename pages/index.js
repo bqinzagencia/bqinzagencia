@@ -59,80 +59,123 @@ export default function Landing() {
 
       <style dangerouslySetInnerHTML={{__html: `
         body { background: #080808; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; font-feature-settings: kern 1, liga 1; }
+        *, *::before, *::after { box-sizing: border-box; }
         a { text-decoration: none; color: inherit; }
         h1,h2,h3 { font-synthesis: none; -webkit-text-stroke: 0.01px transparent; }
         img { display:block; }
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         .btn-ghost { background: transparent; color: #aaa; border: 1px solid #333; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
         .btn-ghost:hover { border-color: #666; color: #E8E8E8; }
+        .btn-lima { background: #2563EB; color: #fff; border: none; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .btn-coral { background: #F97316; color: #fff; border: none; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .btn-ghost-lima { background: transparent; color: #2563EB; border: 1px solid #2563EB44; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .label { display: inline-block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #2563EB; margin-bottom: 20px; }
+        .ind-wrap { position: relative; overflow: hidden; cursor: pointer; }
+        .ind-img { object-fit: cover; position: absolute; inset: 0; width: 100%; height: 100%; transition: transform 0.6s ease; }
+        .ind-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.4) 50%, rgba(8,8,8,0.1) 100%); transition: opacity 0.4s; }
+        .ind-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; transform: scaleX(0); transition: transform 0.4s; }
+        .ind-wrap:hover .ind-img { transform: scale(1.05); }
+        .ind-wrap:hover .ind-bar { transform: scaleX(1); }
+        .slide-up { animation: slideUp 0.8s ease both; }
+        .d1 { animation-delay: 0.1s; } .d2 { animation-delay: 0.25s; } .d3 { animation-delay: 0.4s; } .d4 { animation-delay: 0.55s; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-        /* ── MOBILE ── */
+        /* ─── MOBILE ─────────────────────────────────────────────────── */
         @media (max-width: 768px) {
           /* NAV */
-          .lnd-nav { padding: 0 20px !important; }
+          .lnd-nav { padding: 0 20px !important; height: 58px !important; }
           .lnd-nav-links { display: none !important; }
-          .lnd-nav-cta span { display: none !important; }
 
-          /* HERO */
-          .lnd-hero { min-height: 100svh !important; }
+          /* HERO — visible desde arriba en movil */
+          .lnd-hero {
+            height: 100svh !important;
+            min-height: 580px !important;
+          }
           .lnd-hero-img {
-            object-position: center center !important;
-            object-fit: cover !important;
+            object-position: 60% center !important;
           }
           .lnd-hero-content {
-            padding: 0 22px !important;
+            padding: 80px 22px 40px !important;
             align-items: flex-start !important;
+            justify-content: flex-start !important;
           }
-          .lnd-hero-inner { max-width: 100% !important; }
-          .lnd-hero-h1 { font-size: clamp(44px, 13vw, 80px) !important; letter-spacing: -1.5px !important; }
-          .lnd-hero-sub { font-size: 16px !important; margin-bottom: 32px !important; }
-          .lnd-hero-ctas { flex-direction: column !important; gap: 10px !important; }
-          .lnd-hero-ctas button { width: 100% !important; text-align: center !important; justify-content: center !important; }
-          .lnd-hero-proof { margin-top: 32px !important; }
+          .lnd-hero-inner { max-width: 100% !important; padding-top: 20px !important; }
+          .lnd-hero-h1 {
+            font-size: clamp(42px, 12vw, 72px) !important;
+            letter-spacing: -1px !important;
+            margin-bottom: 20px !important;
+          }
+          .lnd-hero-sub {
+            font-size: 15px !important;
+            margin-bottom: 28px !important;
+          }
+          .lnd-hero-ctas {
+            flex-direction: column !important;
+            gap: 10px !important;
+            width: 100% !important;
+          }
+          .lnd-hero-ctas a, .lnd-hero-ctas button {
+            width: 100% !important;
+            text-align: center !important;
+            justify-content: center !important;
+            display: block !important;
+          }
+          .lnd-hero-proof { margin-top: 28px !important; flex-wrap: wrap !important; gap: 10px !important; }
           .lnd-hero-stats { display: none !important; }
 
-          /* SECCIONES */
-          .lnd-section-pad { padding: 64px 22px !important; }
-          .lnd-header-pad  { padding: 64px 22px 48px !important; }
+          /* BADGE HERO */
+          .lnd-hero-badge { padding: 6px 12px !important; margin-bottom: 24px !important; }
+          .lnd-hero-badge span:last-child { font-size: 9px !important; letter-spacing: 1.5px !important; }
 
           /* INDUSTRIAS */
+          .lnd-ind-header { padding: 60px 22px 40px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .lnd-ind-grid { grid-template-columns: 1fr 1fr !important; }
+          .lnd-ind-grid .ind-wrap { height: 180px !important; }
+          .lnd-ind-grid .ind-wrap h3 { font-size: 16px !important; }
+          .lnd-ind-grid .ind-wrap p { display: none !important; }
 
           /* FUNCIONES SPLIT */
           .lnd-split { grid-template-columns: 1fr !important; }
-          .lnd-split-img { min-height: 240px !important; }
+          .lnd-split-img { min-height: 220px !important; }
           .lnd-split-text { padding: 40px 22px !important; border-left: none !important; border-top: 1px solid #141414 !important; }
           .lnd-feat-grid  { grid-template-columns: 1fr !important; }
-          .lnd-feat-cell  { border-right: none !important; padding: 36px 22px !important; }
+          .feat-cell { border-right: none !important; padding: 36px 22px !important; }
 
           /* PASOS */
-          .lnd-steps-pad  { padding: 64px 22px !important; }
-          .lnd-steps-grid { grid-template-columns: 1fr !important; }
+          .lnd-steps-inner { padding: 60px 22px !important; }
           .lnd-steps-header { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+          .lnd-steps-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
+          .lnd-steps-grid > div { border-right: none !important; border-bottom: 1px solid #141414 !important; padding: 36px 22px !important; }
 
           /* PLANES */
-          .lnd-planes-pad  { padding: 0 22px 80px !important; grid-template-columns: 1fr !important; }
+          .lnd-planes-header { padding: 60px 22px 40px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+          .lnd-planes-grid { padding: 0 22px 80px !important; grid-template-columns: 1fr !important; gap: 16px !important; }
+          .plan-card { padding: 36px 24px !important; }
 
           /* TESTIMONIOS */
-          .lnd-test-grid { grid-template-columns: 1fr !important; }
-          .lnd-test-pad  { padding: 64px 22px !important; }
-          .lnd-test-header { flex-direction: column !important; gap: 16px !important; }
+          .lnd-test-inner { padding: 60px 22px !important; }
+          .lnd-test-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+          .lnd-test-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
+          .lnd-test-grid > div { padding: 36px 22px !important; border-bottom: 1px solid #141414 !important; }
 
           /* CTA FINAL */
-          .lnd-cta-pad { padding: 80px 22px !important; }
-          .lnd-cta-h2  { font-size: clamp(38px, 11vw, 72px) !important; }
+          .lnd-cta-inner { padding: 80px 22px !important; }
+          .lnd-cta-h2 { font-size: clamp(38px, 11vw, 72px) !important; letter-spacing: -1px !important; }
           .lnd-cta-btns { flex-direction: column !important; gap: 10px !important; }
-          .lnd-cta-btns button { width: 100% !important; justify-content: center !important; }
+          .lnd-cta-btns a, .lnd-cta-btns button { width: 100% !important; display: block !important; text-align: center !important; }
 
           /* FOOTER */
-          .lnd-footer-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
-          .lnd-footer-pad  { padding: 56px 22px 32px !important; }
-          .lnd-footer-copy { flex-direction: column !important; gap: 8px !important; }
+          .lnd-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 36px !important; }
+          .lnd-footer-grid > div:first-child { grid-column: 1 / -1 !important; }
+          .lnd-footer-inner { padding: 56px 22px 32px !important; }
+          .lnd-footer-copy { flex-direction: column !important; gap: 8px !important; text-align: center !important; }
         }
-        @media (max-width: 400px) {
+        @media (max-width: 420px) {
           .lnd-ind-grid { grid-template-columns: 1fr !important; }
-        }
-      `}} />
+          .lnd-ind-grid .ind-wrap { height: 200px !important; border-right: none !important; }
+          .lnd-ind-grid .ind-wrap p { display: block !important; }
+        }`}} />
 
       {/* ── NAV ────────────────────────────────────────────────────────────────── */}
       <nav className="lnd-nav" style={{
@@ -183,7 +226,7 @@ export default function Landing() {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, background: 'linear-gradient(to top, #080808, transparent)' }} />
 
         {/* Contenido — se apila en móvil gracias a .lnd-hero-content */}
-        <div className="lnd-hero-content" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', padding: '0 80px' }}>
+        <div className="lnd-hero-content" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', padding: '68px 80px 0' }}>
           <div className="lnd-hero-inner" style={{ maxWidth: 740 }}>
 
             {/* Badge */}
@@ -254,7 +297,7 @@ export default function Landing() {
       {/* ── INDUSTRIAS ──────────────────────────────────────────────────────────── */}
       <section id="empresas">
         {/* Header */}
-        <div style={{ position: 'relative', padding: '100px 80px 72px', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', padding: '100px 80px 72px', overflow: 'hidden' }} className="lnd-ind-header">
           <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600&q=80" alt=""
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.08) saturate(0.3)' }} />
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 32 }}>
@@ -270,7 +313,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }} className="lnd-ind-grid">
           {INDUSTRIES.map((ind, i) => (
             <Link key={i} href={'/industrias/' + ind.slug}>
               <div className="ind-wrap" style={{ height: 280, borderRight: i % 4 !== 3 ? '1px solid #141414' : 'none', borderBottom: i < 8 ? '1px solid #141414' : 'none' }}>
@@ -377,7 +420,7 @@ export default function Landing() {
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.1) saturate(0.5)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #080808 0%, rgba(8,8,8,0.5) 30%, rgba(8,8,8,0.5) 70%, #080808 100%)' }} />
 
-        <div style={{ position: 'relative', padding: '100px 80px' }}>
+        <div style={{ position: 'relative', padding: '100px 80px' }} className="lnd-steps-inner">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 80, flexWrap: 'wrap', gap: 24 }}>
             <div>
               <span className="label">Proceso</span>
@@ -390,7 +433,7 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, background: '#141414' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, background: '#141414' }} className="lnd-steps-grid">
             {[
               { n: '01', title: 'Regístrate', desc: 'Crea tu cuenta en segundos. Sin tarjeta de crédito. 14 días completamente gratis.' },
               { n: '02', title: 'Configura', desc: 'Ingresa servicios, precios y horarios. La IA aprende todo sobre tu negocio automáticamente.' },
@@ -425,7 +468,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div style={{ padding: '0 80px 120px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        <div style={{ padding: '0 80px 120px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }} className="lnd-planes-grid">
           {PLANES.map((plan, i) => (
             <div key={i} className="plan-card" style={{
               border: '1px solid ' + (plan.popular ? G + '55' : '#1A1A1A'),
@@ -507,7 +550,7 @@ export default function Landing() {
         {/* Luz lima sutil */}
         <div style={{ position: 'absolute', top: '30%', left: '35%', width: 500, height: 300, background: `radial-gradient(ellipse, ${G}06 0%, transparent 70%)` }} />
 
-        <div style={{ position: 'relative', padding: '120px 80px' }}>
+        <div style={{ position: 'relative', padding: '120px 80px' }} className="lnd-cta-inner">
           <span className="label">Comienza hoy</span>
           <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(52px, 7vw, 100px)', fontWeight: 400, lineHeight: 0.95, letterSpacing: '-2.5px', marginBottom: 28, maxWidth: 800, color: '#F0F0F0' }}>
             ¿Listo para poner<br />tu negocio en<br /><span style={{ color: G }}>modo automático?</span>
@@ -527,8 +570,8 @@ export default function Landing() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────────── */}
-      <footer style={{ background: '#040404', padding: '80px 80px 40px', borderTop: '1px solid #111' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: 64, marginBottom: 64 }}>
+      <footer style={{ background: '#040404', padding: '80px 80px 40px', borderTop: '1px solid #111' }} className="lnd-footer-inner">
+        <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: 64, marginBottom: 64 }} className="lnd-footer-grid">
           <div>
             <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 26, color: '#E8E8E8', marginBottom: 20 }}>
             agenc<span style={{ color: '#FF6B00', fontSize: 30 }}>IA</span>me
