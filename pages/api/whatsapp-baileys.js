@@ -21,7 +21,11 @@ export default async function handler(req, res) {
   try {
     // 1. Obtener datos de la empresa
     const empresaSnap = await adminDb.collection('empresas').doc(empresaId).get();
-    if (!empresaSnap.exists) return res.status(404).json({ error: 'Empresa no encontrada' });
+    if (!empresaSnap.exists) {
+      // Empresa eliminada — limpiar historial y sesion
+      historiales.delete(`${empresaId}_${numeroCliente}`);
+      return res.json({ respuesta: null });
+    }
     const empresa = empresaSnap.data();
 
     // 2. Verificar trial
@@ -69,10 +73,12 @@ export default async function handler(req, res) {
       }
     }
 
-    // 5. Historial de conversacion
+    // 5. Historial de conversacion — clave unica por empresa+numero
     const historialKey = `${empresaId}_${numeroCliente}`;
     if (!historiales.has(historialKey)) historiales.set(historialKey, []);
     const historial = historiales.get(historialKey);
+    // Limpiar historial si tiene mas de 20 mensajes (evita acumulacion)
+    if (historial.length > 20) historial.splice(0, historial.length - 10);
     historial.push({ role: 'user', content: texto });
     if (historial.length > 10) historial.splice(0, historial.length - 10);
 
