@@ -80,14 +80,14 @@ export default function Web() {
 
   const cargarGaleria = async () => {
     try {
-      const snap = await getDoc(doc(db, 'empresas', user.uid, 'config', 'galeria'));
+      const snap = await getDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'));
       if (snap.exists()) setFotosGaleria(snap.data().fotos || []);
     } catch (e) {}
   };
 
   const cargarMenu = async () => {
     try {
-      const snap = await getDoc(doc(db, 'empresas', user.uid, 'config', 'menuDiario'));
+      const snap = await getDoc(doc(db, 'empresas', empresa.id, 'config', 'menuDiario'));
       if (snap.exists()) {
         const d = snap.data();
         setMenuTitulo(d.titulo || 'Menú del día');
@@ -151,7 +151,7 @@ export default function Web() {
     }
     const todas = [...fotosGaleria, ...nuevas];
     setFotosGaleria(todas);
-    await setDoc(doc(db, 'empresas', user.uid, 'config', 'galeria'), { fotos: todas });
+    await setDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'), { fotos: todas });
     toast.success(nuevas.length + ' foto(s) agregada(s) ✅');
     setUploadingGal(false);
   };
@@ -159,7 +159,7 @@ export default function Web() {
   const eliminarFotoGaleria = async (i) => {
     const nuevas = fotosGaleria.filter((_, idx) => idx !== i);
     setFotosGaleria(nuevas);
-    await setDoc(doc(db, 'empresas', user.uid, 'config', 'galeria'), { fotos: nuevas });
+    await setDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'), { fotos: nuevas });
     toast.success('Foto eliminada');
   };
 
@@ -179,7 +179,7 @@ export default function Web() {
   const guardarMenu = async () => {
     setSaving(true);
     try {
-      await setDoc(doc(db, 'empresas', user.uid, 'config', 'menuDiario'), {
+      await setDoc(doc(db, 'empresas', empresa.id, 'config', 'menuDiario'), {
         titulo: menuTitulo,
         descripcion: menuDesc,
         precioMenuCompleto: menuPrecioCompleto,
@@ -194,14 +194,14 @@ export default function Web() {
   const aplicarPlantilla = async () => {
     setSaving(true);
     try {
-      await updateEmpresa(user.uid, {
+      await updateEmpresa(empresa.id, {
         plantillaWeb: empresa.industria,
         fotoWeb: fotoPersonalizada || '',
         ofreceDomicilio,
         zonasCobertura,
         tiempoEntrega,
       });
-      toast.success('¡Tu sitio web está listo! 🎉');
+      toast.success('Tu sitio web esta listo!');
       setStep(2);
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
@@ -210,7 +210,7 @@ export default function Web() {
   const guardarConfig = async () => {
     setSaving(true);
     try {
-      await updateEmpresa(user.uid, { fotoWeb: fotoPersonalizada || '', ofreceDomicilio, zonasCobertura, tiempoEntrega });
+      await updateEmpresa(empresa.id, { fotoWeb: fotoPersonalizada || '', ofreceDomicilio, zonasCobertura, tiempoEntrega });
       toast.success('Configuración guardada ✅');
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }

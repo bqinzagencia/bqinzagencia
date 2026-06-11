@@ -39,11 +39,11 @@ export default function Agentes() {
   }, [user, loading]);
 
   useEffect(() => {
-    if (user) loadAgentes();
-  }, [user]);
+    if (user && empresa) loadAgentes();
+  }, [user, empresa]);
 
   const loadAgentes = async () => {
-    const ags = await getAgentes(user.uid);
+    const ags = await getAgentes(empresa.id);
     setAgentes(ags);
   };
 
@@ -76,11 +76,11 @@ export default function Agentes() {
     setSaving(true);
     try {
       if (editando) {
-        await updateAgente(user.uid, editando, form);
+        await updateAgente(empresa.id, editando, form);
         toast.success('Agente actualizado');
       } else {
-        await crearAgente(user.uid, form);
-        toast.success('Agente creado exitosamente 🤖');
+        await crearAgente(empresa.id, form);
+        toast.success('Agente creado exitosamente');
       }
       setShowModal(false);
       loadAgentes();
@@ -91,13 +91,13 @@ export default function Agentes() {
 
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar este agente? Esta acción no se puede deshacer.')) return;
-    await deleteAgente(user.uid, id);
+    await deleteAgente(empresa.id, id);
     toast.success('Agente eliminado');
     loadAgentes();
   };
 
   const toggleActivo = async (ag) => {
-    await updateAgente(user.uid, ag.id, { activo: !ag.activo });
+    await updateAgente(empresa.id, ag.id, { activo: !ag.activo });
     toast.success(ag.activo ? 'Agente pausado' : 'Agente activado');
     loadAgentes();
   };
