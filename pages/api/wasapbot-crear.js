@@ -5,28 +5,33 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  const { nombre, industria, descripcion, email } = req.body;
+  const { nombre, industria, descripcion, email, horario, ciudad } = req.body;
   if (!nombre || !industria || !email) return res.status(400).json({ error: 'Faltan datos requeridos' });
 
   try {
-    // Crear empresa en Firestore
     const empresaRef = adminDb.collection('empresas').doc();
     const empresaId  = empresaRef.id;
+    const ahora      = new Date();
+
+    // Trial de 1 hora desde el momento de registro
+    const trialHasta = new Date(ahora.getTime() + 1 * 60 * 60 * 1000);
 
     await empresaRef.set({
       nombreEmpresa:  nombre,
       industria,
       email,
+      ciudad:         ciudad || '',
       plan:           'wasapbot',
       planActivo:     false,
-      trialHasta:     new Date(Date.now() + 14 * 86400000),
+      trialHasta,                         // 1 hora exacta desde registro
       producto:       'wasapbot',
       creadoEn:       FieldValue.serverTimestamp(),
-      ciudad:         '',
       whatsapp:       { status: 'disconnected' },
+      tokensUsados:   0,
+      conversaciones: 0,
     });
 
-    // Crear base de conocimiento con descripcion
+    // Base de conocimiento inicial
     await adminDb.collection('empresas').doc(empresaId)
       .collection('config').doc('conocimiento').set({
         info: {
@@ -34,11 +39,11 @@ export default async function handler(req, res) {
           email,
         },
         servicios:  [],
-        horarios:   {},
+        horarios:   horario ? { general: horario } : {},
         creadoEn:   FieldValue.serverTimestamp(),
       });
 
-    // Crear agente por defecto
+    // Agente por defecto
     await adminDb.collection('empresas').doc(empresaId)
       .collection('agentes').add({
         nombre:   `Asistente de ${nombre}`,
@@ -47,7 +52,7 @@ export default async function handler(req, res) {
         creadoEn: FieldValue.serverTimestamp(),
       });
 
-    return res.json({ ok: true, empresaId });
+    return res.json({ ok: true, empresaId, trialHasta: trialHasta.toISOString() });
   } catch (err) {
     console.error('wasapbot-crear:', err);
     return res.status(500).json({ error: err.message });

@@ -31,23 +31,40 @@ export default async function handler(req, res) {
     const empresa = empresaSnap.data();
     const nombreEmpresa = empresa.nombreEmpresa || 'nuestro negocio';
 
-    // 2. Verificar trial y restriccion WhatsApp
-    if (empresa.trialHasta) {
-      const hasta = empresa.trialHasta?.toDate ? empresa.trialHasta.toDate() : new Date(empresa.trialHasta);
+    // 2. Verificar trial: 1 hora gratuita para nuevos inscritos de WasapBot
+    // Solo aplica si el plan NO está activo (no han pagado)
+    const planActivo = empresa.planActivo === true && empresa.plan && empresa.plan !== 'wasapbot';
+
+    if (!planActivo && empresa.producto === 'wasapbot') {
       const ahora = new Date();
+      const UNA_HORA_MS = 60 * 60 * 1000; // 1 hora en milisegundos
 
-      // Trial vencido
-      if (ahora > hasta) {
-        return res.json({ respuesta: `Hola! El periodo de prueba de ${nombreEmpresa} ha vencido. Contacta al administrador para activar un plan.` });
-      }
+      // Calcular tiempo desde la creacion de la cuenta
+      const creadoEn = empresa.creadoEn?.toDate
+        ? empresa.creadoEn.toDate()
+        : (empresa.creadoEn ? new Date(empresa.creadoEn) : null);
 
-      // WhatsApp solo disponible los primeros 2 dias del trial
-      const creadoEn = empresa.creadoEn?.toDate ? empresa.creadoEn.toDate() : new Date(empresa.creadoEn || hasta - 14 * 86400000);
-      const diasDesdaCreacion = Math.floor((ahora - creadoEn) / (1000 * 60 * 60 * 24));
-      const planActivo = empresa.plan && empresa.planActivo && empresa.plan !== 'emprendedor';
+      if (creadoEn) {
+        const msDesdeCreacion = ahora - creadoEn;
 
-      if (!planActivo && diasDesdaCreacion >= 2) {
-        return res.json({ respuesta: `Hola! El acceso a WhatsApp Bot durante el periodo de prueba es de 2 dias. Para continuar usando WhatsApp Bot, activa un plan en ${AGENCIAME_API}/dashboard/planes` });
+        if (msDesdeCreacion > UNA_HORA_MS) {
+          // Trial de 1 hora vencido — invitar a activar plan
+          return res.json({
+            respuesta:
+              `Hola 👋 El periodo de prueba gratuito de *${nombreEmpresa}* (1 hora) ha finalizado.\n\n` +
+              `Para seguir recibiendo respuestas automáticas por WhatsApp, activa un plan en:\n` +
+              `👉 https://agenciame.com/wasapbot\n\n` +
+              `¿Tienes dudas? Escríbenos al *+${SOPORTE_NUMERO}* 🟢`,
+          });
+        }
+
+        // Avisar cuando queden menos de 10 minutos del trial
+        const msRestantes = UNA_HORA_MS - msDesdeCreacion;
+        if (msRestantes < 10 * 60 * 1000) {
+          const minsRestantes = Math.ceil(msRestantes / 60000);
+          // Este aviso se agrega al final de la respuesta más abajo
+          req._trialAviso = `\n\n_⏳ Quedan ~${minsRestantes} min de tu prueba gratuita. Activa tu plan en agenciame.com/wasapbot_`;
+        }
       }
     }
 
@@ -146,78 +163,72 @@ REGLAS CRITICAS:
       }
     }
 
-    // 8. OpenAI con conteo de tokens
+    // 8. OpenAI
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 500,
       messages: [{ role: 'system', content: systemPrompt }, ...historial],
     });
 
-    // Registrar tokens consumidos
-    const tokensUsados = completion.usage?.total_tokens || 0;
-    if (tokensUsados > 0) {
-      const ahora  = new Date();
-      const mesKey = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}`;
-      const tokRef = adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`);
-      await tokRef.set({ usado: FieldValue.increment(tokensUsados), empresaId, mes: mesKey }, { merge: true }).catch(()=>{});
-    }
-
-    // Verificar limite de tokens
-    const PLAN_TOKENS = { basico: 50000, estandar: 150000, pro: 400000 };
-    const planId = empresa.planWasapbot || 'basico';
-    const tokLimit = PLAN_TOKENS[planId] || 50000;
-    const ahora2  = new Date();
-    const mesKey2 = `${ahora2.getFullYear()}-${String(ahora2.getMonth()+1).padStart(2,'0')}`;
-    const tokSnap = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(()=>null);
-    const tokActual = tokSnap?.exists ? (tokSnap.data().usado || 0) : 0;
-
-    if (tokActual > tokLimit) {
-      return res.json({ respuesta: `Hola. El servicio de respuestas automaticas de ${nombreEmpresa} ha alcanzado su limite mensual. Por favor contacta directamente al negocio.` });
-    }
-
     let respuesta = completion.choices[0]?.message?.content || '';
     historial.push({ role: 'assistant', content: respuesta });
 
-    // 9. Capturar nombre del mensaje
+    // 9. Registrar tokens consumidos
+    const tokensUsados = completion.usage?.total_tokens || 0;
+    if (tokensUsados > 0) {
+      const ahoraTok = new Date();
+      const mesKey   = `${ahoraTok.getFullYear()}-${String(ahoraTok.getMonth()+1).padStart(2,'0')}`;
+      const tokRef   = adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`);
+      await tokRef.set({ usado: FieldValue.increment(tokensUsados), empresaId, mes: mesKey }, { merge: true }).catch(()=>{});
+    }
+
+    // Verificar limite de tokens del plan
+    const PLAN_TOKENS = { basico:50000, estandar:150000, pro:400000, wasapbot:15000 };
+    const planId   = empresa.planWasapbot || empresa.plan || 'wasapbot';
+    const tokLimit = PLAN_TOKENS[planId] || 15000;
+    const ahoraTok2 = new Date();
+    const mesKey2   = `${ahoraTok2.getFullYear()}-${String(ahoraTok2.getMonth()+1).padStart(2,'0')}`;
+    const tokSnap   = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(()=>null);
+    const tokActual = tokSnap?.exists ? (tokSnap.data().usado || 0) : 0;
+
+    if (tokActual > tokLimit) {
+      return res.json({ respuesta: `Hola. El servicio de respuestas automáticas de ${nombreEmpresa} ha alcanzado su límite mensual. Por favor contacta directamente al negocio.` });
+    }
+
+    // 10. Capturar nombre del mensaje
     const nombreEnMensaje = extraerNombre(texto);
     if (nombreEnMensaje && (!nombreCliente || nombreCliente.startsWith('WhatsApp '))) {
       await contactosRef.doc(contactoId).update({ nombre: nombreEnMensaje });
       nombreCliente = nombreEnMensaje;
     }
 
-    // Guardar tokens usados en Firestore
-    const tokensGuardar = completion.usage?.total_tokens || 0;
+    // Actualizar contadores en empresa
     try {
-      const { FieldValue: FV } = await import('firebase-admin/firestore');
       await adminDb.collection('empresas').doc(empresaId).update({
-        tokensUsados:  FV.increment(tokensGuardar),
-        conversaciones: FV.increment(1),
-        ultimaActividad: FV.serverTimestamp(),
+        tokensUsados:    FieldValue.increment(tokensUsados),
+        conversaciones:  FieldValue.increment(1),
+        ultimaActividad: FieldValue.serverTimestamp(),
       });
     } catch {}
 
-    // Verificar limite de tokens segun plan
-    const tokensSnap = await adminDb.collection('empresas').doc(empresaId).get();
-    const eData      = tokensSnap.data() || {};
-    const planTokens = { basico:50000, estandar:150000, pro:400000, wasapbot:15000 };
-    const limite     = planTokens[eData.planWasapbot || eData.plan] || 15000;
-    const usados     = (eData.tokensUsados || 0);
-    if (usados > limite) {
-      return res.json({ respuesta: `Lo sentimos, hemos alcanzado el limite de mensajes del mes. Escribe al ${SOPORTE_NUMERO} para ampliar tu plan.` });
-    }
-    if (usados > limite * 0.8 && usados < limite) {
-      respuestaLimpia += `\n\n_Aviso: este negocio esta cerca de su limite mensual de mensajes._`;
+    // 11. Limpiar etiquetas internas de la respuesta
+    let respuestaLimpia = respuesta
+      .replace(/\n?CITA_DETECTADA:.*$/m, '')
+      .replace(/\n?SOPORTE_SOLICITADO:.*$/m, '')
+      .trim();
+
+    // Agregar aviso de trial si quedan pocos minutos
+    if (req._trialAviso) {
+      respuestaLimpia += req._trialAviso;
     }
 
-    // 10. Procesar SOPORTE_SOLICITADO
+    // 12. Procesar SOPORTE_SOLICITADO
     const soporteMatch = respuesta.match(/SOPORTE_SOLICITADO:\s*(\{[^}]+\})/);
     if (soporteMatch || pideSoporte) {
       try {
-        // Notificar al WhatsApp de soporte via Railway
         const waServer = process.env.WHATSAPP_SERVER_URL || 'https://agenciame-whatsapp-server-production.up.railway.app';
         const msgSoporte = `🆘 *Solicitud de soporte*\n\n*Empresa:* ${nombreEmpresa}\n*Cliente:* ${nombreCliente || numeroCliente}\n*Teléfono:* +${numeroCliente}\n*Mensaje:* ${texto}`;
 
-        // Enviar al numero de soporte si hay empresa de soporte configurada
         if (SOPORTE_EMPRESA_ID) {
           await fetch(`${waServer}/enviar`, {
             method: 'POST',
@@ -226,20 +237,17 @@ REGLAS CRITICAS:
           }).catch(() => {});
         }
 
-        // Guardar alerta en Firestore
         await adminDb.collection('empresas').doc(empresaId).collection('soportes').add({
           nombreCliente: nombreCliente || `WhatsApp ${numeroCliente}`,
-          telefono: numeroCliente,
-          mensaje: texto,
-          estado: 'pendiente',
-          creadoEn: FieldValue.serverTimestamp(),
+          telefono:      numeroCliente,
+          mensaje:       texto,
+          estado:        'pendiente',
+          creadoEn:      FieldValue.serverTimestamp(),
         });
-
-        respuestaLimpia = respuesta.replace(/\n?SOPORTE_SOLICITADO:.*$/m, '').trim();
       } catch {}
     }
 
-    // 11. Procesar CITA_DETECTADA
+    // 13. Procesar CITA_DETECTADA
     const citaMatch = respuesta.match(/CITA_DETECTADA:\s*(\{[^}]+\})/);
     if (citaMatch) {
       try {
@@ -262,13 +270,10 @@ REGLAS CRITICAS:
           contactoId,
           creadoEn:      FieldValue.serverTimestamp(),
         });
-        respuestaLimpia = respuestaLimpia.replace(/\n?CITA_DETECTADA:.*$/m, '').trim();
-      } catch (e) {
-        respuestaLimpia = respuesta.replace(/\n?CITA_DETECTADA:.*$/m, '').trim();
-      }
+      } catch {}
     }
 
-    // 12. Guardar conversacion
+    // 14. Guardar conversacion
     const convRef = adminDb.collection('empresas').doc(empresaId).collection('conversaciones');
     const convKey = `wa_${numeroCliente}`;
     await convRef.doc(convKey).set({
@@ -309,10 +314,10 @@ function parsearFechaHora(fecha, hora) {
     const ahora = new Date();
     const partes = fecha.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
     if (partes) {
-      const dia = parseInt(partes[1]);
-      const mes = parseInt(partes[2]) - 1;
+      const dia  = parseInt(partes[1]);
+      const mes  = parseInt(partes[2]) - 1;
       const anio = partes[3] ? parseInt(partes[3]) : ahora.getFullYear();
-      const hp = hora?.match(/(\d{1,2}):?(\d{2})?/);
+      const hp   = hora?.match(/(\d{1,2}):?(\d{2})?/);
       return new Date(anio < 100 ? 2000 + anio : anio, mes, dia, hp ? parseInt(hp[1]) : 9, hp?.[2] ? parseInt(hp[2]) : 0);
     }
   } catch {}

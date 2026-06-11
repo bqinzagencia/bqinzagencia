@@ -1,11 +1,12 @@
 // pages/wasapbot/panel/[id].js
 // Portal exclusivo para clientes de WasapBot — sin acceso al dashboard completo
+// FIX: usa /api/wasapbot-panel (Admin SDK) en lugar de Firestore cliente directamente,
+//      ya que las reglas de Firestore requieren auth y este panel es publico (URL con ID).
 import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { db } from '../../../lib/firebase';
-import { doc, getDoc, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { getConfigIndustria } from '../../../lib/wasapbotConfig';
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
@@ -20,31 +21,55 @@ const PLANES = {
 };
 
 export default function WasapBotPanel() {
-  const router   = useRouter();
-  const { id }   = router.query;
-  const [empresa,    setEmpresa]    = useState(null);
-  const [status,     setStatus]     = useState('loading');
-  const [qrBase64,   setQrBase64]   = useState('');
-  const [convs,      setConvs]      = useState([]);
-  const [pedidos,    setPedidos]    = useState([]);
-  const [stats,      setStats]      = useState({ hoy:0, semana:0, total:0, tokensUsados:0 });
-  const [tab,        setTab]        = useState('inicio');
-  const [reconect,   setReconect]   = useState(false);
+  const router  = useRouter();
+  const { id }  = router.query;
+  const [empresa,     setEmpresa]     = useState(null);
+  const [conocimiento,setConocimiento]= useState(null);
+  const [loadError,   setLoadError]   = useState('');
+  const [status,      setStatus]      = useState('loading');
+  const [qrBase64,    setQrBase64]    = useState('');
+  const [convs,       setConvs]       = useState([]);
+  const [stats,       setStats]       = useState({ hoy:0, semana:0, total:0, tokensUsados:0 });
+  const [tab,         setTab]         = useState('inicio');
+  const [reconect,    setReconect]    = useState(false);
+  // Edicion catalogo
+  const [editando,    setEditando]    = useState(false);
+  const [itemsEdit,   setItemsEdit]   = useState([]);
+  const [savingCat,   setSavingCat]   = useState(false);
+  const [saveMsg,     setSaveMsg]     = useState('');
   const pollRef = useRef(null);
 
   useEffect(() => {
     if (!id) return;
-    cargarEmpresa();
+    cargarDatos();
     verificarStatus();
-    cargarConversaciones();
     return () => clearInterval(pollRef.current);
   }, [id]);
 
-  const cargarEmpresa = async () => {
+  const cargarDatos = async () => {
     try {
-      const snap = await getDoc(doc(db, 'empresas', id));
-      if (snap.exists()) setEmpresa({ id, ...snap.data() });
-    } catch {}
+      const r = await fetch(`/api/wasapbot-panel?id=${id}`);
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        setLoadError(err.error || `Error ${r.status} cargando el panel`);
+        return;
+      }
+      const d = await r.json();
+      if (!d.ok) { setLoadError(d.error || 'Error cargando datos'); return; }
+      setEmpresa({ id, ...d.empresa });
+      setConvs(d.convs || []);
+      setConocimiento(d.conocimiento || {});
+      setItemsEdit((d.conocimiento?.servicios || []).map(s => ({ ...s })));
+
+      const hoy    = new Date(); hoy.setHours(0,0,0,0);
+      const semana = new Date(); semana.setDate(semana.getDate()-7);
+      const list = d.convs || [];
+      const convsHoy    = list.filter(c => c.ultimoMensaje?._seconds ? (c.ultimoMensaje._seconds*1000) >= hoy.getTime() : false).length;
+      const convsSemana = list.filter(c => c.ultimoMensaje?._seconds ? (c.ultimoMensaje._seconds*1000) >= semana.getTime() : false).length;
+      setStats({ hoy:convsHoy, semana:convsSemana, total:list.length, tokensUsados:d.tokens?.usados||0 });
+    } catch(e) {
+      setLoadError('No se pudo cargar el panel. Verifica tu conexión.');
+    }
   };
 
   const verificarStatus = async () => {
@@ -52,31 +77,12 @@ export default function WasapBotPanel() {
       const r = await fetch(`${WA}/sesion/${id}/status`, { headers:{'x-server-secret':SECRET} });
       const d = await r.json();
       setStatus(d.status || 'disconnected');
-      // Poll cada 30s
       pollRef.current = setInterval(async () => {
         const r2 = await fetch(`${WA}/sesion/${id}/status`, { headers:{'x-server-secret':SECRET} }).catch(()=>null);
         const d2 = r2 ? await r2.json().catch(()=>({})) : {};
         setStatus(d2.status || 'disconnected');
       }, 30000);
     } catch { setStatus('disconnected'); }
-  };
-
-  const cargarConversaciones = () => {
-    const q = query(
-      collection(db, 'empresas', id || 'x', 'conversaciones'),
-      orderBy('ultimoMensaje', 'desc'),
-      limit(20)
-    );
-    return onSnapshot(q, snap => {
-      const list = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-      setConvs(list);
-      // Stats rapidas
-      const hoy    = new Date(); hoy.setHours(0,0,0,0);
-      const semana = new Date(); semana.setDate(semana.getDate()-7);
-      const convsHoy     = list.filter(c => c.ultimoMensaje?.toDate?.() >= hoy).length;
-      const convsSemana  = list.filter(c => c.ultimoMensaje?.toDate?.() >= semana).length;
-      setStats(s => ({ ...s, hoy:convsHoy, semana:convsSemana, total:list.length }));
-    });
   };
 
   const reconectar = async () => {
@@ -99,6 +105,45 @@ export default function WasapBotPanel() {
     } catch { setReconect(false); }
   };
 
+  const guardarCatalogo = async () => {
+    setSavingCat(true); setSaveMsg('');
+    try {
+      const r = await fetch('/api/wasapbot-servicios', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ empresaId:id, servicios:itemsEdit }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        setSaveMsg('✓ Catálogo guardado');
+        setConocimiento(prev => ({ ...prev, servicios:itemsEdit }));
+        setEditando(false);
+      } else {
+        setSaveMsg('Error al guardar: ' + (d.error||''));
+      }
+    } catch(e) { setSaveMsg('Error de conexión'); }
+    setSavingCat(false);
+    setTimeout(() => setSaveMsg(''), 3000);
+  };
+
+  const toDate = (ts) => {
+    if (!ts) return null;
+    if (ts._seconds) return new Date(ts._seconds * 1000);
+    if (ts.toDate)   return ts.toDate();
+    return null;
+  };
+
+  if (loadError) return (
+    <div style={{minHeight:'100vh',background:'#06090D',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}}>
+      <div style={{fontSize:48,marginBottom:16}}>⚠️</div>
+      <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:'#EF4444',marginBottom:8}}>No se pudo cargar el panel</div>
+      <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.4)',textAlign:'center',maxWidth:380,marginBottom:24}}>{loadError}</div>
+      <button onClick={() => { setLoadError(''); cargarDatos(); }}
+        style={{background:'#25D366',color:'#fff',border:'none',borderRadius:10,padding:'10px 24px',fontFamily:F,fontSize:14,fontWeight:700,cursor:'pointer'}}>
+        Reintentar
+      </button>
+    </div>
+  );
+
   if (!empresa) return (
     <div style={{minHeight:'100vh',background:'#06090D',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div style={{width:36,height:36,border:'3px solid rgba(37,211,102,0.2)',borderTop:'3px solid #25D366',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
@@ -110,13 +155,16 @@ export default function WasapBotPanel() {
   const pctTokens = Math.min(Math.round((stats.tokensUsados / plan.tokens) * 100), 100);
   const pctConvs  = Math.min(Math.round((stats.total / plan.convs) * 100), 100);
   const connected = status === 'connected';
+  const cfg       = getConfigIndustria(empresa.industria || 'otro');
+  const servicios = conocimiento?.servicios || [];
 
   const CARD = { background:'#0C0F14', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:20 };
+  const INP  = { width:'100%', background:'#06090D', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, padding:'8px 11px', color:'#EFF4FF', fontFamily:F, fontSize:13, outline:'none', boxSizing:'border-box' };
   const TABS = [
-    { key:'inicio',   label:'Inicio',         icon:'◉' },
-    { key:'convs',    label:'Conversaciones',  icon:'💬' },
-    { key:'catalogo', label:'Mi catálogo',     icon:'📋' },
-    { key:'config',   label:'Configuración',   icon:'⚙️' },
+    { key:'inicio',   label:'Inicio',        icon:'◉'  },
+    { key:'convs',    label:'Conversaciones', icon:'💬' },
+    { key:'catalogo', label:'Mi catálogo',    icon:'📋' },
+    { key:'config',   label:'Configuración',  icon:'⚙️' },
   ];
 
   return (
@@ -128,10 +176,11 @@ export default function WasapBotPanel() {
         a{text-decoration:none;color:inherit}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes pulse-g{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)}70%{box-shadow:0 0 0 10px rgba(37,211,102,0)}}
-        .wb-tab{background:transparent;border:none;borderRadius:8px;padding:8px 16px;font-family:${F};font-size:13px;cursor:pointer;transition:all 0.15s;color:#6B7A99;display:flex;align-items:center;gap:7px}
+        .wb-tab{background:transparent;border:none;border-radius:8px;padding:8px 16px;font-family:${F};font-size:13px;cursor:pointer;transition:all 0.15s;color:#6B7A99;display:flex;align-items:center;gap:7px;width:100%;text-align:left}
         .wb-tab:hover{color:#EFF4FF;background:rgba(255,255,255,0.04)}
         .wb-tab.on{color:#25D366;background:rgba(37,211,102,0.08);font-weight:600}
         .bar-fill{height:6px;border-radius:3px;transition:width 0.6s ease}
+        .cat-inp:focus{border-color:rgba(37,211,102,0.45)!important;outline:none}
       `}} />
 
       {/* NAV */}
@@ -184,7 +233,6 @@ export default function WasapBotPanel() {
                 Panel de control de tu WasapBot
               </p>
 
-              {/* Estado del bot */}
               {!connected && (
                 <div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:12,padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
                   <div>
@@ -198,12 +246,11 @@ export default function WasapBotPanel() {
                 </div>
               )}
 
-              {/* Stats */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:24}}>
                 {[
-                  {label:'Hoy',      val:stats.hoy,    color:'#25D366' },
-                  {label:'Semana',   val:stats.semana, color:'#2563EB' },
-                  {label:'Total',    val:stats.total,  color:'#EFF4FF' },
+                  {label:'Hoy',    val:stats.hoy,    color:'#25D366'},
+                  {label:'Semana', val:stats.semana, color:'#2563EB'},
+                  {label:'Total',  val:stats.total,  color:'#EFF4FF'},
                 ].map((s,i)=>(
                   <div key={i} style={CARD}>
                     <div style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:'#4B6080',marginBottom:8}}>Conversaciones {s.label}</div>
@@ -212,7 +259,6 @@ export default function WasapBotPanel() {
                 ))}
               </div>
 
-              {/* Consumo */}
               <div style={{...CARD,marginBottom:20}}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:16}}>Consumo del plan</div>
                 <div style={{marginBottom:14}}>
@@ -233,14 +279,8 @@ export default function WasapBotPanel() {
                     <div className="bar-fill" style={{width:`${pctTokens}%`,background:pctTokens>80?'#EF4444':pctTokens>60?'#F59E0B':'#2563EB'}}/>
                   </div>
                 </div>
-                {(pctConvs>80||pctTokens>80)&&(
-                  <div style={{marginTop:14,background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.2)',borderRadius:8,padding:'10px 14px',fontFamily:F,fontSize:12,color:'#FCD34D'}}>
-                    Estas cerca del limite. <a href="https://wa.me/573105056616" target="_blank" rel="noreferrer" style={{color:'#25D366',fontWeight:700}}>Amplia tu plan</a>
-                  </div>
-                )}
               </div>
 
-              {/* Ultimas convs */}
               <div style={CARD}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:14}}>Ultimas conversaciones</div>
                 {convs.slice(0,5).map((c,i)=>(
@@ -253,7 +293,7 @@ export default function WasapBotPanel() {
                       <div style={{fontFamily:F,fontSize:11,color:'#4B6080',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.ultimoTexto||'Sin mensajes'}</div>
                     </div>
                     <div style={{fontFamily:F,fontSize:10,color:'#374151',flexShrink:0}}>
-                      {c.ultimoMensaje?.toDate?.()?.toLocaleDateString('es-CO',{day:'numeric',month:'short'})||''}
+                      {toDate(c.ultimoMensaje)?.toLocaleDateString('es-CO',{day:'numeric',month:'short'})||''}
                     </div>
                   </div>
                 ))}
@@ -279,7 +319,7 @@ export default function WasapBotPanel() {
                     </div>
                     <div style={{textAlign:'right',flexShrink:0}}>
                       <div style={{fontFamily:F,fontSize:10,color:'#374151'}}>
-                        {c.ultimoMensaje?.toDate?.()?.toLocaleDateString('es-CO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})||''}
+                        {toDate(c.ultimoMensaje)?.toLocaleDateString('es-CO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})||''}
                       </div>
                       <span style={{background:'rgba(37,211,102,0.1)',color:'#25D366',borderRadius:100,padding:'2px 8px',fontFamily:F,fontSize:9,fontWeight:700}}>WhatsApp</span>
                     </div>
@@ -287,6 +327,160 @@ export default function WasapBotPanel() {
                 ))}
                 {convs.length===0&&<div style={{fontFamily:F,fontSize:13,color:'#4B6080',textAlign:'center',padding:'40px 0'}}>Sin conversaciones aun. El bot empieza a registrar cuando alguien te escriba.</div>}
               </div>
+            </div>
+          )}
+
+          {/* ── CATÁLOGO ── */}
+          {tab==='catalogo' && (
+            <div>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
+                <div>
+                  <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:4}}>
+                    {cfg.labelCatalogo}
+                  </h2>
+                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>
+                    Lo que tu bot le muestra a tus clientes
+                  </p>
+                </div>
+                {!editando ? (
+                  <button onClick={()=>{ setItemsEdit(servicios.map(s=>({...s}))); setEditando(true); }}
+                    style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                    ✏️ Editar catálogo
+                  </button>
+                ) : (
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={()=>setEditando(false)} style={{background:'rgba(255,255,255,0.04)',color:'#6B7A99',border:'1px solid rgba(255,255,255,0.08)',borderRadius:9,padding:'9px 16px',fontFamily:F,fontSize:13,cursor:'pointer'}}>
+                      Cancelar
+                    </button>
+                    <button onClick={guardarCatalogo} disabled={savingCat}
+                      style={{background:'#25D366',color:'#fff',border:'none',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',opacity:savingCat?0.7:1}}>
+                      {savingCat?'Guardando...':'Guardar cambios'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {saveMsg && (
+                <div style={{background:saveMsg.startsWith('✓')?'rgba(37,211,102,0.08)':'rgba(239,68,68,0.08)',border:`1px solid ${saveMsg.startsWith('✓')?'rgba(37,211,102,0.25)':'rgba(239,68,68,0.25)'}`,borderRadius:9,padding:'10px 14px',marginBottom:16,fontFamily:F,fontSize:13,color:saveMsg.startsWith('✓')?'#25D366':'#EF4444'}}>
+                  {saveMsg}
+                </div>
+              )}
+
+              {/* MODO VISUALIZACIÓN */}
+              {!editando && (
+                <>
+                  {servicios.length === 0 ? (
+                    <div style={{...CARD,textAlign:'center',padding:'48px 20px'}}>
+                      <div style={{fontSize:40,marginBottom:12}}>📋</div>
+                      <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:'#EFF4FF',marginBottom:8}}>Sin items en el catálogo</div>
+                      <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.3)',marginBottom:20}}>Agrega tus {cfg.labelCatalogo.toLowerCase()} para que el bot los pueda mostrar a tus clientes.</div>
+                      <button onClick={()=>{ setItemsEdit([{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]); setEditando(true); }}
+                        style={{background:'#25D366',color:'#fff',border:'none',borderRadius:9,padding:'10px 24px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                        Agregar primer item
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))',gap:14}}>
+                      {servicios.map((s,i)=>(
+                        <div key={i} style={{...CARD,padding:0,overflow:'hidden'}}>
+                          {s.foto && (
+                            <img src={s.foto} alt={s.nombre} style={{width:'100%',height:140,objectFit:'cover',display:'block'}}/>
+                          )}
+                          {!s.foto && (
+                            <div style={{width:'100%',height:80,background:'rgba(37,211,102,0.05)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28}}>
+                              {cfg.tieneFoto ? '📷' : '📌'}
+                            </div>
+                          )}
+                          <div style={{padding:14}}>
+                            {s.categoria && (
+                              <span style={{background:'rgba(255,255,255,0.05)',color:'#6B7A99',borderRadius:100,padding:'2px 8px',fontFamily:F,fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,display:'inline-block',marginBottom:6}}>
+                                {s.categoria}
+                              </span>
+                            )}
+                            <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>{s.nombre||'Sin nombre'}</div>
+                            {s.descripcion && <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:8,lineHeight:1.5}}>{s.descripcion}</div>}
+                            {s.precio && (
+                              <div style={{fontFamily:FA,fontSize:18,color:'#25D366'}}>
+                                ${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO') || s.precio}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* MODO EDICIÓN */}
+              {editando && (
+                <div>
+                  {itemsEdit.map((item,idx)=>(
+                    <div key={idx} style={{...CARD,marginBottom:12,position:'relative'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+                        <span style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#8A9BB5'}}>{cfg.labelItem} {idx+1}</span>
+                        {itemsEdit.length>1 && (
+                          <button onClick={()=>setItemsEdit(prev=>prev.filter((_,i)=>i!==idx))}
+                            style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.15)',borderRadius:6,padding:'3px 10px',fontFamily:F,fontSize:11,cursor:'pointer'}}>
+                            Eliminar
+                          </button>
+                        )}
+                      </div>
+
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+                        <div>
+                          <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>{cfg.labelItem} *</label>
+                          <input className="cat-inp" style={INP} value={item.nombre||''}
+                            onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,nombre:e.target.value}:it))}
+                            placeholder={`Nombre del ${cfg.labelItem.toLowerCase()}`} />
+                        </div>
+                        <div>
+                          <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>{cfg.labelPrecio}</label>
+                          <input className="cat-inp" style={INP} value={item.precio||''}
+                            onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,precio:e.target.value}:it))}
+                            placeholder="0" />
+                        </div>
+                      </div>
+
+                      <div style={{marginBottom:10}}>
+                        <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>{cfg.labelDescripcion}</label>
+                        <input className="cat-inp" style={INP} value={item.descripcion||''}
+                          onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,descripcion:e.target.value}:it))}
+                          placeholder="Descripcion..." />
+                      </div>
+
+                      {cfg.tieneCategoria && (
+                        <div style={{marginBottom:10}}>
+                          <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>Categoría</label>
+                          <select className="cat-inp" style={{...INP,cursor:'pointer'}} value={item.categoria||''}
+                            onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,categoria:e.target.value}:it))}>
+                            <option value="">Sin categoría</option>
+                            {cfg.categorias.map(c=><option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                      )}
+
+                      {cfg.tieneFoto && item.foto && (
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <img src={item.foto} style={{width:52,height:52,objectFit:'cover',borderRadius:7}} alt="foto"/>
+                          <div>
+                            <div style={{fontFamily:F,fontSize:11,color:'#4B6080',marginBottom:4}}>Foto actual</div>
+                            <button onClick={()=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,foto:''}:it))}
+                              style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'none',borderRadius:5,padding:'3px 8px',fontFamily:F,fontSize:10,cursor:'pointer'}}>
+                              Quitar foto
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  <button onClick={()=>setItemsEdit(prev=>[...prev,{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}])}
+                    style={{width:'100%',background:'none',border:'1px dashed rgba(255,255,255,0.1)',borderRadius:10,padding:'11px',fontFamily:F,fontSize:13,color:'#4B6080',cursor:'pointer',marginTop:4}}>
+                    + Agregar {cfg.labelItem.toLowerCase()}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
