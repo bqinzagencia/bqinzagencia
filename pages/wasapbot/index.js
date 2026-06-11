@@ -1,5 +1,5 @@
-// pages/wasapbot/index.js
-import { useState } from 'react';
+// pages/wasapbot/index.js — Landing enterprise nivel Interakt/WATI
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -8,228 +8,473 @@ const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
 
 const INDUSTRIAS = [
-  { value: 'taller',       label: 'Taller / Mecánica',     emoji: '🔧' },
-  { value: 'peluqueria',   label: 'Peluquería / Spa',      emoji: '✂️' },
-  { value: 'restaurante',  label: 'Restaurante',           emoji: '🍽️' },
-  { value: 'barbero',      label: 'Barbería',              emoji: '💈' },
-  { value: 'veterinaria',  label: 'Veterinaria',           emoji: '🐾' },
-  { value: 'reposteria',   label: 'Repostería / Chef',     emoji: '🎂' },
-  { value: 'psicologo',    label: 'Psicología',            emoji: '🧠' },
-  { value: 'fotografia',   label: 'Fotografía',            emoji: '📷' },
-  { value: 'contador',     label: 'Contaduría',            emoji: '📊' },
-  { value: 'acarreos',     label: 'Transporte',            emoji: '🚛' },
-  { value: 'tienda',       label: 'Tienda / Comercio',     emoji: '🏪' },
-  { value: 'gimnasio',     label: 'Gimnasio',              emoji: '💪' },
-  { value: 'salud',        label: 'Salud / Clínica',       emoji: '🏥' },
-  { value: 'educacion',    label: 'Educación',             emoji: '📚' },
-  { value: 'tecnico',      label: 'Soporte Técnico',       emoji: '💻' },
-  { value: 'otro',         label: 'Otro negocio',          emoji: '💼' },
+  { value:'restaurante', label:'Restaurante',    emoji:'🍽️', msg:['Hola, cual es el menu de hoy?','Hoy tenemos Bandeja paisa $22.000, Sancocho $18.000 y Cazuela de mariscos $28.000. Te hago el pedido ahora?'] },
+  { value:'barbero',     label:'Barbería',       emoji:'💈', msg:['Quiero reservar turno para manana','Manana tenemos disponible 9am, 11am y 3pm. Cual prefieres y con que barbero?'] },
+  { value:'taller',      label:'Taller',         emoji:'🔧', msg:['Cuanto cuesta el mantenimiento?','Cambio de aceite + filtro desde $45.000. Agendamos revision para hoy?'] },
+  { value:'veterinaria', label:'Veterinaria',    emoji:'🐾', msg:['Necesito vacunar a mi perro','Con gusto. Que raza y edad tiene? Te indico el paquete de vacunas y el precio.'] },
+  { value:'peluqueria',  label:'Peluquería',     emoji:'✂️', msg:['Tienen cita para tinte?','Claro! Tenemos disponible hoy a las 3pm y manana en la manana. Cual prefieres?'] },
+  { value:'contador',    label:'Contaduría',     emoji:'📊', msg:['Necesito declaracion de renta','Con gusto te ayudo. Eres persona natural o juridica? Cuales son tus ingresos anuales?'] },
+  { value:'reposteria',  label:'Repostería',     emoji:'🎂', msg:['Quiero pedir una torta para el sabado','Para cuantas personas y que sabor? Te cotizo de inmediato con fotos de disenos.'] },
+  { value:'fotografia',  label:'Fotografía',     emoji:'📷', msg:['Cuanto vale la fotografia de boda?','Paquetes desde $2.800.000. Incluye 2 fotografos, 8 horas y 300 fotos editadas. Cuando es tu boda?'] },
 ];
 
-const PREVIEW = {
-  taller:      ['Hola, necesito revisar los frenos de mi carro', 'Bienvenido. Con gusto agendamos tu revision. Que marca y modelo es tu vehiculo?'],
-  peluqueria:  ['Hola, tienen cita para manana?', 'Hola! Claro. Tenemos disponible 10am, 2pm y 5pm. Cual te queda mejor?'],
-  restaurante: ['Cual es el menu de hoy?', 'Hoy: Bandeja paisa $18.000, Sancocho $15.000, Cazuela de mariscos $22.000. Te hago el pedido?'],
-  barbero:     ['Cuanto vale el corte?', 'Corte clasico $25.000, Fade $35.000, Fade + barba $45.000. Reservamos turno ahora?'],
-  veterinaria: ['Mi perro necesita vacunas', 'Con gusto. Que raza y edad tiene tu mascota? Te indico que vacunas necesita y el costo.'],
-  reposteria:  ['Quiero pedir una torta para el sabado', 'Para cuantas personas y que sabor prefieres? Te cotizo de inmediato.'],
-  psicologo:   ['Necesito una cita', 'Con gusto. Tenemos sesiones presenciales y virtuales. Que dias te quedan bien?'],
-  fotografia:  ['Hacen fotos de bodas?', 'Si, cubrimos bodas y eventos. Cual es la fecha? Te envio portafolio y cotizacion.'],
-  contador:    ['Necesito hacer la declaracion de renta', 'Eres persona natural o juridica? Asi te indico los documentos necesarios y el costo.'],
-  acarreos:    ['Cuanto vale un trasteo de Cali a Bogota?', 'Para cotizar el flete: es apartamento, casa u oficina? Cuantos metros cuadrados aproximadamente?'],
-  tienda:      ['Tienen envios a domicilio?', 'Si, hacemos envios dentro de la ciudad el mismo dia. Que producto te interesa?'],
-  gimnasio:    ['Cuanto vale la membresia?', 'Mensual $120.000, Trimestral $300.000, Anual $900.000. Incluye todas las clases. Agendamos visita?'],
-  salud:       ['Necesito cita medica', 'Con gusto. Es consulta general o especializada? Tenemos disponibilidad esta semana.'],
-  educacion:   ['Dan clases de ingles?', 'Si, tenemos niveles basico, intermedio y avanzado. Para quien son las clases?'],
-  tecnico:     ['Mi computador no enciende', 'Hace cuanto ocurre esto y que marca es el equipo? Podemos revisarlo hoy mismo.'],
-  otro:        ['Hola, necesito informacion', 'Hola, bienvenido. En que podemos ayudarte hoy?'],
-};
+const STATS = [
+  { num:'2.4M+', label:'Mensajes respondidos', icon:'💬' },
+  { num:'98%',   label:'Tasa de respuesta',    icon:'✓' },
+  { num:'< 3s',  label:'Tiempo de respuesta',  icon:'⚡' },
+  { num:'24/7',  label:'Disponibilidad',       icon:'◉' },
+];
 
-export default function WasapBot() {
+const FEATURES = [
+  { icon:'🤖', title:'IA entrenada con tu negocio',   desc:'El bot aprende tus servicios, precios, horarios y responde como si fueras tú. Sin respuestas genéricas.' },
+  { icon:'📋', title:'Catálogo digital interactivo',  desc:'Muestra fotos, precios y descripciones de tus productos. Los clientes navegan y hacen pedidos directo por WhatsApp.' },
+  { icon:'📅', title:'Agendamiento automático',       desc:'El bot confirma citas, envía recordatorios y maneja tu agenda. Sin llamadas, sin mensajes manuales.' },
+  { icon:'👤', title:'Captura leads automáticamente', desc:'Registra nombre, teléfono y motivo de cada cliente. Tu CRM crece solo mientras el bot trabaja.' },
+  { icon:'🔔', title:'Alertas cuando te necesitan',   desc:'Si el cliente pide hablar con una persona, recibes notificación inmediata por WhatsApp.' },
+  { icon:'📊', title:'Panel de control propio',       desc:'Ve conversaciones, consumo de mensajes y estadísticas en tiempo real desde tu panel personal.' },
+];
+
+const PLANES = [
+  { id:'basico',   nombre:'Básico',   precio:189000,  tokens:'50.000',  convs:'~500/mes',  color:'#6B7280', features:['Bot WhatsApp 24/7','Catálogo de productos','Respuestas automáticas','Panel de estadísticas','Soporte por WhatsApp'] },
+  { id:'estandar', nombre:'Estándar', precio:390000,  tokens:'150.000', convs:'~1.500/mes', color:'#2563EB', popular:true, features:['Todo lo del Básico','Sistema de pedidos','Hasta 1.500 conversaciones','Agendamiento automático','Reportes detallados','Soporte prioritario'] },
+  { id:'pro',      nombre:'Pro',      precio:690000,  tokens:'400.000', convs:'~4.000/mes', color:'#A78BFA', features:['Todo lo del Estándar','Hasta 4.000 conversaciones','Catálogo con fotos HD','Integración con tu web','Panel avanzado de analytics','Gestor dedicado'] },
+];
+
+const FAQS = [
+  { q:'¿Necesito saber programar?', r:'No. La configuración se hace en menos de 10 minutos desde un formulario web. Sin código, sin técnicos.' },
+  { q:'¿Funciona con mi número actual de WhatsApp?', r:'Sí. Usas el mismo número que ya tienes. Solo escaneas un código QR una vez y listo.' },
+  { q:'¿Qué pasa cuando se acaban los mensajes del plan?', r:'El bot avisa automáticamente y puedes ampliar tu plan o esperar al siguiente mes. Nunca se corta sin avisar.' },
+  { q:'¿Puedo cancelar cuando quiero?', r:'Sí. No hay contratos ni permanencia mínima. Cancelas cuando quieras desde WhatsApp al 310-505-6616.' },
+  { q:'¿El bot responde en español colombiano?', r:'Sí, habla en español natural colombiano. No es un bot rígido — entiende preguntas libres y responde con contexto.' },
+  { q:'¿Cuánto tiempo tarda la configuración?', r:'Menos de 10 minutos. Llenas el formulario, subes tus productos/servicios, escaneas el QR y tu bot está activo.' },
+];
+
+export default function WasapBotLanding() {
   const router = useRouter();
-  const [ind, setInd] = useState('peluqueria');
-  const preview = PREVIEW[ind] || PREVIEW.otro;
-  const indInfo = INDUSTRIAS.find(i => i.value === ind) || INDUSTRIAS[0];
+  const [ind,       setInd]       = useState(0);
+  const [msgStep,   setMsgStep]   = useState(0);
+  const [faqOpen,   setFaqOpen]   = useState(null);
+  const [scrolled,  setScrolled]  = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  // Rotar industrias automáticamente
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setInd(i => (i + 1) % INDUSTRIAS.length);
+      setMsgStep(0);
+    }, 4000);
+    return () => clearInterval(timerRef.current);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMsgStep(1), 1200);
+    return () => clearTimeout(t);
+  }, [ind]);
+
+  const cur = INDUSTRIAS[ind];
 
   return (
     <>
       <Head>
         <title>WasapBot — Tu WhatsApp responde solo | agencIAme</title>
-        <meta name="description" content="Automatiza tu WhatsApp con IA. Tu negocio atiende clientes las 24 horas sin que muevas un dedo. Actívalo en 5 minutos." />
+        <meta name="description" content="Automatiza tu WhatsApp con IA. Atiende clientes, agenda citas y vende productos las 24 horas. Actívalo en 10 minutos. Desde $189.000 COP/mes." />
+        <meta name="keywords" content="bot whatsapp colombia, automatizar whatsapp negocio, chatbot whatsapp cali medellin bogota, wasapbot agenciame" />
+        <meta property="og:title" content="WasapBot — Tu WhatsApp responde solo" />
+        <meta property="og:description" content="Bot de WhatsApp con IA para tu negocio. Sin código, activo en 10 minutos." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
 
       <style dangerouslySetInnerHTML={{__html:`
-        body{margin:0;background:#06090D;color:#EFF4FF;font-family:${F};overflow-x:hidden}
-        *{box-sizing:border-box}
-        a{text-decoration:none;color:inherit}
-        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        @keyframes pulse-g{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.5)}70%{box-shadow:0 0 0 14px rgba(37,211,102,0)}}
-        @keyframes msg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes dot{0%,60%,100%{opacity:0.3}30%{opacity:1}}
-        .wb-cta{background:linear-gradient(135deg,#25D366,#1DA851);color:#fff;border:none;border-radius:12px;padding:16px 36px;font-family:${F};font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 28px rgba(37,211,102,0.4);transition:all 0.2s}
-        .wb-cta:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(37,211,102,0.5)}
-        .wb-pill{border:1px solid rgba(255,255,255,0.07);border-radius:100px;padding:7px 14px;font-family:${F};font-size:12px;cursor:pointer;transition:all 0.15s;background:rgba(255,255,255,0.02);color:#6B7A99}
-        .wb-pill:hover{border-color:rgba(37,211,102,0.35);color:#EFF4FF}
-        .wb-pill.on{background:rgba(37,211,102,0.1);border-color:rgba(37,211,102,0.4);color:#25D366;font-weight:700}
-        @media(max-width:768px){
-          .wb-hero{flex-direction:column!important;padding:60px 20px 40px!important;text-align:center}
-          .wb-phone{width:220px!important;min-height:360px!important;margin:0 auto}
-          .wb-how{grid-template-columns:1fr!important;gap:40px!important}
-          .wb-nav{padding:0 20px!important}
-          .wb-sec{padding:60px 20px!important}
-          .wb-pills{justify-content:center}
+        :root {
+          --g: #25D366;
+          --g2: #1DA851;
+          --bg: #04080C;
+          --card: #080E14;
+          --border: rgba(255,255,255,0.06);
+        }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { background:var(--bg); color:#EFF4FF; font-family:${F}; overflow-x:hidden; }
+        a { text-decoration:none; color:inherit; }
+
+        /* Animaciones */
+        @keyframes float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes pulse-g  { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.45)} 70%{box-shadow:0 0 0 14px rgba(37,211,102,0)} }
+        @keyframes msg-in   { from{opacity:0;transform:translateY(8px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes count-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes dot      { 0%,60%,100%{opacity:0.25} 30%{opacity:1} }
+        @keyframes fade-in  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+        /* NAV */
+        .wb-nav {
+          position:sticky; top:0; z-index:100;
+          backdrop-filter:blur(24px);
+          border-bottom: 1px solid var(--border);
+          padding:0 64px; height:64px;
+          display:flex; align-items:center; justify-content:space-between;
+          transition:background 0.3s;
+        }
+        .wb-nav.scrolled { background:rgba(4,8,12,0.96); }
+        .wb-nav-links a { font-size:13px; color:rgba(255,255,255,0.45); transition:color 0.15s; }
+        .wb-nav-links a:hover { color:#EFF4FF; }
+
+        /* CTA buttons */
+        .wb-cta-green {
+          background:linear-gradient(135deg,var(--g),var(--g2));
+          color:#fff; border:none; border-radius:10px;
+          padding:14px 32px; font-family:${F}; font-size:15px; font-weight:700;
+          cursor:pointer; transition:all 0.2s;
+          box-shadow:0 6px 28px rgba(37,211,102,0.35);
+        }
+        .wb-cta-green:hover { transform:translateY(-2px); box-shadow:0 10px 36px rgba(37,211,102,0.5); }
+        .wb-cta-ghost {
+          background:transparent; color:#EFF4FF;
+          border:1px solid rgba(255,255,255,0.15); border-radius:10px;
+          padding:14px 28px; font-family:${F}; font-size:15px; font-weight:600;
+          cursor:pointer; transition:all 0.2s;
+        }
+        .wb-cta-ghost:hover { border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); }
+
+        /* Phone */
+        .wb-phone {
+          background:#111; border:6px solid #1A1A1A;
+          border-radius:36px; width:270px; overflow:hidden;
+          box-shadow:0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+          animation:float 5s ease-in-out infinite;
+          flex-shrink:0;
+        }
+
+        /* Feature cards */
+        .wb-feat {
+          background:var(--card); border:1px solid var(--border);
+          border-radius:16px; padding:28px 24px;
+          transition:all 0.2s;
+        }
+        .wb-feat:hover { border-color:rgba(37,211,102,0.2); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,0.4); }
+
+        /* Pricing */
+        .wb-plan { border-radius:20px; padding:36px 30px; transition:all 0.2s; }
+        .wb-plan:hover { transform:translateY(-4px); }
+
+        /* FAQ */
+        .wb-faq-item { border-bottom:1px solid var(--border); padding:18px 0; cursor:pointer; }
+        .wb-faq-item:last-child { border-bottom:none; }
+
+        /* Responsive */
+        @media(max-width:768px) {
+          .wb-nav { padding:0 20px !important; height:56px !important; }
+          .wb-nav-links { display:none !important; }
+          .wb-hero { flex-direction:column !important; padding:70px 20px 50px !important; text-align:center !important; }
+          .wb-hero-btns { justify-content:center !important; }
+          .wb-phone { width:230px !important; margin:0 auto !important; }
+          .wb-stats { grid-template-columns:1fr 1fr !important; }
+          .wb-feat-grid { grid-template-columns:1fr !important; }
+          .wb-plan-grid { grid-template-columns:1fr !important; }
+          .wb-section { padding:60px 20px !important; }
+          .wb-ind-pills { justify-content:flex-start !important; overflow-x:auto !important; padding-bottom:8px !important; }
         }
       `}} />
 
-      {/* NAV */}
-      <nav className="wb-nav" style={{position:'sticky',top:0,zIndex:100,background:'rgba(6,9,13,0.97)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.05)',padding:'0 64px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <Link href="/"><span style={{fontFamily:FA,fontSize:18,cursor:'pointer'}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span></Link>
-        <button onClick={() => router.push('/wasapbot/activar')} className="wb-cta" style={{padding:'8px 20px',fontSize:13,borderRadius:8}}>Activar mi bot →</button>
+      {/* ── NAV ── */}
+      <nav className={`wb-nav${scrolled?' scrolled':''}`}>
+        <Link href="/"><span style={{fontFamily:FA,fontSize:18}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span></Link>
+        <div className="wb-nav-links" style={{display:'flex',gap:32,alignItems:'center'}}>
+          {[['#features','Funciones'],['#precios','Precios'],['#faqs','FAQ']].map(([h,l])=>(
+            <a key={h} href={h}>{l}</a>
+          ))}
+          <Link href="/chatbot" style={{color:'rgba(255,255,255,0.45)',fontSize:13}}>ChatBot Web</Link>
+        </div>
+        <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{padding:'9px 22px',fontSize:13,borderRadius:8}}>
+          Activar mi bot →
+        </button>
       </nav>
 
-      {/* HERO */}
-      <div className="wb-hero" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:48,padding:'90px 64px 70px',maxWidth:1200,margin:'0 auto'}}>
-        <div style={{flex:1,maxWidth:520}}>
-          <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(37,211,102,0.08)',border:'1px solid rgba(37,211,102,0.2)',borderRadius:100,padding:'5px 14px',marginBottom:24}}>
-            <div style={{width:7,height:7,borderRadius:'50%',background:'#25D366',animation:'pulse-g 2s infinite'}} />
-            <span style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366'}}>Bot activo 24/7</span>
+      {/* ── HERO ── */}
+      <section className="wb-hero wb-section" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:48,padding:'100px 64px 80px',maxWidth:1240,margin:'0 auto'}}>
+        <div style={{flex:1,maxWidth:560}}>
+          {/* Badge */}
+          <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(37,211,102,0.08)',border:'1px solid rgba(37,211,102,0.2)',borderRadius:100,padding:'6px 16px',marginBottom:28}}>
+            <div style={{width:7,height:7,borderRadius:'50%',background:'#25D366',animation:'pulse-g 2s infinite'}}/>
+            <span style={{fontSize:12,fontWeight:700,color:'#25D366'}}>+200 negocios activos en Colombia</span>
           </div>
-          <h1 style={{fontFamily:FA,fontSize:'clamp(40px,5vw,66px)',fontWeight:400,lineHeight:1.0,letterSpacing:'-2px',marginBottom:20,color:'#F0F0F0'}}>
-            Tu WhatsApp<br /><span style={{color:'#25D366'}}>responde solo.</span>
+
+          <h1 style={{fontFamily:FA,fontSize:'clamp(44px,5.5vw,72px)',fontWeight:400,lineHeight:1.0,letterSpacing:'-2px',marginBottom:22,color:'#F0F0F0'}}>
+            Tu WhatsApp<br/><span style={{color:'#25D366'}}>trabaja solo.</span>
           </h1>
-          <p style={{fontFamily:F,fontSize:16,color:'rgba(255,255,255,0.4)',lineHeight:1.85,fontWeight:300,marginBottom:32,maxWidth:440}}>
-            Configura un agente de IA con la informacion de tu negocio. Atiende clientes, agenda citas y responde preguntas — sin que muevas un dedo.
+
+          <p style={{fontSize:17,color:'rgba(255,255,255,0.4)',lineHeight:1.85,fontWeight:300,marginBottom:36,maxWidth:460}}>
+            Configura un agente de IA entrenado con la info de tu negocio. Responde clientes, agenda citas y vende productos — mientras tú descansas.
           </p>
-          <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',marginBottom:32}}>
-            <button onClick={() => router.push('/wasapbot/activar')} className="wb-cta">Activar mi WasapBot →</button>
-            <span style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.25)'}}>Solo $89.000 COP/mes</span>
+
+          <div className="wb-hero-btns" style={{display:'flex',alignItems:'center',gap:14,flexWrap:'wrap',marginBottom:40}}>
+            <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{fontSize:16,padding:'15px 36px'}}>
+              Activar gratis por 14 días →
+            </button>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.2)'}}>Desde $189.000/mes</div>
           </div>
-          <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
-            {['Sin contratos','Activo en 5 min','14 dias gratis'].map(t => (
-              <div key={t} style={{display:'flex',alignItems:'center',gap:6}}>
+
+          <div style={{display:'flex',gap:24,flexWrap:'wrap'}}>
+            {['Sin contratos','Activo en 10 min','Soporte en español'].map(t=>(
+              <div key={t} style={{display:'flex',alignItems:'center',gap:7}}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                <span style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.35)'}}>{t}</span>
+                <span style={{fontSize:13,color:'rgba(255,255,255,0.35)'}}>{t}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* PHONE */}
-        <div className="wb-phone" style={{background:'#1A1A2E',border:'8px solid #0D0D1A',borderRadius:40,width:250,minHeight:460,overflow:'hidden',boxShadow:'0 32px 80px rgba(0,0,0,0.7)',flexShrink:0,animation:'float 4s ease-in-out infinite'}}>
-          <div style={{background:'#075E54',padding:'10px 12px',display:'flex',alignItems:'center',gap:8}}>
-            <div style={{width:34,height:34,borderRadius:'50%',background:'#128C7E',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16}}>{indInfo.emoji}</div>
+        {/* PHONE MOCKUP */}
+        <div className="wb-phone">
+          {/* WhatsApp header */}
+          <div style={{background:'#075E54',padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
+            <div style={{width:36,height:36,borderRadius:'50%',background:'#128C7E',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>
+              {cur.emoji}
+            </div>
             <div>
-              <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#fff'}}>{indInfo.label}</div>
-              <div style={{fontFamily:F,fontSize:9,color:'rgba(255,255,255,0.6)'}}>en linea</div>
+              <div style={{fontSize:13,fontWeight:700,color:'#fff'}}>Bot {cur.label}</div>
+              <div style={{fontSize:9,color:'rgba(255,255,255,0.65)'}}>en linea — responde al instante</div>
             </div>
           </div>
-          <div style={{background:'#ECE5DD',padding:12,minHeight:320,display:'flex',flexDirection:'column',gap:6}}>
-            <div style={{textAlign:'center',marginBottom:6}}>
-              <span style={{background:'rgba(0,0,0,0.15)',color:'rgba(0,0,0,0.5)',fontFamily:F,fontSize:9,padding:'2px 10px',borderRadius:10}}>Hoy</span>
+
+          {/* Chat */}
+          <div style={{background:'#ECE5DD',padding:12,minHeight:340,display:'flex',flexDirection:'column',gap:6,position:'relative'}}>
+            <div style={{textAlign:'center',marginBottom:4}}>
+              <span style={{background:'rgba(0,0,0,0.12)',color:'rgba(0,0,0,0.45)',fontSize:9,padding:'2px 10px',borderRadius:10,fontFamily:F}}>Hoy</span>
             </div>
+
+            {/* Mensaje cliente */}
             <div style={{display:'flex',justifyContent:'flex-end'}}>
-              <div style={{background:'#DCF8C6',color:'#111',borderRadius:'12px 12px 2px 12px',padding:'7px 10px',maxWidth:'82%',fontFamily:F,fontSize:11,lineHeight:1.5,animation:'msg-in 0.3s ease'}}>
-                {preview[0]}
-                <div style={{fontSize:8,color:'#999',textAlign:'right',marginTop:2}}>9:14 am</div>
+              <div style={{background:'#DCF8C6',color:'#111',borderRadius:'12px 12px 2px 12px',padding:'8px 11px',maxWidth:'82%',fontSize:12,lineHeight:1.5,fontFamily:F,animation:'msg-in 0.3s ease'}}>
+                {cur.msg[0]}
+                <div style={{fontSize:8,color:'#999',textAlign:'right',marginTop:2}}>9:14 ✓✓</div>
               </div>
             </div>
-            <div style={{display:'flex',justifyContent:'flex-start'}} key={ind}>
-              <div style={{background:'#fff',color:'#111',borderRadius:'12px 12px 12px 2px',padding:'7px 10px',maxWidth:'82%',fontFamily:F,fontSize:11,lineHeight:1.5,animation:'msg-in 0.4s 0.1s ease both'}}>
-                {preview[1]}
-                <div style={{fontSize:8,color:'#999',textAlign:'right',marginTop:2}}>9:14 am</div>
+
+            {/* Respuesta bot */}
+            {msgStep >= 1 && (
+              <div style={{display:'flex',justifyContent:'flex-start'}} key={`${ind}-resp`}>
+                <div style={{background:'#fff',color:'#111',borderRadius:'12px 12px 12px 2px',padding:'8px 11px',maxWidth:'85%',fontSize:12,lineHeight:1.5,fontFamily:F,animation:'msg-in 0.35s 0.1s ease both'}}>
+                  {cur.msg[1]}
+                  <div style={{fontSize:8,color:'#999',textAlign:'right',marginTop:2}}>9:14</div>
+                </div>
               </div>
-            </div>
-            <div style={{display:'flex',justifyContent:'flex-start',marginTop:2}}>
-              <div style={{background:'#fff',borderRadius:'12px 12px 12px 2px',padding:'8px 12px',display:'flex',gap:3,alignItems:'center'}}>
-                {[0,0.2,0.4].map((d,i)=><div key={i} style={{width:5,height:5,borderRadius:'50%',background:'#bbb',animation:`dot 1.2s ${d}s ease-in-out infinite`}}/>)}
+            )}
+
+            {/* Typing */}
+            {msgStep < 1 && (
+              <div style={{display:'flex',justifyContent:'flex-start'}}>
+                <div style={{background:'#fff',borderRadius:'12px 12px 12px 2px',padding:'8px 12px',display:'flex',gap:3,alignItems:'center'}}>
+                  {[0,0.2,0.4].map((d,i)=><div key={i} style={{width:5,height:5,borderRadius:'50%',background:'#bbb',animation:`dot 1.2s ${d}s ease-in-out infinite`}}/>)}
+                </div>
+              </div>
+            )}
+
+            {/* Selector industria */}
+            <div style={{position:'absolute',bottom:10,left:8,right:8}}>
+              <div style={{display:'flex',gap:4,overflowX:'auto',paddingBottom:2}}>
+                {INDUSTRIAS.map((i,idx)=>(
+                  <button key={i.value} onClick={()=>{setInd(idx);setMsgStep(0);clearInterval(timerRef.current);}}
+                    style={{background:ind===idx?'rgba(37,211,102,0.15)':'rgba(0,0,0,0.06)',border:`1px solid ${ind===idx?'rgba(37,211,102,0.4)':'rgba(0,0,0,0.12)'}`,borderRadius:20,padding:'3px 8px',fontSize:9,cursor:'pointer',whiteSpace:'nowrap',color:ind===idx?'#1A6B3A':'#555',fontWeight:ind===idx?700:400,flexShrink:0}}>
+                    {i.emoji} {i.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* SELECTOR INDUSTRIA */}
-      <div style={{borderTop:'1px solid rgba(255,255,255,0.04)',borderBottom:'1px solid rgba(255,255,255,0.04)',padding:'48px 64px',background:'rgba(255,255,255,0.015)'}} className="wb-sec">
+      {/* ── STATS ── */}
+      <section style={{borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',padding:'48px 64px',background:'rgba(255,255,255,0.015)'}} className="wb-section">
         <div style={{maxWidth:1200,margin:'0 auto'}}>
-          <p style={{fontFamily:F,fontSize:12,fontWeight:700,letterSpacing:2,textTransform:'uppercase',color:'#25D366',marginBottom:10,textAlign:'center'}}>Para cualquier negocio</p>
-          <h2 style={{fontFamily:FA,fontSize:'clamp(26px,3vw,40px)',fontWeight:400,letterSpacing:'-1px',color:'#F0F0F0',textAlign:'center',marginBottom:8}}>Selecciona tu tipo de negocio</h2>
-          <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.25)',textAlign:'center',marginBottom:28,fontWeight:300}}>Mira como responderia el bot segun tu actividad</p>
-          <div className="wb-pills" style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center'}}>
-            {INDUSTRIAS.map(i => (
-              <button key={i.value} className={`wb-pill${ind===i.value?' on':''}`} onClick={() => setInd(i.value)}>
+          <div className="wb-stats" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:1,background:'var(--border)'}}>
+            {STATS.map((s,i)=>(
+              <div key={i} style={{background:i%2===0?'var(--card)':'var(--bg)',padding:'32px 24px',textAlign:'center'}}>
+                <div style={{fontSize:32,marginBottom:8}}>{s.icon}</div>
+                <div style={{fontFamily:FA,fontSize:'clamp(28px,3vw,42px)',fontWeight:400,color:'#25D366',letterSpacing:'-1px',marginBottom:6,animation:'count-up 0.6s ease both',animationDelay:`${i*0.1}s`}}>{s.num}</div>
+                <div style={{fontSize:12,color:'rgba(255,255,255,0.3)',fontWeight:300}}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FUNCIONES ── */}
+      <section id="features" className="wb-section" style={{padding:'80px 64px',maxWidth:1240,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:56}}>
+          <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:14}}>Funciones</p>
+          <h2 style={{fontFamily:FA,fontSize:'clamp(32px,4vw,52px)',fontWeight:400,letterSpacing:'-1.5px',color:'#F0F0F0',marginBottom:14}}>
+            Todo lo que necesita<br/>tu negocio en WhatsApp
+          </h2>
+          <p style={{fontSize:15,color:'rgba(255,255,255,0.3)',fontWeight:300,maxWidth:480,margin:'0 auto'}}>
+            Un agente de IA que trabaja por ti las 24 horas sin descanso.
+          </p>
+        </div>
+        <div className="wb-feat-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+          {FEATURES.map((f,i)=>(
+            <div key={i} className="wb-feat">
+              <div style={{fontSize:32,marginBottom:16}}>{f.icon}</div>
+              <div style={{fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>{f.title}</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',lineHeight:1.7,fontWeight:300}}>{f.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── INDUSTRIAS ── */}
+      <section style={{background:'rgba(37,211,102,0.02)',borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',padding:'64px 64px'}} className="wb-section">
+        <div style={{maxWidth:1200,margin:'0 auto',textAlign:'center'}}>
+          <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:12}}>Para todo tipo de negocio</p>
+          <h2 style={{fontFamily:FA,fontSize:'clamp(28px,3.5vw,46px)',fontWeight:400,letterSpacing:'-1px',color:'#F0F0F0',marginBottom:8}}>Funciona para tu industria</h2>
+          <p style={{fontSize:14,color:'rgba(255,255,255,0.3)',marginBottom:36,fontWeight:300}}>Haz clic para ver como respondería el bot</p>
+          <div className="wb-ind-pills" style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',marginBottom:0}}>
+            {INDUSTRIAS.map((i,idx)=>(
+              <button key={i.value} onClick={()=>{setInd(idx);setMsgStep(0);window.scrollTo({top:0,behavior:'smooth'});}}
+                style={{background:ind===idx?'rgba(37,211,102,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${ind===idx?'rgba(37,211,102,0.35)':'rgba(255,255,255,0.07)'}`,borderRadius:100,padding:'9px 18px',fontSize:13,cursor:'pointer',color:ind===idx?'#25D366':'rgba(255,255,255,0.45)',fontWeight:ind===idx?700:400,transition:'all 0.15s',whiteSpace:'nowrap'}}>
                 {i.emoji} {i.label}
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* COMO FUNCIONA + PRECIO */}
-      <div className="wb-sec wb-how" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,padding:'80px 64px',maxWidth:1200,margin:'0 auto'}}>
-        <div>
-          <p style={{fontFamily:F,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:'uppercase',color:'#25D366',marginBottom:14}}>Proceso</p>
-          <h2 style={{fontFamily:FA,fontSize:'clamp(28px,3vw,44px)',fontWeight:400,letterSpacing:'-1px',color:'#F0F0F0',marginBottom:36}}>Activo en<br />4 pasos simples</h2>
-          {[
-            {n:'01',t:'Dinos de que se trata tu negocio',d:'Selecciona tu industria y describe tus servicios, precios y horarios de atencion.'},
-            {n:'02',t:'El sistema crea tu agente IA',d:'Automaticamente configuramos un bot entrenado con la informacion de tu negocio.'},
-            {n:'03',t:'Conecta tu numero de WhatsApp',d:'Escaneas un codigo QR con tu celular. En 30 segundos tu numero queda activo.'},
-            {n:'04',t:'Tu WhatsApp responde solo',d:'El bot atiende clientes, agenda citas y captura leads las 24 horas, todos los dias.'},
-          ].map((s,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'flex-start',gap:18,padding:'20px 0',borderBottom:i<3?'1px solid rgba(255,255,255,0.05)':'none'}}>
-              <div style={{width:44,height:44,borderRadius:10,background:'rgba(37,211,102,0.07)',border:'1px solid rgba(37,211,102,0.18)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:FA,fontSize:16,color:'#25D366',flexShrink:0}}>{s.n}</div>
-              <div>
-                <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:5}}>{s.t}</div>
-                <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.3)',lineHeight:1.6,fontWeight:300}}>{s.d}</div>
+      {/* ── PRECIOS ── */}
+      <section id="precios" className="wb-section" style={{padding:'80px 64px',maxWidth:1240,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:52}}>
+          <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:14}}>Precios</p>
+          <h2 style={{fontFamily:FA,fontSize:'clamp(30px,4vw,52px)',fontWeight:400,letterSpacing:'-1.5px',color:'#F0F0F0',marginBottom:12}}>Elige tu plan</h2>
+          <p style={{fontSize:14,color:'rgba(255,255,255,0.3)',fontWeight:300}}>Sin contratos · Sin tarjeta de crédito · Cancela cuando quieras</p>
+        </div>
+        <div className="wb-plan-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+          {PLANES.map((plan)=>(
+            <div key={plan.id} className="wb-plan" style={{background:plan.popular?`linear-gradient(145deg,${plan.color}0D,var(--card))`:'var(--card)',border:`${plan.popular?2:1}px solid ${plan.popular?plan.color+'44':'var(--border)'}`,position:'relative'}}>
+              {plan.popular && (
+                <div style={{position:'absolute',top:-14,left:'50%',transform:'translateX(-50%)',background:plan.color,color:'#fff',padding:'4px 18px',borderRadius:20,fontSize:11,fontWeight:800,letterSpacing:0.5,whiteSpace:'nowrap',boxShadow:`0 4px 16px ${plan.color}55`}}>
+                  MAS POPULAR
+                </div>
+              )}
+              <div style={{fontSize:11,fontWeight:700,letterSpacing:2,textTransform:'uppercase',color:plan.color,marginBottom:10}}>{plan.nombre}</div>
+              <div style={{fontFamily:FA,fontSize:46,color:plan.color,letterSpacing:'-2px',lineHeight:1,marginBottom:4}}>
+                ${new Intl.NumberFormat('es-CO').format(plan.precio)}
               </div>
+              <div style={{fontSize:12,color:'rgba(255,255,255,0.25)',marginBottom:6}}>COP / mes</div>
+              <div style={{display:'flex',gap:10,marginBottom:24}}>
+                <span style={{background:plan.color+'15',color:plan.color,border:`1px solid ${plan.color}30`,borderRadius:100,padding:'3px 10px',fontSize:11,fontWeight:600}}>{plan.tokens} tokens</span>
+                <span style={{background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.3)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:100,padding:'3px 10px',fontSize:11}}>{plan.convs}</span>
+              </div>
+              {plan.features.map((f,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',gap:10,marginBottom:11}}>
+                  <div style={{width:18,height:18,borderRadius:'50%',background:plan.color+'18',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={plan.color} strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <span style={{fontSize:13,color:'rgba(255,255,255,0.5)',fontWeight:300}}>{f}</span>
+                </div>
+              ))}
+              <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green"
+                style={{width:'100%',marginTop:24,background:plan.popular?`linear-gradient(135deg,${plan.color},${plan.color}CC)`:'rgba(255,255,255,0.05)',color:plan.popular?'#fff':'rgba(255,255,255,0.6)',boxShadow:plan.popular?`0 6px 24px ${plan.color}44`:'none',border:plan.popular?'none':`1px solid rgba(255,255,255,0.1)`}}>
+                Empezar con {plan.nombre} →
+              </button>
             </div>
           ))}
         </div>
 
-        {/* PRECIO */}
-        <div style={{background:'linear-gradient(145deg,rgba(37,211,102,0.06),rgba(37,211,102,0.01))',border:'1px solid rgba(37,211,102,0.18)',borderRadius:20,padding:36,alignSelf:'start'}}>
-          <div style={{fontFamily:F,fontSize:10,fontWeight:700,letterSpacing:2,textTransform:'uppercase',color:'#25D366',marginBottom:14}}>WasapBot</div>
-          <div style={{fontFamily:FA,fontSize:52,color:'#25D366',letterSpacing:'-2px',lineHeight:1,marginBottom:4}}>$89.000</div>
-          <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.25)',marginBottom:28}}>COP / mes — sin contratos</div>
-          {[
-            'Bot de WhatsApp activo 24/7',
-            'Entrenado con info de tu negocio',
-            'Agenda citas automaticamente',
-            'Captura nombre y telefono del cliente',
-            'Aviso cuando piden asesor humano',
-            'Hasta 500 conversaciones al mes',
-            '14 dias gratis para probar',
-          ].map((f,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
-              <div style={{width:18,height:18,borderRadius:'50%',background:'rgba(37,211,102,0.12)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-              <span style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.5)',fontWeight:300}}>{f}</span>
+        {/* Garantia */}
+        <div style={{marginTop:40,background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.15)',borderRadius:16,padding:'20px 28px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
+          <div style={{width:44,height:44,borderRadius:10,background:'rgba(37,211,102,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22}}>🛡️</div>
+          <div>
+            <div style={{fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>Garantía de satisfacción</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300}}>Si en los primeros 14 días no estás satisfecho, te devolvemos el dinero. Sin preguntas.</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMPARATIVA ── */}
+      <section style={{background:'rgba(255,255,255,0.015)',borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',padding:'64px 64px'}} className="wb-section">
+        <div style={{maxWidth:900,margin:'0 auto'}}>
+          <h2 style={{fontFamily:FA,fontSize:'clamp(28px,3.5vw,44px)',fontWeight:400,letterSpacing:'-1px',color:'#F0F0F0',textAlign:'center',marginBottom:40}}>
+            WasapBot vs la competencia
+          </h2>
+          <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:16,overflow:'hidden'}}>
+            <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',background:'#0A1020',padding:'12px 20px',fontSize:11,fontWeight:700,color:'#4B6080',textTransform:'uppercase',letterSpacing:1,gap:8}}>
+              <div>Característica</div><div style={{textAlign:'center',color:'#25D366'}}>WasapBot</div><div style={{textAlign:'center'}}>Interakt</div><div style={{textAlign:'center'}}>WATI</div>
             </div>
-          ))}
-          <button onClick={() => router.push('/wasapbot/activar')} className="wb-cta" style={{width:'100%',marginTop:24,fontSize:15}}>
+            {[
+              ['En español colombiano','✓','Parcial','No'],
+              ['Configuración sin código','✓','✓','No'],
+              ['Soporte local en Colombia','✓','No','No'],
+              ['Precio en pesos COP','✓','No ($USD)','No ($USD)'],
+              ['Activo en 10 minutos','✓','Días','Días'],
+              ['Sin contrato mínimo','✓','6 meses','6 meses'],
+              ['Catálogo con fotos','✓','✓','✓'],
+              ['Precio mensual','$189.000 COP','~$400.000 COP','~$520.000 COP'],
+            ].map(([feat,wb,int,wati],i)=>(
+              <div key={i} style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',padding:'13px 20px',borderBottom:`1px solid var(--border)`,gap:8,alignItems:'center'}}>
+                <div style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>{feat}</div>
+                <div style={{textAlign:'center',fontSize:13,fontWeight:700,color:wb==='✓'?'#25D366':wb.includes('$')?'#25D366':'#6B7A99'}}>{wb}</div>
+                <div style={{textAlign:'center',fontSize:13,color:int==='✓'?'rgba(255,255,255,0.4)':'#4B5563'}}>{int}</div>
+                <div style={{textAlign:'center',fontSize:13,color:wati==='✓'?'rgba(255,255,255,0.4)':'#4B5563'}}>{wati}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section id="faqs" className="wb-section" style={{padding:'80px 64px',maxWidth:800,margin:'0 auto'}}>
+        <h2 style={{fontFamily:FA,fontSize:'clamp(28px,3.5vw,46px)',fontWeight:400,letterSpacing:'-1px',color:'#F0F0F0',textAlign:'center',marginBottom:48}}>
+          Preguntas frecuentes
+        </h2>
+        {FAQS.map((faq,i)=>(
+          <div key={i} className="wb-faq-item" onClick={()=>setFaqOpen(faqOpen===i?null:i)}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16}}>
+              <div style={{fontSize:15,fontWeight:600,color:'#EFF4FF'}}>{faq.q}</div>
+              <div style={{fontSize:18,color:'#4B6080',flexShrink:0,transition:'transform 0.2s',transform:faqOpen===i?'rotate(45deg)':'none'}}>+</div>
+            </div>
+            {faqOpen===i && (
+              <div style={{fontSize:14,color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginTop:12,fontWeight:300,animation:'fade-in 0.2s ease'}}>
+                {faq.r}
+              </div>
+            )}
+          </div>
+        ))}
+      </section>
+
+      {/* ── CTA FINAL ── */}
+      <section style={{background:'linear-gradient(180deg,rgba(37,211,102,0.05) 0%,transparent 100%)',borderTop:'1px solid rgba(37,211,102,0.1)',padding:'80px 64px',textAlign:'center'}} className="wb-section">
+        <h2 style={{fontFamily:FA,fontSize:'clamp(32px,4.5vw,60px)',fontWeight:400,letterSpacing:'-2px',marginBottom:16,color:'#F0F0F0'}}>
+          Empieza hoy.<br/><span style={{color:'#25D366'}}>Gratis 14 días.</span>
+        </h2>
+        <p style={{fontSize:16,color:'rgba(255,255,255,0.3)',marginBottom:36,fontWeight:300}}>
+          Sin tarjeta de crédito. Sin contratos. Activo en 10 minutos.
+        </p>
+        <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap'}}>
+          <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{fontSize:17,padding:'17px 48px'}}>
             Activar mi WasapBot →
           </button>
-          <div style={{textAlign:'center',marginTop:12,fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.18)'}}>14 dias gratis · Sin tarjeta de credito</div>
+          <a href="https://wa.me/573105056616" target="_blank" rel="noreferrer" className="wb-cta-ghost" style={{fontSize:15,display:'flex',alignItems:'center',gap:8}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 1C5.93 1 1 5.93 1 12c0 1.97.518 3.82 1.426 5.427L1 23l5.734-1.498A10.956 10.956 0 0012 23c6.07 0 11-4.93 11-11S18.07 1 12 1z"/></svg>
+            Hablar con un asesor
+          </a>
         </div>
-      </div>
+      </section>
 
-      {/* CTA FINAL */}
-      <div style={{borderTop:'1px solid rgba(37,211,102,0.08)',padding:'80px 64px',textAlign:'center',background:'linear-gradient(180deg,rgba(37,211,102,0.03),transparent)'}}>
-        <h2 style={{fontFamily:FA,fontSize:'clamp(30px,4vw,54px)',fontWeight:400,letterSpacing:'-1.5px',marginBottom:14,color:'#F0F0F0'}}>
-          Cuantos clientes pierdes<br />sin responder?
-        </h2>
-        <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,0.3)',marginBottom:32,fontWeight:300}}>Activa el bot hoy y tu WhatsApp trabaja mientras tu descansas.</p>
-        <button onClick={() => router.push('/wasapbot/activar')} className="wb-cta" style={{fontSize:16,padding:'17px 48px'}}>
-          Activar gratis por 14 dias →
-        </button>
-      </div>
-
-      <footer style={{borderTop:'1px solid rgba(255,255,255,0.04)',padding:'24px 64px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
-        <Link href="/"><span style={{fontFamily:FA,fontSize:15,cursor:'pointer'}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span></Link>
-        <span style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.12)'}}>2026 NexoTI · Cali, Colombia</span>
-        <a href="https://wa.me/573105056616" style={{fontFamily:F,fontSize:12,color:'#25D366'}}>Soporte: 310-505-6616</a>
+      {/* FOOTER */}
+      <footer style={{borderTop:'1px solid var(--border)',padding:'32px 64px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:16}}>
+        <Link href="/"><span style={{fontFamily:FA,fontSize:16}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span></Link>
+        <div style={{display:'flex',gap:24,fontSize:12,color:'rgba(255,255,255,0.2)'}}>
+          <Link href="/wasapbot">WasapBot</Link>
+          <Link href="/chatbot">ChatBot</Link>
+          <Link href="/blog">Blog</Link>
+          <Link href="/auth/register">Dashboard</Link>
+        </div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,0.12)'}}>© 2026 NexoTI · Cali, Colombia</div>
       </footer>
     </>
   );

@@ -186,11 +186,11 @@ REGLAS CRITICAS:
     }
 
     // Guardar tokens usados en Firestore
-    const tokensUsados = completion.usage?.total_tokens || 0;
+    const tokensGuardar = completion.usage?.total_tokens || 0;
     try {
       const { FieldValue: FV } = await import('firebase-admin/firestore');
       await adminDb.collection('empresas').doc(empresaId).update({
-        tokensUsados:  FV.increment(tokensUsados),
+        tokensUsados:  FV.increment(tokensGuardar),
         conversaciones: FV.increment(1),
         ultimaActividad: FV.serverTimestamp(),
       });

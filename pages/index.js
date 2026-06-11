@@ -214,8 +214,8 @@ export default function Landing() {
         </div>
 
         <div className="lnd-nav-links" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
-          {['Empresas', 'Funciones', 'Precios', 'Blog'].map(item => (
-            <a key={item} href={item === 'Blog' ? '/blog' : item === 'WasapBot' ? '/wasapbot' : '#' + item.toLowerCase()}
+          {['Empresas', 'Funciones', 'Precios', 'Blog', 'WasapBot', 'ChatBot'].map(item => (
+            <a key={item} href={item==='Blog'?'/blog':item==='WasapBot'?'/wasapbot':item==='ChatBot'?'/chatbot':'#'+item.toLowerCase()}
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#555', fontSize: 13, fontWeight: 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
               onMouseEnter={e => e.target.style.color = '#E8E8E8'}
               onMouseLeave={e => e.target.style.color = '#555'}>
