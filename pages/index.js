@@ -443,7 +443,7 @@ export default function Landing() {
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 88, color: G, opacity: 0.06, position: 'absolute', top: -8, right: 24, lineHeight: 1 }}>{f.n}</div>
               <div style={{ marginBottom: 24, opacity: 0.85 }}>{f.svg}</div>
               <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, marginBottom: 14, color: '#E8E8E8', lineHeight: 1.2 }}>{f.title}</h3>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#3A3A3A', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{f.desc}</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{f.desc}</p>
             </div>
           ))}
         </div>
@@ -478,7 +478,7 @@ export default function Landing() {
               <div key={i} style={{ background: '#080808', padding: '52px 40px' }}>
                 <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 64, color: G, opacity: 0.2, lineHeight: 1, marginBottom: 28 }}>{step.n}</div>
                 <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 30, fontWeight: 600, marginBottom: 16, color: '#E8E8E8' }}>{step.title}</h3>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#3A3A3A', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{step.desc}</p>
+                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{step.desc}</p>
               </div>
             ))}
           </div>
@@ -514,16 +514,16 @@ export default function Landing() {
               {plan.popular && (
                 <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: G, marginBottom: 20 }}>★ Más popular</div>
               )}
-              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: '#2A2A2A', marginBottom: 24 }}>{plan.name}</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 24 }}>{plan.name}</div>
 
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 72, fontWeight: 400, color: plan.popular ? G : '#E8E8E8', lineHeight: 1, marginBottom: 4, letterSpacing: -2 }}>
                 <sup style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 20, verticalAlign: 'top', marginTop: 18, fontWeight: 300, opacity: 0.6 }}>$</sup>{plan.price}
               </div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#2A2A2A', fontSize: 12, marginBottom: 44, letterSpacing: 0.3 }}>COP / mes · IVA incluido</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 44, letterSpacing: 0.3 }}>COP / mes · IVA incluido</div>
 
               <ul style={{ listStyle: 'none', marginBottom: 48 }}>
                 {plan.features.map((f, j) => (
-                  <li key={j} style={{ padding: '11px 0', borderBottom: '1px solid #111', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#4A4A4A', fontSize: 13, display: 'flex', alignItems: 'center', gap: 12, fontWeight: 300 }}>
+                  <li key={j} style={{ padding: '11px 0', borderBottom: '1px solid #1A1A1A', fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 12, fontWeight: 300 }}>
                     <span style={{ color: G, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
                   </li>
                 ))}
@@ -568,7 +568,7 @@ export default function Landing() {
                   <div style={{ width: 42, height: 42, borderRadius: 2, background: t.color + '18', color: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t.initials}</div>
                   <div>
                     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: 14, color: '#E8E8E8' }}>{t.name}</div>
-                    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#2A2A2A', fontSize: 12, marginTop: 3 }}>{t.role}</div>
+                    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 3 }}>{t.role}</div>
                   </div>
                 </div>
               </div>
