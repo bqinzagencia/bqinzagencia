@@ -1,241 +1,331 @@
+// public/widget.js
+// Widget de ChatBot agencIAme — se instala con 1 linea de codigo
+// <script src="https://agenciame.com/widget.js" data-id="ID_DEL_CHATBOT"></script>
+
 (function() {
   'use strict';
 
-  var NEXOIA_ID     = window.NEXOIA_ID;
-  var NEXOIA_COLOR  = window.NEXOIA_COLOR  || '#FF6B00';
-  var NEXOIA_NAME   = window.NEXOIA_NAME   || 'Asistente';
-  var NEXOIA_BOTTOM = window.NEXOIA_BOTTOM || '24px';
-  var NEXOIA_API    = 'https://nexoia-soporteias-projects.vercel.app';
+  // Obtener el ID del chatbot del atributo data-id
+  var scripts = document.querySelectorAll('script[data-id]');
+  var currentScript = scripts[scripts.length - 1];
+  var chatbotId = currentScript ? currentScript.getAttribute('data-id') : null;
 
-  if (!NEXOIA_ID) { console.warn('[NEXOIA] Falta NEXOIA_ID'); return; }
-  if (document.getElementById('nexoia-widget')) return;
+  if (!chatbotId) {
+    console.warn('[agencIAme] Widget: data-id no encontrado');
+    return;
+  }
 
-  var messages      = [];
-  var isOpen        = false;
-  var isThinking    = false;
-  var clienteNombre = '';
-  var clienteTel    = '';
-  var leadGuardado  = false;
-  var enFormulario  = true; // comienza en formulario
+  var API_BASE = 'https://www.agenciame.com';
+  var config   = null;
+  var isOpen   = false;
+  var messages = [];
+  var sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
 
-  // ── Estilos ──────────────────────────────────────────────────────────────
-  var style = document.createElement('style');
-  style.textContent = [
-    '#nexoia-btn{position:fixed;bottom:' + NEXOIA_BOTTOM + ';right:24px;width:56px;height:56px;border-radius:50%;background:' + NEXOIA_COLOR + ';border:none;cursor:pointer;font-size:22px;box-shadow:0 8px 24px ' + NEXOIA_COLOR + '55;z-index:99999;transition:all 0.3s;display:flex;align-items:center;justify-content:center;}',
-    '#nexoia-btn:hover{transform:scale(1.1);}',
-    '#nexoia-chat{position:fixed;bottom:calc(' + NEXOIA_BOTTOM + ' + 68px);right:24px;width:340px;background:#13161a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.5);display:none;flex-direction:column;z-index:99999;overflow:hidden;font-family:sans-serif;}',
-    '#nexoia-chat.open{display:flex;}',
-    '#nexoia-header{padding:14px 18px;background:#1a1d22;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;flex-shrink:0;}',
-    '#nexoia-avatar{width:36px;height:36px;border-radius:10px;background:' + NEXOIA_COLOR + '22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}',
-    '#nexoia-title{flex:1;font-weight:700;font-size:14px;color:#fff;}',
-    '#nexoia-status{font-size:11px;color:#25D366;font-weight:500;}',
-    '#nexoia-close{background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:18px;line-height:1;padding:4px;}',
+  // ── 1. Cargar configuracion del chatbot ──────────────────────────────────
+  function loadConfig(cb) {
+    fetch(API_BASE + '/api/chatbot-widget-config?id=' + chatbotId)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        config = d;
+        cb(d);
+      })
+      .catch(function() {
+        // Config por defecto si falla
+        config = {
+          nombre:   'Asistente',
+          color:    '#2563EB',
+          posicion: 'derecha',
+          saludo:   'Hola, bienvenido. En que puedo ayudarte?',
+          avatar:   '',
+          servicios: [],
+        };
+        cb(config);
+      });
+  }
 
-    // Formulario de captura
-    '#nexoia-form{padding:20px 18px;display:flex;flex-direction:column;gap:12px;}',
-    '#nexoia-form-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;}',
-    '#nexoia-form-sub{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:4px;line-height:1.5;}',
-    '.nxinput{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:13px;outline:none;font-family:sans-serif;box-sizing:border-box;}',
-    '.nxinput:focus{border-color:' + NEXOIA_COLOR + ';}',
-    '.nxinput::placeholder{color:rgba(255,255,255,0.3);}',
-    '.nxinput.error{border-color:#EF4444;}',
-    '#nexoia-form-error{font-size:12px;color:#F87171;display:none;}',
-    '#nexoia-form-btn{width:100%;padding:12px;background:' + NEXOIA_COLOR + ';color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.2s;font-family:sans-serif;}',
-    '#nexoia-form-btn:hover{opacity:0.88;}',
+  // ── 2. Crear estilos ─────────────────────────────────────────────────────
+  function injectStyles(color, pos) {
+    var side  = pos === 'izquierda' ? 'left' : 'right';
+    var style = document.createElement('style');
+    style.textContent = [
+      '#agme-fab{position:fixed;' + side + ':24px;bottom:24px;z-index:99999;width:54px;height:54px;border-radius:50%;background:' + color + ';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px ' + color + '55;transition:transform 0.2s,box-shadow 0.2s;}',
+      '#agme-fab:hover{transform:scale(1.1);box-shadow:0 8px 28px ' + color + '77;}',
+      '#agme-badge{position:absolute;top:-4px;' + side + ':' + (pos==='izquierda'?'-4px':'-4px') + ';width:18px;height:18px;background:#EF4444;border:2px solid #fff;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}',
+      '#agme-panel{position:fixed;' + side + ':24px;bottom:90px;z-index:99998;width:340px;max-height:520px;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.18);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;}',
+      '#agme-panel.open{display:flex;}',
+      '@keyframes agme-in{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}',
+      '#agme-panel.open{animation:agme-in 0.22s cubic-bezier(0.16,1,0.3,1) both;}',
+      '#agme-header{background:' + color + ';padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}',
+      '#agme-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;}',
+      '#agme-avatar img{width:100%;height:100%;object-fit:cover;}',
+      '#agme-hname{font-size:13px;font-weight:700;color:#fff;}',
+      '#agme-hstatus{font-size:10px;color:rgba(255,255,255,0.7);margin-top:1px;}',
+      '#agme-hclose{margin-left:auto;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;}',
+      '#agme-msgs{flex:1;overflow-y:auto;padding:14px;background:#F8FAFC;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;}',
+      '.agme-msg{max-width:82%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5;animation:agme-in 0.2s ease;}',
+      '.agme-msg.bot{background:#fff;color:#111;border:1px solid #E5E7EB;border-radius:12px 12px 12px 2px;align-self:flex-start;box-shadow:0 1px 3px rgba(0,0,0,0.06);}',
+      '.agme-msg.user{background:' + color + ';color:#fff;border-radius:12px 12px 2px 12px;align-self:flex-end;}',
+      '.agme-msg.typing{padding:10px 14px;}',
+      '.agme-dot{width:6px;height:6px;border-radius:50%;background:#9CA3AF;display:inline-block;margin:0 2px;animation:agme-dot 1.2s ease-in-out infinite;}',
+      '@keyframes agme-dot{0%,60%,100%{opacity:0.25}30%{opacity:1}}',
+      '.agme-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}',
+      '.agme-opt{background:' + color + '12;color:' + color + ';border:1px solid ' + color + '30;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;}',
+      '.agme-opt:hover{background:' + color + ';color:#fff;}',
+      '#agme-input-wrap{padding:10px;background:#fff;border-top:1px solid #E5E7EB;display:flex;gap:8px;align-items:center;flex-shrink:0;}',
+      '#agme-input{flex:1;background:#F3F4F6;border:none;border-radius:22px;padding:9px 14px;font-size:13px;color:#111;outline:none;font-family:inherit;}',
+      '#agme-input:focus{background:#EBF0FF;}',
+      '#agme-send{width:34px;height:34px;border-radius:50%;background:' + color + ';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.15s;}',
+      '#agme-send:hover{opacity:0.85;}',
+      '#agme-branding{text-align:center;padding:5px;font-size:9px;color:#D1D5DB;background:#fff;}',
+      '#agme-branding a{color:#D1D5DB;}',
+      '@media(max-width:480px){#agme-panel{width:calc(100vw - 20px);' + side + ':10px;bottom:80px;}}',
+    ].join('');
+    document.head.appendChild(style);
+  }
 
-    // Chat
-    '#nexoia-messages{height:340px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}',
-    '#nexoia-messages::-webkit-scrollbar{width:4px;}',
-    '#nexoia-messages::-webkit-scrollbar-track{background:transparent;}',
-    '#nexoia-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}',
-    '.nxmsg{max-width:88%;padding:10px 14px;font-size:14px;line-height:1.5;border-radius:16px;}',
-    '.nxmsg.bot{background:#1a1d22;border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.85);border-radius:16px 16px 16px 4px;align-self:flex-start;}',
-    '.nxmsg.user{background:' + NEXOIA_COLOR + ';color:#fff;font-weight:500;border-radius:16px 16px 4px 16px;align-self:flex-end;}',
-    '#nexoia-footer{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;flex-shrink:0;}',
-    '#nexoia-input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;outline:none;font-family:sans-serif;}',
-    '#nexoia-input:focus{border-color:' + NEXOIA_COLOR + ';}',
-    '#nexoia-input::placeholder{color:rgba(255,255,255,0.3);}',
-    '#nexoia-send{width:40px;height:40px;border-radius:10px;background:' + NEXOIA_COLOR + ';border:none;cursor:pointer;font-size:15px;flex-shrink:0;transition:opacity 0.2s;}',
-    '#nexoia-send:disabled{opacity:0.4;cursor:default;}',
-    '#nexoia-powered{text-align:center;padding:6px;font-size:10px;color:rgba(255,255,255,0.2);flex-shrink:0;}',
-    '#nexoia-powered a{color:' + NEXOIA_COLOR + ';text-decoration:none;font-weight:600;}',
-  ].join('');
-  document.head.appendChild(style);
+  // ── 3. Crear DOM ─────────────────────────────────────────────────────────
+  function buildUI(cfg) {
+    var color = cfg.color || '#2563EB';
+    var pos   = cfg.posicion || 'derecha';
+    injectStyles(color, pos);
 
-  // ── HTML ──────────────────────────────────────────────────────────────────
-  var container = document.createElement('div');
-  container.id = 'nexoia-widget';
-  container.innerHTML = [
-    '<button id="nexoia-btn">💬</button>',
-    '<div id="nexoia-chat">',
+    // FAB
+    var fab = document.createElement('button');
+    fab.id = 'agme-fab';
+    fab.setAttribute('aria-label', 'Abrir chat');
+    fab.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
 
-    // Header (siempre visible)
-    '  <div id="nexoia-header">',
-    '    <div id="nexoia-avatar">🤖</div>',
-    '    <div><div id="nexoia-title">' + NEXOIA_NAME + '</div><div id="nexoia-status">● En línea</div></div>',
-    '    <button id="nexoia-close">✕</button>',
-    '  </div>',
+    var badge = document.createElement('div');
+    badge.id = 'agme-badge';
+    badge.textContent = '1';
+    fab.appendChild(badge);
 
-    // Formulario de captura (pantalla inicial)
-    '  <div id="nexoia-form">',
-    '    <div id="nexoia-form-title">¡Hola! Para ayudarte mejor</div>',
-    '    <div id="nexoia-form-sub">Ingresa tus datos y te conectamos de inmediato con nuestro asistente.</div>',
-    '    <input class="nxinput" id="nx-nombre" placeholder="Tu nombre completo *" type="text" />',
-    '    <input class="nxinput" id="nx-tel"    placeholder="Tu teléfono / WhatsApp *" type="tel" />',
-    '    <div id="nexoia-form-error">Por favor completa nombre y teléfono.</div>',
-    '    <button id="nexoia-form-btn">Iniciar chat →</button>',
-    '  </div>',
+    // Panel
+    var panel = document.createElement('div');
+    panel.id  = 'agme-panel';
 
-    // Chat (oculto hasta completar formulario)
-    '  <div id="nexoia-messages" style="display:none;"></div>',
-    '  <div id="nexoia-footer" style="display:none;">',
-    '    <input id="nexoia-input" placeholder="Escribe un mensaje..." />',
-    '    <button id="nexoia-send">➤</button>',
-    '  </div>',
-    '  <div id="nexoia-powered" style="display:none;">Powered by <a href="https://agenciame.com" target="_blank">agenc<span style="color:' + NEXOIA_COLOR + '">IA</span>me</a></div>',
-    '</div>',
-  ].join('');
-  document.body.appendChild(container);
+    // Header
+    var header = document.createElement('div');
+    header.id  = 'agme-header';
 
-  // ── Referencias ───────────────────────────────────────────────────────────
-  var btn        = document.getElementById('nexoia-btn');
-  var chat       = document.getElementById('nexoia-chat');
-  var closeBtn   = document.getElementById('nexoia-close');
-  var formEl     = document.getElementById('nexoia-form');
-  var formBtn    = document.getElementById('nexoia-form-btn');
-  var formError  = document.getElementById('nexoia-form-error');
-  var nxNombre   = document.getElementById('nx-nombre');
-  var nxTel      = document.getElementById('nx-tel');
-  var messagesEl = document.getElementById('nexoia-messages');
-  var footer     = document.getElementById('nexoia-footer');
-  var powered    = document.getElementById('nexoia-powered');
-  var input      = document.getElementById('nexoia-input');
-  var sendBtn    = document.getElementById('nexoia-send');
-
-  // ── Toggle ─────────────────────────────────────────────────────────────────
-  function toggleChat() {
-    isOpen = !isOpen;
-    if (isOpen) {
-      chat.classList.add('open');
-      btn.innerHTML = '✕';
-      if (enFormulario) nxNombre.focus();
-      else input.focus();
+    var avatarDiv = document.createElement('div');
+    avatarDiv.id  = 'agme-avatar';
+    if (cfg.avatarUrl) {
+      var img = document.createElement('img');
+      img.src = cfg.avatarUrl;
+      img.alt = cfg.nombre;
+      avatarDiv.appendChild(img);
     } else {
-      chat.classList.remove('open');
-      btn.innerHTML = '💬';
-    }
-  }
-
-  // ── Guardar lead en CRM ────────────────────────────────────────────────────
-  function guardarLead(nombre, tel) {
-    fetch(NEXOIA_API + '/api/widget-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        empresaId: NEXOIA_ID,
-        guardarLead: true,
-        lead: { nombre: nombre, telefono: tel, canal: 'web' },
-        messages: [],
-      }),
-    }).catch(function() {});
-  }
-
-  // ── Activar chat después del formulario ────────────────────────────────────
-  function activarChat() {
-    var nombre = nxNombre.value.trim();
-    var tel    = nxTel.value.trim();
-
-    nxNombre.classList.remove('error');
-    nxTel.classList.remove('error');
-    formError.style.display = 'none';
-
-    if (!nombre || !tel) {
-      if (!nombre) nxNombre.classList.add('error');
-      if (!tel)    nxTel.classList.add('error');
-      formError.style.display = 'block';
-      return;
+      avatarDiv.textContent = '🤖';
     }
 
-    clienteNombre = nombre;
-    clienteTel    = tel;
+    var nameDiv = document.createElement('div');
+    var hname   = document.createElement('div');
+    hname.id    = 'agme-hname';
+    hname.textContent = cfg.nombre || 'Asistente';
+    var hstatus = document.createElement('div');
+    hstatus.id  = 'agme-hstatus';
+    hstatus.textContent = 'En linea · responde en segundos';
+    nameDiv.appendChild(hname);
+    nameDiv.appendChild(hstatus);
 
-    // Ocultar form, mostrar chat
-    formEl.style.display     = 'none';
-    messagesEl.style.display = 'flex';
-    footer.style.display     = 'flex';
-    powered.style.display    = 'block';
-    enFormulario = false;
+    var closeBtn = document.createElement('button');
+    closeBtn.id  = 'agme-hclose';
+    closeBtn.textContent = '✕';
+    closeBtn.setAttribute('aria-label', 'Cerrar chat');
 
-    // Guardar en CRM automáticamente
-    if (!leadGuardado) {
-      guardarLead(nombre, tel);
-      leadGuardado = true;
-    }
+    header.appendChild(avatarDiv);
+    header.appendChild(nameDiv);
+    header.appendChild(closeBtn);
 
-    // Saludo personalizado
-    addMessage('¡Hola ' + nombre + '! 👋 ¿En qué te puedo ayudar hoy?', 'bot');
-    input.focus();
+    // Mensajes
+    var msgsDiv = document.createElement('div');
+    msgsDiv.id  = 'agme-msgs';
+
+    // Input
+    var inputWrap = document.createElement('div');
+    inputWrap.id  = 'agme-input-wrap';
+
+    var input = document.createElement('input');
+    input.id          = 'agme-input';
+    input.type        = 'text';
+    input.placeholder = 'Escribe tu mensaje...';
+    input.maxLength   = 500;
+
+    var sendBtn = document.createElement('button');
+    sendBtn.id  = 'agme-send';
+    sendBtn.setAttribute('aria-label', 'Enviar');
+    sendBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+
+    inputWrap.appendChild(input);
+    inputWrap.appendChild(sendBtn);
+
+    // Branding
+    var branding = document.createElement('div');
+    branding.id  = 'agme-branding';
+    branding.innerHTML = 'Powered by <a href="https://agenciame.com" target="_blank">agencIAme</a>';
+
+    panel.appendChild(header);
+    panel.appendChild(msgsDiv);
+    panel.appendChild(inputWrap);
+    panel.appendChild(branding);
+
+    document.body.appendChild(fab);
+    document.body.appendChild(panel);
+
+    // ── Eventos ──
+    fab.addEventListener('click', function() { togglePanel(); });
+    closeBtn.addEventListener('click', function() { closePanel(); });
+    sendBtn.addEventListener('click', function() { sendMessage(); });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+
+    // Mostrar saludo inicial despues de 800ms
+    setTimeout(function() {
+      addMessage('bot', cfg.saludo || 'Hola, en que puedo ayudarte?');
+      // Mostrar opciones rapidas si hay servicios
+      if (cfg.servicios && cfg.servicios.length > 0) {
+        showOptions(cfg.servicios.slice(0, 4).map(function(s) {
+          return s.nombre + (s.precio ? ' — $' + Number(s.precio).toLocaleString('es-CO') : '');
+        }));
+      }
+      // Mostrar badge
+      if (!isOpen) {
+        badge.style.display = 'flex';
+      }
+    }, 800);
   }
 
-  // ── Mensajes ───────────────────────────────────────────────────────────────
-  function addMessage(text, role) {
+  // ── 4. Funciones del chat ────────────────────────────────────────────────
+  function togglePanel() {
+    isOpen ? closePanel() : openPanel();
+  }
+
+  function openPanel() {
+    isOpen = true;
+    var panel = document.getElementById('agme-panel');
+    var badge = document.getElementById('agme-badge');
+    var fab   = document.getElementById('agme-fab');
+    if (panel) panel.classList.add('open');
+    if (badge) badge.style.display = 'none';
+    if (fab)   fab.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><line x1="18" y1="6" x2="6" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
+    scrollToBottom();
+  }
+
+  function closePanel() {
+    isOpen = false;
+    var panel = document.getElementById('agme-panel');
+    var fab   = document.getElementById('agme-fab');
+    if (panel) panel.classList.remove('open');
+    if (fab)   fab.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
+  }
+
+  function addMessage(role, text) {
+    var msgsDiv = document.getElementById('agme-msgs');
+    if (!msgsDiv) return;
     var div = document.createElement('div');
-    div.className = 'nxmsg ' + (role === 'user' ? 'user' : 'bot');
+    div.className = 'agme-msg ' + role;
     div.textContent = text;
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+    messages.push({ role: role, text: text });
+    msgsDiv.appendChild(div);
+    scrollToBottom();
     return div;
   }
 
-  // ── Enviar mensaje ─────────────────────────────────────────────────────────
+  function showTyping() {
+    var msgsDiv = document.getElementById('agme-msgs');
+    if (!msgsDiv) return null;
+    var div = document.createElement('div');
+    div.className = 'agme-msg bot typing';
+    div.id = 'agme-typing';
+    div.innerHTML = '<span class="agme-dot" style="animation-delay:0s"></span><span class="agme-dot" style="animation-delay:0.2s"></span><span class="agme-dot" style="animation-delay:0.4s"></span>';
+    msgsDiv.appendChild(div);
+    scrollToBottom();
+    return div;
+  }
+
+  function removeTyping() {
+    var el = document.getElementById('agme-typing');
+    if (el) el.remove();
+  }
+
+  function showOptions(opts) {
+    var msgsDiv = document.getElementById('agme-msgs');
+    if (!msgsDiv || !opts.length) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'agme-opts';
+    opts.forEach(function(opt) {
+      var btn = document.createElement('button');
+      btn.className   = 'agme-opt';
+      btn.textContent = opt;
+      btn.addEventListener('click', function() {
+        wrap.remove();
+        sendText(opt);
+      });
+      wrap.appendChild(btn);
+    });
+    msgsDiv.appendChild(wrap);
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    var msgsDiv = document.getElementById('agme-msgs');
+    if (msgsDiv) msgsDiv.scrollTop = msgsDiv.scrollHeight;
+  }
+
   function sendMessage() {
+    var input = document.getElementById('agme-input');
+    if (!input) return;
     var text = input.value.trim();
-    if (!text || isThinking) return;
-    addMessage(text, 'user');
-    messages.push({ role: 'user', content: text });
+    if (!text) return;
     input.value = '';
-    isThinking = true;
-    sendBtn.disabled = true;
+    sendText(text);
+  }
 
-    var thinkingEl = addMessage('Escribiendo...', 'bot');
-    thinkingEl.style.color     = 'rgba(255,255,255,0.35)';
-    thinkingEl.style.fontStyle = 'italic';
+  function sendText(text) {
+    addMessage('user', text);
+    var typing = showTyping();
 
-    fetch(NEXOIA_API + '/api/widget-chat', {
-      method: 'POST',
+    // Llamar al API del chatbot
+    fetch(API_BASE + '/api/chatbot-responder', {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages:   messages,
-        empresaId:  NEXOIA_ID,
-        clienteNombre: clienteNombre,
-        clienteTel:    clienteTel,
-        canal:         'web',
+      body:    JSON.stringify({
+        chatbotId: chatbotId,
+        sessionId: sessionId,
+        texto:     text,
+        historial: messages.slice(-10).map(function(m) {
+          return { role: m.role === 'user' ? 'user' : 'assistant', content: m.text };
+        }),
       }),
     })
     .then(function(r) { return r.json(); })
-    .then(function(data) {
-      messagesEl.removeChild(thinkingEl);
-      var reply = data.reply || 'Lo siento, intenta de nuevo.';
-      addMessage(reply, 'bot');
-      messages.push({ role: 'assistant', content: reply });
+    .then(function(d) {
+      removeTyping();
+      var respuesta = d.respuesta || 'Lo siento, no pude procesar tu mensaje.';
+      addMessage('bot', respuesta);
+
+      // Si hay opciones sugeridas
+      if (d.opciones && d.opciones.length) {
+        showOptions(d.opciones);
+      }
     })
     .catch(function() {
-      messagesEl.removeChild(thinkingEl);
-      addMessage('Error de conexión. Intenta de nuevo.', 'bot');
-    })
-    .finally(function() {
-      isThinking   = false;
-      sendBtn.disabled = false;
+      removeTyping();
+      addMessage('bot', 'Hubo un problema de conexion. Intenta de nuevo en unos segundos.');
     });
   }
 
-  // ── Eventos ────────────────────────────────────────────────────────────────
-  btn.addEventListener('click', toggleChat);
-  closeBtn.addEventListener('click', toggleChat);
-  formBtn.addEventListener('click', activarChat);
-  sendBtn.addEventListener('click', sendMessage);
-  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMessage(); });
-  nxNombre.addEventListener('keydown', function(e) { if (e.key === 'Enter') nxTel.focus(); });
-  nxTel.addEventListener('keydown', function(e) { if (e.key === 'Enter') activarChat(); });
+  // ── 5. Init ──────────────────────────────────────────────────────────────
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { loadConfig(buildUI); });
+    } else {
+      loadConfig(buildUI);
+    }
+  }
+
+  init();
 
 })();
