@@ -40,9 +40,9 @@ export default function SoporteButton() {
     <>
       <style>{`
         @keyframes sp-in { from { opacity:0; transform:scale(0.85) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
-        .sp-btn { position:fixed; bottom:28px; left:28px; z-index:9998; display:flex; align-items:center; gap:10px; background:#2B6AFF; color:#fff; border:none; border-radius:100px; padding:12px 20px; font-family:${F}; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 20px rgba(43,106,255,0.4); transition:all 0.2s; }
+        .sp-btn { position:fixed; bottom:28px; right:28px; z-index:9998; display:flex; align-items:center; gap:10px; background:#2B6AFF; color:#fff; border:none; border-radius:100px; padding:12px 20px; font-family:${F}; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 20px rgba(43,106,255,0.4); transition:all 0.2s; }
         .sp-btn:hover { background:#1A55E8; transform:translateY(-2px); box-shadow:0 8px 28px rgba(43,106,255,0.5); }
-        .sp-panel { position:fixed; bottom:80px; left:28px; z-index:9998; width:320px; background:#0C0F14; border:1px solid rgba(255,255,255,0.1); border-radius:18px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.6); animation:sp-in 0.2s ease; }
+        .sp-panel { position:fixed; bottom:80px; right:28px; z-index:9998; width:320px; background:#0C0F14; border:1px solid rgba(255,255,255,0.1); border-radius:18px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.6); animation:sp-in 0.2s ease; }
       `}</style>
 
       {open && (

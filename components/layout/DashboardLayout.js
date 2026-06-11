@@ -8,6 +8,7 @@ import { getIndustriaInfo } from '../../lib/utils';
 import toast from 'react-hot-toast';
 import TrialFloatButton from '../TrialFloatButton';
 import SoporteButton from '../SoporteButton';
+import AsesorButton from '../AsesorButton';
 
 const INDUSTRY_PHOTOS = {
   taller:             'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=80&q=80',  // mecanico trabajando
@@ -371,8 +372,8 @@ export default function DashboardLayout({ children, title }) {
         </main>
       </div>
 
-      <TrialFloatButton />
       <SoporteButton />
+      <AsesorButton />
     </>
   );
 }
