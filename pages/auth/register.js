@@ -71,6 +71,7 @@ export default function Register() {
     aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1400&q=80', // puerto contenedores
     portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1400&q=80', // buque puerto
     tecnico:            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&q=80', // circuitos electronicos
+    contador:           'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1400&q=80',
     psicologo:          'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1400&q=80', // psicologo consultorio
     barbero:            'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=1400&q=80', // barberia
     reposteria:         'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1400&q=80', // tortas reposteria
