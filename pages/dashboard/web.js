@@ -313,7 +313,7 @@ export default function Web() {
                   bqinzagencia.com/{empresa.nombreEmpresa?.toLowerCase().replace(/\s/g, '-')}
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <a href="#" className="btn btn-accent btn-sm" style={{ fontSize: 12 }}>🔗 Ver web</a>
+                  <a href={`/${empresa.nombreEmpresa?.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`} target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-sm" style={{ fontSize: 12 }}>🔗 Ver web pública</a>
                   <button className="btn btn-ghost btn-sm" onClick={() => setStep(1)} style={{ fontSize: 12 }}>Cambiar plantilla</button>
                 </div>
               </div>

@@ -299,18 +299,27 @@ export default function Agentes() {
     try {
       const promptFinal = form.prompt || generarPrompt();
       const id = editando || `agente_${Date.now()}`;
-      await setDoc(doc(db, 'empresas', user.uid, 'agentes', id), {
-        ...form,
+      const datos = {
+        nombre: form.nombre,
+        personalidad: form.personalidad,
+        servicios: form.servicios,
+        horario: form.horario,
+        medico: form.medico,
+        clases: form.clases,
         prompt: promptFinal,
+        activo: form.activo,
+        canal: form.canal,
         updatedAt: serverTimestamp(),
-        createdAt: editando ? undefined : serverTimestamp(),
-      }, { merge: true });
+      };
+      if (!editando) datos.createdAt = serverTimestamp();
+      await setDoc(doc(db, 'empresas', user.uid, 'agentes', id), datos, { merge: true });
       toast.success(editando ? 'Agente actualizado ✅' : '¡Agente creado! 🤖');
       setShowForm(false);
       setEditando(null);
       cargarAgentes();
     } catch (e) {
-      toast.error('Error guardando agente');
+      console.error('Error guardando agente:', e.code, e.message);
+      toast.error(`Error: ${e.code || e.message}`);
     } finally {
       setGuardando(false);
     }

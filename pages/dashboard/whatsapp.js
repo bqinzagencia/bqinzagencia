@@ -85,11 +85,21 @@ export default function WhatsApp() {
         body: JSON.stringify({ empresaId }),
       });
       const d = await r.json();
-      if (d.ok) {
-        setStatus('qr_ready');
-        setQrBase64(d.qrBase64 || null);
-        iniciarPolling();
-        toast('Escanea el QR con tu WhatsApp 📱', { icon: '📲' });
+      console.log('[WA activar] respuesta:', d);
+      if (r.ok && d.ok) {
+        if (d.status === 'connected') {
+          setStatus('connected');
+          setNumero(d.numero);
+        } else if (d.status === 'qr_ready' && d.qrBase64) {
+          setStatus('qr_ready');
+          setQrBase64(d.qrBase64);
+          iniciarPolling();
+        } else {
+          // status: 'starting' — el QR llegará por polling
+          setStatus('qr_ready');
+          iniciarPolling();
+        }
+        toast('Generando QR... escanéalo con tu WhatsApp 📱', { icon: '📲' });
       } else {
         toast.error(d.error || 'Error al activar');
         setStatus('idle');

@@ -7,7 +7,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const SERVER_SECRET = process.env.SERVER_SECRET || 'agenciame2026secret';
+const SERVER_SECRET = process.env.SERVER_SECRET || process.env.WHATSAPP_SERVER_SECRET || 'bqinzagencia2026.';
 
 // Mantener historial de conversaciones en memoria (se pierde al reiniciar)
 // Para produccion seria mejor guardarlo en Firestore
@@ -32,9 +32,11 @@ export default async function handler(req, res) {
     if (!empresaSnap.exists) return res.status(404).json({ error: 'Empresa no encontrada' });
     const empresa = empresaSnap.data();
 
-    // 2. Verificar que WhatsApp esté activo para esta empresa
-    if (!empresa.whatsapp?.activo) {
-      return res.json({ respuesta: null }); // no responder si no está activado
+    // 2. WhatsApp conectado = activo (si tiene numero conectado, responder)
+    const waActivo = empresa.whatsapp?.status === 'connected' || empresa.whatsapp?.activo === true;
+    if (!waActivo) {
+      console.log(`[WA] Empresa ${empresaId} sin WhatsApp activo, ignorando`);
+      return res.json({ respuesta: null });
     }
 
     // 3. Verificar trial activo
