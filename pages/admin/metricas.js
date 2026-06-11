@@ -208,32 +208,93 @@ export default function MetricasAdmin() {
 
       {/* EMPRESAS */}
       {tab === 'empresas' && (
-        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', padding: '12px 20px', background: '#0D1420', fontSize: 11, color: '#4B6080', textTransform: 'uppercase', letterSpacing: '0.08em', gap: 8 }}>
-            <div>Empresa</div><div>Industria</div><div style={{ textAlign: 'right' }}>Convs total</div><div style={{ textAlign: 'right' }}>Costo est.</div><div style={{ textAlign: 'center' }}>WhatsApp</div>
-          </div>
-          {(data?.empresas || []).map((e, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', padding: '14px 20px', borderBottom: `1px solid ${BORDER}`, gap: 8, alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS[i % COLORS.length], flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{e.nombre}</div>
-                  <div style={{ fontSize: 11, color: '#4B6080' }}>{e.plan}</div>
+        <div>
+          {/* Contador */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '12px 20px', display: 'flex', gap: 20 }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#EFF4FF', letterSpacing: '-0.03em' }}>{data?.totalEmpresas || 0}</div>
+                <div style={{ fontSize: 11, color: '#4B6080', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total empresas</div>
+              </div>
+              <div style={{ width: 1, background: BORDER }} />
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#A78BFA', letterSpacing: '-0.03em' }}>
+                  {(data?.empresas || []).filter(e => e.plan === 'profesional' || e.plan === 'agencia').length}
                 </div>
+                <div style={{ fontSize: 11, color: '#4B6080', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Con plan pago</div>
               </div>
-              <div style={{ fontSize: 13, color: '#8A9BB5' }}>{e.industria}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, textAlign: 'right' }}>{e.conversaciones}</div>
-              <div style={{ fontSize: 13, color: '#8A9BB5', textAlign: 'right' }}>${(e.conversaciones * 0.002).toFixed(3)}</div>
-              <div style={{ textAlign: 'center', fontSize: 13 }}>
-                {e.whatsappActivo ? '🟢' : '⚫'}
+              <div style={{ width: 1, background: BORDER }} />
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#10B981', letterSpacing: '-0.03em' }}>
+                  {(data?.empresas || []).filter(e => {
+                    if (!e.trialHasta) return false;
+                    return new Date(e.trialHasta) > new Date();
+                  }).length}
+                </div>
+                <div style={{ fontSize: 11, color: '#4B6080', textTransform: 'uppercase', letterSpacing: '0.08em' }}>En trial activo</div>
+              </div>
+              <div style={{ width: 1, background: BORDER }} />
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#25D366', letterSpacing: '-0.03em' }}>
+                  {railway?.sesionesActivas || 0}
+                </div>
+                <div style={{ fontSize: 11, color: '#4B6080', textTransform: 'uppercase', letterSpacing: '0.08em' }}>WA activos</div>
               </div>
             </div>
-          ))}
-          {!data?.empresas?.length && (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#4B6080', fontSize: 13 }}>
-              Sin datos — verifica que el API esté desplegado
+          </div>
+
+          {/* Tabla */}
+          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr', padding: '12px 20px', background: '#0D1420', fontSize: 11, color: '#4B6080', textTransform: 'uppercase', letterSpacing: '0.08em', gap: 8 }}>
+              <div>Empresa</div><div>Industria</div><div>Plan</div><div>Estado</div><div style={{ textAlign: 'right' }}>Convs</div><div style={{ textAlign: 'center' }}>WA</div>
             </div>
-          )}
+            {(data?.empresas || []).map((e, i) => {
+              const trialActivo  = e.trialHasta && new Date(e.trialHasta) > new Date();
+              const trialVencido = e.trialHasta && new Date(e.trialHasta) <= new Date();
+              const diasTrial    = e.trialHasta ? Math.ceil((new Date(e.trialHasta) - new Date()) / 86400000) : 0;
+              const planColor    = { emprendedor: '#8A9BB5', profesional: '#2B6AFF', agencia: '#A78BFA' }[e.plan] || '#8A9BB5';
+              const planLabel    = { emprendedor: 'Emprendedor', profesional: 'Pro', agencia: 'Agencia' }[e.plan] || e.plan;
+              return (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr', padding: '14px 20px', borderBottom: `1px solid ${BORDER}`, gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS[i % COLORS.length], flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{e.nombre}</div>
+                      <div style={{ fontSize: 10, color: '#4B6080' }}>{e.id.slice(0, 8)}...</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#8A9BB5' }}>{e.industria}</div>
+                  <div>
+                    <span style={{ background: planColor + '18', color: planColor, border: `1px solid ${planColor}30`, borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
+                      {planLabel}
+                    </span>
+                  </div>
+                  <div>
+                    {trialActivo && (
+                      <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        Trial {diasTrial}d
+                      </span>
+                    )}
+                    {trialVencido && (
+                      <span style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
+                        Vencido
+                      </span>
+                    )}
+                    {!e.trialHasta && (
+                      <span style={{ background: 'rgba(43,106,255,0.1)', color: '#6DA4FF', border: '1px solid rgba(43,106,255,0.2)', borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
+                        Activo
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, textAlign: 'right' }}>{e.conversaciones}</div>
+                  <div style={{ textAlign: 'center', fontSize: 16 }}>{e.whatsappActivo ? '🟢' : '⚫'}</div>
+                </div>
+              );
+            })}
+            {!data?.empresas?.length && (
+              <div style={{ padding: '32px', textAlign: 'center', color: '#4B6080', fontSize: 13 }}>Sin datos</div>
+            )}
+          </div>
         </div>
       )}
 

@@ -31,11 +31,23 @@ export default async function handler(req, res) {
     const empresa = empresaSnap.data();
     const nombreEmpresa = empresa.nombreEmpresa || 'nuestro negocio';
 
-    // 2. Verificar trial
+    // 2. Verificar trial y restriccion WhatsApp
     if (empresa.trialHasta) {
       const hasta = empresa.trialHasta?.toDate ? empresa.trialHasta.toDate() : new Date(empresa.trialHasta);
-      if (new Date() > hasta) {
-        return res.json({ respuesta: `El periodo de prueba de ${nombreEmpresa} ha vencido. Contacta al administrador.` });
+      const ahora = new Date();
+
+      // Trial vencido
+      if (ahora > hasta) {
+        return res.json({ respuesta: `Hola! El periodo de prueba de ${nombreEmpresa} ha vencido. Contacta al administrador para activar un plan.` });
+      }
+
+      // WhatsApp solo disponible los primeros 2 dias del trial
+      const creadoEn = empresa.creadoEn?.toDate ? empresa.creadoEn.toDate() : new Date(empresa.creadoEn || hasta - 14 * 86400000);
+      const diasDesdaCreacion = Math.floor((ahora - creadoEn) / (1000 * 60 * 60 * 24));
+      const planActivo = empresa.plan && empresa.planActivo && empresa.plan !== 'emprendedor';
+
+      if (!planActivo && diasDesdaCreacion >= 2) {
+        return res.json({ respuesta: `Hola! El acceso a WhatsApp Bot durante el periodo de prueba es de 2 dias. Para continuar usando WhatsApp Bot, activa un plan en ${AGENCIAME_API}/dashboard/planes` });
       }
     }
 
