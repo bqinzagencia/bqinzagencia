@@ -75,7 +75,7 @@ export default function Register() {
     psicologo:          'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1400&q=80', // psicologo consultorio
     barbero:            'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=1400&q=80', // barberia
     reposteria:         'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1400&q=80', // tortas reposteria
-    veterinaria:        'https://images.unsplash.com/photo-1548767797-d8c844163c4a?w=1400&q=80', // veterinario mascota
+    veterinaria:        'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1400&q=80', // veterinario mascota
     fotografia:         'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1400&q=80', // fotografia camara
     acarreos:           'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1400&q=80', // camion transporte
     otro:               'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80', // oficina generica

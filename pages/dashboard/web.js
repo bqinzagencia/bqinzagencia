@@ -31,7 +31,7 @@ const INDUSTRIAS_CONFIG = {
   psicologo:          { img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&q=80', label: 'Psicología' },
   barbero:            { img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&q=80', label: 'Barbería' },
   reposteria:         { img: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&q=80', label: 'Repostería' },
-  veterinaria:        { img: 'https://images.unsplash.com/photo-1548767797-d8c844163c4a?w=800&q=80', label: 'Veterinaria' },
+  veterinaria:        { img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80', label: 'Veterinaria' },
   fotografia:         { img: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=800&q=80', label: 'Fotografía' },
   acarreos:           { img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80', label: 'Transporte' },
   contador:           { img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80', label: 'Contaduría' },
