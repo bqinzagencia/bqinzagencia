@@ -365,6 +365,36 @@ export default function DashboardLayout({ children, title }) {
             </div>
           </div>
 
+          {/* Barra trial */}
+          {(() => {
+            if (!empresa) return null;
+            const hasta = empresa.trialHasta?.toDate ? empresa.trialHasta.toDate() : empresa.trialHasta ? new Date(empresa.trialHasta) : null;
+            if (!hasta) return null;
+            const dias = Math.ceil((hasta - new Date()) / 86400000);
+            if (dias <= 0) return (
+              <div style={{ background:'rgba(220,38,38,0.1)', borderBottom:'1px solid rgba(220,38,38,0.25)', padding:'9px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+                <span style={{ fontFamily:"'Inter',system-ui,sans-serif", fontSize:13, color:'#FCA5A5', fontWeight:600 }}>Tu periodo de prueba vencio. Activa un plan para continuar.</span>
+                <a href="/dashboard/planes" style={{ background:'#DC2626', color:'#fff', borderRadius:100, padding:'5px 16px', fontSize:12, fontWeight:700, fontFamily:"'Inter',system-ui,sans-serif", textDecoration:'none', whiteSpace:'nowrap', flexShrink:0 }}>Activar plan</a>
+              </div>
+            );
+            if (dias > 14) return null;
+            const color = dias <= 3 ? '#EF4444' : dias <= 7 ? '#F59E0B' : '#2563EB';
+            const bg    = dias <= 3 ? 'rgba(239,68,68,0.08)' : dias <= 7 ? 'rgba(245,158,11,0.08)' : 'rgba(37,99,235,0.08)';
+            const border= dias <= 3 ? 'rgba(239,68,68,0.25)' : dias <= 7 ? 'rgba(245,158,11,0.25)' : 'rgba(37,99,235,0.2)';
+            return (
+              <div style={{ background:bg, borderBottom:`1px solid ${border}`, padding:'8px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <div style={{ width:7, height:7, borderRadius:'50%', background:color, flexShrink:0 }} />
+                  <span style={{ fontFamily:"'Inter',system-ui,sans-serif", fontSize:13, color, fontWeight:600 }}>
+                    {dias === 1 ? 'Queda 1 dia de prueba gratuita' : `Quedan ${dias} dias de prueba gratuita`}
+                  </span>
+                  <span style={{ fontFamily:"'Inter',system-ui,sans-serif", fontSize:12, color:'#4B6080' }}>— Sin tarjeta de credito requerida</span>
+                </div>
+                <a href="/dashboard/planes" style={{ background:color, color:'#fff', borderRadius:100, padding:'5px 16px', fontSize:12, fontWeight:700, fontFamily:"'Inter',system-ui,sans-serif", textDecoration:'none', whiteSpace:'nowrap', flexShrink:0, boxShadow:`0 3px 12px ${color}44` }}>Activar plan →</a>
+              </div>
+            );
+          })()}
+
           {/* Contenido de cada página */}
           <div className="db-content" style={{ padding: mobile ? '16px 14px' : '28px 32px' }}>
             {children}

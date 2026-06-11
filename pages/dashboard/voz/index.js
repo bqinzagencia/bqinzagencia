@@ -124,8 +124,8 @@ export default function VozDashboard() {
               </div>
               <div style={{ color: 'var(--gray5)', fontSize: 14 }}>
                 {empresa.twilioNumber
-                  ? `📞 ${empresa.twilioNumber} — activo`
-                  : '⚠️ Número Twilio no configurado'}
+                  ? `${empresa.twilioNumber} — activo`
+                  : 'Numero sin activar'}
               </div>
             </div>
           </div>
@@ -137,9 +137,9 @@ export default function VozDashboard() {
         {/* STATS */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
           {[
-            { label: 'Llamadas totales', valor: stats.total, emoji: '📞' },
-            { label: 'Tiempo en llamadas', valor: formatDuracion(stats.duracionTotal), emoji: '⏱️' },
-            { label: 'Leads capturados', valor: stats.leadsCapturados, emoji: '🎯' },
+            { label: 'Llamadas totales',   valor: stats.total,                emoji: null },
+            { label: 'Tiempo en llamadas',  valor: formatDuracion(stats.duracionTotal), emoji: null },
+            { label: 'Leads capturados',    valor: stats.leadsCapturados,      emoji: null },
           ].map((s, i) => (
             <div key={i} style={{ background: 'var(--gray1)', borderRadius: 14, padding: '20px 24px', border: '1px solid rgba(255,255,255,0.06)' }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>{s.emoji}</div>
