@@ -47,11 +47,11 @@ export default function Conocimiento() {
   });
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
-  useEffect(() => { if (user) cargarDatos(); }, [user]);
+  useEffect(() => { if (user && empresa) cargarDatos(); }, [user, empresa]);
 
   const cargarDatos = async () => {
     try {
-      const snap = await getDoc(doc(db, 'empresas', user.uid, 'config', 'conocimiento'));
+      const snap = await getDoc(doc(db, 'empresas', empresa.id, 'config', 'conocimiento'));
       if (snap.exists()) {
         const d = snap.data();
         if (d.servicios) setServicios(d.servicios);
@@ -84,7 +84,7 @@ export default function Conocimiento() {
       // Generar prompt automatico
       const promptGenerado = generarPrompt();
 
-      await setDoc(doc(db, 'empresas', user.uid, 'config', 'conocimiento'), {
+      await setDoc(doc(db, 'empresas', empresa.id, 'config', 'conocimiento'), {
         servicios,
         horarios,
         info,

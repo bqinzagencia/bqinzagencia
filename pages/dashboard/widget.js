@@ -56,7 +56,7 @@ export default function Widget() {
   if (loading || !empresa) return <div className="page-loader"><div className="spinner" /></div>;
 
   const nombre    = empresa.nombreEmpresa || 'Mi Negocio';
-  const empresaId = user.uid;
+  const empresaId = empresa.id; // CORRECTO: empresa.id no user.uid
 
   const codigos = {
     html: `<!-- Chat IA — ${nombre} | agencIAme -->

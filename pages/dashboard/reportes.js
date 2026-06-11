@@ -14,12 +14,12 @@ export default function Reportes() {
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
   useEffect(() => {
-    if (user) Promise.all([
-      getConversaciones(user.uid, 100),
-      getCitas(user.uid),
-      getContactos(user.uid),
+    if (user && empresa) Promise.all([
+      getConversaciones(empresa.id, 100),
+      getCitas(empresa.id),
+      getContactos(empresa.id),
     ]).then(([c, ci, co]) => setData({ conversaciones: c, citas: ci, contactos: co }));
-  }, [user]);
+  }, [user, empresa]);
 
   if (loading || !empresa) return <div className="page-loader"><div className="spinner" /></div>;
 
