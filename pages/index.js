@@ -9,7 +9,6 @@ const INDUSTRIES = [
   { icon: '✂️', title: 'Peluquerías & Spa', desc: 'Reservas 24/7 y portafolio de servicios.', slug: 'peluqueria', color: '#FF4D8B', img: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80' },
   { icon: '🏠', title: 'Inmobiliarias', desc: 'Filtra leads y agenda visitas con IA.', slug: 'inmobiliaria', color: '#4D94FF', img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80' },
   { icon: '🍽️', title: 'Restaurantes', desc: 'Reservas, menu digital y domicilios por WhatsApp.', slug: 'restaurante', color: '#FFB830', img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80' },
-  { icon: '🏠🍲', title: 'Restaurante de Barrio', desc: 'Menu diario con fotos, domicilios y pedidos por WhatsApp.', slug: 'restaurante_barrio', color: '#E85D04', img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80' },
   { icon: '🛒', title: 'Tiendas & Retail', desc: 'Catálogo digital, ventas y domicilios.', slug: 'tienda', color: '#30D988', img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80' },
   { icon: '🏋️', title: 'Gimnasios & Fitness', desc: 'Inscripciones, clases y pagos automáticos.', slug: 'gimnasio', color: '#1A56FF', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80' },
   { icon: '🏥', title: 'Salud & Clínicas', desc: 'Agenda médica y pre-triage por chat.', slug: 'salud', color: '#00D4FF', img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=80' },
