@@ -1,6 +1,4 @@
-// pages/dashboard/web.js
-// Mi Página Web — galería múltiple + menú diario + domicilios — agencIAme
-
+// pages/dashboard/web.js — Nuevo diseño: Stepper + Preview en tiempo real
 import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -8,684 +6,543 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../lib/AuthContext';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { updateEmpresa, db } from '../../lib/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
-const CLOUD_NAME = 'dsomqay6y';
+const CLOUD_NAME   = 'dsomqay6y';
 const UPLOAD_PRESET = 'cadegran_fotos';
+const F = "'Inter', system-ui, sans-serif";
+const DIAS = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo'];
 
-const INDUSTRIAS_CONFIG = {
-  peluqueria:         { img: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80', label: 'Peluquería / Spa' },
-  taller:             { img: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=800&q=80', label: 'Taller / Mecánica' },
-  restaurante:        { img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80', label: 'Restaurante' },
-  restaurante_barrio: { img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80', label: 'Restaurante de Barrio' },
-  inmobiliaria:       { img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80', label: 'Inmobiliaria' },
-  tienda:             { img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&q=80', label: 'Tienda / Retail' },
-  gimnasio:           { img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80', label: 'Gimnasio / Fitness' },
-  salud:              { img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80', label: 'Salud / Clínica' },
-  ajedrez:            { img: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=800&q=80', label: 'Escuela de Ajedrez' },
-  arquitectura:       { img: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=80', label: 'Arquitectura & Construcción' },
-  papeleria:          { img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80', label: 'Servicios / Papelería' },
-  aduana:             { img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80', label: 'Agencia de Aduana' },
-  portuaria:          { img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80', label: 'Operadora Portuaria' },
-  tecnico:            { img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80', label: 'Soporte Técnico' },
-  psicologo:          { img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&q=80', label: 'Psicología' },
-  barbero:            { img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&q=80', label: 'Barbería' },
-  reposteria:         { img: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&q=80', label: 'Repostería' },
-  veterinaria:        { img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80', label: 'Veterinaria' },
-  fotografia:         { img: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=800&q=80', label: 'Fotografía' },
-  acarreos:           { img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80', label: 'Transporte' },
-  contador:           { img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80', label: 'Contaduría' },
-  default:            { img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80', label: 'Mi Negocio' },
+const INDUSTRY_IMGS = {
+  peluqueria:   'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80',
+  taller:       'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=800&q=80',
+  restaurante:  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+  inmobiliaria: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+  tienda:       'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&q=80',
+  gimnasio:     'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+  salud:        'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
+  ajedrez:      'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=800&q=80',
+  arquitectura: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=80',
+  papeleria:    'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&q=80',
+  aduana:       'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80',
+  portuaria:    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
+  tecnico:      'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+  psicologo:    'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&q=80',
+  barbero:      'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&q=80',
+  reposteria:   'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&q=80',
+  veterinaria:  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80',
+  fotografia:   'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=800&q=80',
+  acarreos:     'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80',
+  contador:     'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
+  default:      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
 };
-
-const esRestaurante = (ind) => ind === 'restaurante' || ind === 'restaurante_barrio';
 
 export default function Web() {
   const { user, empresa, loading } = useAuth();
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState('foto'); // 'foto' | 'galeria' | 'menu' | 'domicilio'
 
-  // Foto hero
-  const [fotoPersonalizada, setFotoPersonalizada] = useState('');
-  const [fotoPreview, setFotoPreview] = useState('');
-  const [uploadingFoto, setUploadingFoto] = useState(false);
-  const fileHeroRef = useRef(null);
+  // Stepper
+  const [step, setStep] = useState(1); // 1=Textos, 2=Personalizar, 3=Publicar
 
-  // Galería múltiple
+  // Contenido
+  const [titulo,      setTitulo]      = useState('');
+  const [heroFrase,   setHeroFrase]   = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [telefono,    setTelefono]    = useState('');
+  const [whatsapp,    setWhatsapp]    = useState('');
+  const [direccion,   setDireccion]   = useState('');
+  const [ciudad,      setCiudad]      = useState('');
+
+  // Servicios
+  const [servicios, setServicios] = useState([{ nombre: '', precio: '', duracion: '' }]);
+
+  // Fotos
+  const [fotoHero,     setFotoHero]     = useState('');
   const [fotosGaleria, setFotosGaleria] = useState([]);
-  const [uploadingGal, setUploadingGal] = useState(false);
-  const fileGalRef = useRef(null);
+  const [uploading,    setUploading]    = useState(false);
+  const fileHeroRef = useRef(null);
+  const fileGalRef  = useRef(null);
 
-  // Menú diario (restaurantes)
-  const [menuTitulo, setMenuTitulo] = useState('Menú del día');
-  const [menuDesc, setMenuDesc] = useState('');
-  const [menuPrecioCompleto, setMenuPrecioCompleto] = useState('');
-  const [platos, setPlatos] = useState([{ nombre: '', descripcion: '', precio: '', foto: '' }]);
-  const [uploadingPlato, setUploadingPlato] = useState(null);
-  const filePlatoRefs = useRef({});
+  // Contacto
+  const [formasPago, setFormasPago] = useState([]);
 
-  // Domicilio
-  const [ofreceDomicilio, setOfreceDomicilio] = useState(false);
-  const [zonasCobertura, setZonasCobertura] = useState('');
-  const [tiempoEntrega, setTiempoEntrega] = useState('');
+  // Tab activa
+  const [tab, setTab] = useState('textos');
+  const [saving, setSaving] = useState(false);
+  const [publicada, setPublicada] = useState(false);
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
 
   useEffect(() => {
-    if (empresa) {
-      if (empresa.plantillaWeb) setStep(2);
-      if (empresa.fotoWeb) { setFotoPersonalizada(empresa.fotoWeb); setFotoPreview(empresa.fotoWeb); }
-      if (empresa.ofreceDomicilio) setOfreceDomicilio(true);
-      if (empresa.zonasCobertura) setZonasCobertura(empresa.zonasCobertura);
-      if (empresa.tiempoEntrega) setTiempoEntrega(empresa.tiempoEntrega);
-      cargarGaleria();
-      if (esRestaurante(empresa.industria)) cargarMenu();
-    }
+    if (!empresa) return;
+    setTitulo(empresa.nombreEmpresa || '');
+    setCiudad(empresa.ciudad || '');
+    setTelefono(empresa.telefono || '');
+    if (empresa.plantillaWeb) { setStep(2); setPublicada(true); }
+    if (empresa.fotoWeb) setFotoHero(empresa.fotoWeb);
+
+    // Cargar conocimiento
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'empresas', empresa.id, 'config', 'conocimiento'));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.servicios?.length) setServicios(d.servicios);
+          if (d.info?.descripcionNegocio) setDescripcion(d.info.descripcionNegocio);
+          if (d.info?.whatsapp) setWhatsapp(d.info.whatsapp);
+          if (d.info?.direccion) setDireccion(d.info.direccion);
+          if (d.info?.ciudad) setCiudad(d.info.ciudad);
+          if (d.info?.telefono) setTelefono(d.info.telefono);
+          if (d.info?.formasPago) setFormasPago(d.info.formasPago);
+          if (d.info?.heroFrase) setHeroFrase(d.info.heroFrase);
+        }
+        const galSnap = await getDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'));
+        if (galSnap.exists()) setFotosGaleria(galSnap.data().fotos || []);
+      } catch {}
+    })();
   }, [empresa]);
 
-  const cargarGaleria = async () => {
+  if (loading || !empresa) return <div className="page-loader"><div className="spinner" /></div>;
+
+  const indImg  = INDUSTRY_IMGS[empresa.industria] || INDUSTRY_IMGS.default;
+  const heroImg = fotoHero || indImg;
+  const slug    = titulo.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const siteUrl = `https://agenciame.com/sitio/${slug}`;
+
+  // Guardar borrador
+  const guardarBorrador = async () => {
+    setSaving(true);
     try {
-      const snap = await getDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'));
-      if (snap.exists()) setFotosGaleria(snap.data().fotos || []);
-    } catch (e) {}
+      await setDoc(doc(db, 'empresas', empresa.id, 'config', 'conocimiento'), {
+        servicios,
+        info: { descripcionNegocio: descripcion, whatsapp, telefono, direccion, ciudad, formasPago, heroFrase },
+        actualizadoEn: serverTimestamp(),
+      }, { merge: true });
+      await updateEmpresa(empresa.id, { fotoWeb: fotoHero || '' });
+      toast.success('Borrador guardado');
+    } catch { toast.error('Error al guardar'); }
+    finally { setSaving(false); }
   };
 
-  const cargarMenu = async () => {
+  // Publicar
+  const publicar = async () => {
+    if (!titulo) { toast.error('Agrega el nombre del negocio'); return; }
+    setSaving(true);
     try {
-      const snap = await getDoc(doc(db, 'empresas', empresa.id, 'config', 'menuDiario'));
-      if (snap.exists()) {
-        const d = snap.data();
-        setMenuTitulo(d.titulo || 'Menú del día');
-        setMenuDesc(d.descripcion || '');
-        setMenuPrecioCompleto(d.precioMenuCompleto || '');
-        setPlatos(d.platos || [{ nombre: '', descripcion: '', precio: '', foto: '' }]);
-      }
-    } catch (e) {}
+      await guardarBorrador();
+      await updateEmpresa(empresa.id, {
+        plantillaWeb: empresa.industria,
+        fotoWeb:      fotoHero || '',
+        webActiva:    true,
+      });
+      setPublicada(true);
+      setStep(3);
+      toast.success('Sitio web publicado');
+    } catch { toast.error('Error al publicar'); }
+    finally { setSaving(false); }
   };
 
-  const slug = (empresa?.nombreEmpresa || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const siteUrl = (typeof window !== 'undefined' ? window.location.origin : 'https://agenciame.com') + '/sitio/' + slug;
-  const indConfig = INDUSTRIAS_CONFIG[empresa?.industria] || INDUSTRIAS_CONFIG.default;
-
-  // ── Subir foto hero ──────────────────────────────────────────────────────
-  const subirFoto = async (file, onSuccess, setUploading) => {
+  // Subir foto
+  const subirFoto = async (file, onSuccess) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error('Máx 5MB'); return; }
-    if (!file.type.startsWith('image/')) { toast.error('Solo imágenes'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
     setUploading(true);
     try {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('upload_preset', UPLOAD_PRESET);
       fd.append('folder', 'agenciame/sitios');
-      const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/image/upload', { method: 'POST', body: fd });
-      if (!res.ok) throw new Error('Error subiendo');
+      const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:'POST', body:fd });
       const data = await res.json();
       onSuccess(data.secure_url);
-      toast.success('✅ Foto subida');
-    } catch (e) { toast.error('Error: ' + e.message); }
+      toast.success('Foto subida');
+    } catch { toast.error('Error al subir'); }
     finally { setUploading(false); }
   };
 
-  const handleHeroChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => setFotoPreview(ev.target.result);
-    reader.readAsDataURL(file);
-    subirFoto(file, url => setFotoPersonalizada(url), setUploadingFoto);
-  };
-
-  // ── Subir fotos galería ──────────────────────────────────────────────────
-  const handleGaleriaChange = async (e) => {
+  const handleHero = e => { const f = e.target.files[0]; if (f) subirFoto(f, setFotoHero); };
+  const handleGal  = async e => {
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    if (fotosGaleria.length + files.length > 12) { toast.error('Máximo 12 fotos en galería'); return; }
-    setUploadingGal(true);
+    if (!files.length) return;
+    setUploading(true);
     const nuevas = [];
-    for (const file of files) {
+    for (const f of files) {
       try {
         const fd = new FormData();
-        fd.append('file', file);
+        fd.append('file', f);
         fd.append('upload_preset', UPLOAD_PRESET);
         fd.append('folder', 'agenciame/galeria');
-        const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/image/upload', { method: 'POST', body: fd });
+        const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:'POST', body:fd });
         const data = await res.json();
         if (data.secure_url) nuevas.push(data.secure_url);
-      } catch (e) {}
+      } catch {}
     }
     const todas = [...fotosGaleria, ...nuevas];
     setFotosGaleria(todas);
     await setDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'), { fotos: todas });
-    toast.success(nuevas.length + ' foto(s) agregada(s) ✅');
-    setUploadingGal(false);
+    setUploading(false);
+    toast.success(`${nuevas.length} foto(s) agregada(s)`);
   };
 
-  const eliminarFotoGaleria = async (i) => {
-    const nuevas = fotosGaleria.filter((_, idx) => idx !== i);
-    setFotosGaleria(nuevas);
-    await setDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'), { fotos: nuevas });
-    toast.success('Foto eliminada');
+  const quitarFoto = async (i) => {
+    const arr = fotosGaleria.filter((_,idx)=>idx!==i);
+    setFotosGaleria(arr);
+    await setDoc(doc(db, 'empresas', empresa.id, 'config', 'galeria'), { fotos: arr });
   };
 
-  // ── Platos menú ──────────────────────────────────────────────────────────
-  const addPlato = () => setPlatos(p => [...p, { nombre: '', descripcion: '', precio: '', foto: '' }]);
-  const removePlato = (i) => setPlatos(p => p.filter((_, idx) => idx !== i));
-  const updatePlato = (i, k, v) => setPlatos(p => p.map((pl, idx) => idx === i ? { ...pl, [k]: v } : pl));
+  const togPago = p => setFormasPago(fp => fp.includes(p) ? fp.filter(x=>x!==p) : [...fp,p]);
 
-  const handleFotoPlato = async (e, i) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingPlato(i);
-    await subirFoto(file, url => updatePlato(i, 'foto', url), (v) => { if (!v) setUploadingPlato(null); });
-    setUploadingPlato(null);
-  };
+  // Estilos reutilizables
+  const INP = { width:'100%', background:'#0D1420', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'10px 12px', color:'#EFF4FF', fontFamily:F, fontSize:13, outline:'none', boxSizing:'border-box' };
+  const LBL = { fontFamily:F, fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:0.5, color:'#4B6080', display:'block', marginBottom:6 };
+  const CARD = { background:'#0C0F14', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:20, marginBottom:16 };
 
-  const guardarMenu = async () => {
-    setSaving(true);
-    try {
-      await setDoc(doc(db, 'empresas', empresa.id, 'config', 'menuDiario'), {
-        titulo: menuTitulo,
-        descripcion: menuDesc,
-        precioMenuCompleto: menuPrecioCompleto,
-        platos: platos.filter(p => p.nombre),
-        actualizadoEn: new Date().toISOString(),
-      });
-      toast.success('Menú guardado ✅');
-    } catch (e) { toast.error('Error al guardar'); }
-    finally { setSaving(false); }
-  };
-
-  const aplicarPlantilla = async () => {
-    setSaving(true);
-    try {
-      await updateEmpresa(empresa.id, {
-        plantillaWeb: empresa.industria,
-        fotoWeb: fotoPersonalizada || '',
-        ofreceDomicilio,
-        zonasCobertura,
-        tiempoEntrega,
-      });
-      toast.success('Tu sitio web esta listo!');
-      setStep(2);
-    } catch { toast.error('Error al guardar'); }
-    finally { setSaving(false); }
-  };
-
-  const guardarConfig = async () => {
-    setSaving(true);
-    try {
-      await updateEmpresa(empresa.id, { fotoWeb: fotoPersonalizada || '', ofreceDomicilio, zonasCobertura, tiempoEntrega });
-      toast.success('Configuración guardada ✅');
-    } catch { toast.error('Error al guardar'); }
-    finally { setSaving(false); }
-  };
-
-  if (loading || !empresa) return <div className="page-loader"><div className="spinner" /></div>;
-
-  const esTiendaORestaurante = esRestaurante(empresa.industria) || empresa.industria === 'tienda';
-  const fotoActual = fotoPreview || fotoPersonalizada || indConfig.img;
-
-  const card = { background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: 24, marginBottom: 20 };
-  const label = { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--gray5)', marginBottom: 8, display: 'block' };
-
+  // TABS
   const TABS = [
-    { key: 'foto',      label: 'Foto Hero' },
-    { key: 'galeria',   label: 'Galería' },
-    { key: 'config',    label: 'Configuración Web' },
-    ...(esRestaurante(empresa.industria) ? [{ key: 'menu', label: 'Menú Diario' }] : []),
-    ...(esTiendaORestaurante ? [{ key: 'domicilio', label: 'Domicilio' }] : []),
+    { key:'textos',    label:'Textos',    icon:'📝' },
+    { key:'servicios', label:'Servicios', icon:'⭐' },
+    { key:'fotos',     label:'Fotos',     icon:'📸' },
+    { key:'contacto',  label:'Contacto',  icon:'📞' },
   ];
+
+  const STEPS = ['Plantilla','Personalizar','Publicar'];
 
   return (
     <>
-      <Head><title>Crea tu Web con un Click — agencIAme</title></Head>
-      <DashboardLayout title="Crea tu Web con un Click">
+      <Head><title>Mi Web — agencIAme</title></Head>
+      <DashboardLayout title="Mi Web">
+        <style dangerouslySetInnerHTML={{__html:`
+          .web-inp:focus { border-color: rgba(255,107,0,0.5) !important; }
+          .web-tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
+          .web-tab-btn.active { background: #FF6B00 !important; color: #fff !important; }
+        `}} />
 
-        {step === 1 && (
-          <>
-            <p style={{ color: 'var(--gray5)', fontSize: 14, marginBottom: 28 }}>
-              Tu página web se genera automáticamente. Personaliza la foto de fondo, agrega tu galería
-              {esRestaurante(empresa.industria) ? ', sube tu menú diario' : ''} y más.
-            </p>
-
-            {/* Preview */}
-            <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', marginBottom: 28, height: 240, background: '#111' }}>
-              <img src={fotoActual} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.3) 100%)' }} />
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 6 }}>
-                <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 26, fontWeight: 800, color: '#fff' }}>{empresa.nombreEmpresa}</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{indConfig.label}</div>
-                {fotosGaleria.length > 0 && <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600 }}>✅ {fotosGaleria.length} fotos en galería</div>}
+        {/* ── STEPPER ── */}
+        <div style={{ display:'flex', alignItems:'center', gap:0, marginBottom:28, background:'#0C0F14', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'16px 24px' }}>
+          {STEPS.map((s,i) => {
+            const done    = step > i+1;
+            const current = step === i+1;
+            return (
+              <div key={i} style={{ display:'flex', alignItems:'center', flex: i < STEPS.length-1 ? 1 : 'none' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, cursor: done ? 'pointer' : 'default' }}
+                  onClick={() => { if (done || current) setStep(i+1); }}>
+                  <div style={{
+                    width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+                    background: done ? '#10B981' : current ? '#FF6B00' : '#1A2035',
+                    color: done||current ? '#fff' : '#4B6080',
+                    fontFamily:F, fontSize:13, fontWeight:700, flexShrink:0,
+                    border: current ? '2px solid rgba(255,107,0,0.4)' : 'none',
+                    boxShadow: current ? '0 0 0 4px rgba(255,107,0,0.12)' : 'none',
+                    transition:'all 0.2s',
+                  }}>
+                    {done ? '✓' : i+1}
+                  </div>
+                  <span style={{ fontFamily:F, fontSize:13, fontWeight: current?700:400, color: current?'#EFF4FF': done?'#10B981':'#4B6080' }}>{s}</span>
+                </div>
+                {i < STEPS.length-1 && (
+                  <div style={{ flex:1, height:1, background: done?'#10B981':'rgba(255,255,255,0.06)', margin:'0 16px' }} />
+                )}
               </div>
+            );
+          })}
+
+          {/* Estado activa */}
+          {publicada && (
+            <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8, background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.25)', borderRadius:100, padding:'4px 14px' }}>
+              <div style={{ width:7, height:7, borderRadius:'50%', background:'#10B981' }} />
+              <span style={{ fontFamily:F, fontSize:12, color:'#10B981', fontWeight:600 }}>Live</span>
             </div>
+          )}
+        </div>
+
+        {/* ── CUERPO PRINCIPAL: izquierda editor + derecha preview ── */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 380px', gap:20, alignItems:'start' }}>
+
+          {/* ── EDITOR ── */}
+          <div>
+            {/* Barra estado web */}
+            {publicada && (
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(16,185,129,0.06)', border:'1px solid rgba(16,185,129,0.2)', borderRadius:10, padding:'12px 18px', marginBottom:16, flexWrap:'wrap', gap:10 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <div style={{ width:8, height:8, borderRadius:'50%', background:'#10B981' }} />
+                  <span style={{ fontFamily:F, fontSize:13, fontWeight:600, color:'#10B981' }}>Tu web está activa</span>
+                  <span style={{ fontFamily:F, fontSize:12, color:'#4B6080' }}>·</span>
+                  <span style={{ fontFamily:F, fontSize:12, color:'#4B6080' }}>Plantilla: {empresa.industria}</span>
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => window.open(siteUrl,'_blank')} style={{ background:'#10B981', color:'#fff', border:'none', borderRadius:6, padding:'6px 14px', fontFamily:F, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                    Ver web
+                  </button>
+                  <button onClick={() => { navigator.clipboard.writeText(siteUrl); toast.success('URL copiada'); }} style={{ background:'rgba(255,255,255,0.06)', color:'#8A9BB5', border:'none', borderRadius:6, padding:'6px 14px', fontFamily:F, fontSize:12, cursor:'pointer' }}>
+                    Copiar URL
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* TABS */}
-            <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'var(--gray2)', borderRadius: 10, padding: 4, overflowX: 'auto' }}>
+            <div style={{ display:'flex', gap:2, marginBottom:16, background:'#0C0F14', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:4, overflowX:'auto' }}>
               {TABS.map(t => (
-                <button key={t.key} onClick={() => setTab(t.key)}
-                  style={{ background: tab === t.key ? 'var(--accent)' : 'transparent', color: tab === t.key ? '#000' : 'var(--gray5)', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>
-                  {t.label}
+                <button key={t.key} className={`web-tab-btn${tab===t.key?' active':''}`}
+                  onClick={() => setTab(t.key)}
+                  style={{ background: tab===t.key?'#FF6B00':'transparent', color: tab===t.key?'#fff':'#6B7A99', border:'none', borderRadius:8, padding:'8px 18px', fontFamily:F, fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.15s', display:'flex', alignItems:'center', gap:6 }}>
+                  <span style={{ fontSize:14 }}>{t.icon}</span>{t.label}
                 </button>
               ))}
             </div>
 
-            {/* TAB: Foto Hero */}
-            {tab === 'foto' && (
-              <div style={card}>
-                <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🖼️ Foto de fondo del hero</h3>
-                <p style={{ color: 'var(--gray5)', fontSize: 13, marginBottom: 16 }}>La foto principal que aparece en el encabezado de tu sitio.</p>
-                <div style={{ background: 'rgba(0,229,160,0.04)', border: '1px solid rgba(0,229,160,0.1)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-                  <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 8 }}>📐 Especificaciones:</div>
-                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                    {[{ l: 'Ideal', v: '1920×1080px' }, { l: 'Mínimo', v: '1200×630px' }, { l: 'Peso máx', v: '5 MB' }, { l: 'Formatos', v: 'JPG PNG WEBP' }, { l: 'Relación', v: '16:9 horizontal' }].map((s, i) => (
-                      <div key={i} style={{ background: 'var(--gray2)', borderRadius: 6, padding: '6px 12px' }}>
-                        <div style={{ fontSize: 9, color: 'var(--gray5)', fontWeight: 600, letterSpacing: 0.5 }}>{s.l}</div>
-                        <div style={{ fontSize: 12, color: 'var(--gray7)', fontWeight: 600, marginTop: 2 }}>{s.v}</div>
-                      </div>
-                    ))}
+            {/* TAB: TEXTOS */}
+            {tab === 'textos' && (
+              <div>
+                <div style={CARD}>
+                  <div style={{ fontFamily:F, fontSize:14, fontWeight:700, color:'#EFF4FF', marginBottom:16 }}>Informacion principal</div>
+                  <div style={{ marginBottom:12 }}>
+                    <span style={LBL}>Nombre del negocio</span>
+                    <input className="web-inp" style={INP} value={titulo} onChange={e=>setTitulo(e.target.value)} placeholder="Ej: Peluqueria Valeria" />
+                  </div>
+                  <div style={{ marginBottom:12 }}>
+                    <span style={LBL}>Titular del hero (frase impactante)</span>
+                    <input className="web-inp" style={INP} value={heroFrase} onChange={e=>setHeroFrase(e.target.value)} placeholder="Ej: Tu centro de belleza de confianza en Cali" />
+                  </div>
+                  <div>
+                    <span style={LBL}>Descripcion del negocio</span>
+                    <textarea className="web-inp" style={{ ...INP, resize:'vertical', minHeight:100 }} value={descripcion} onChange={e=>setDescripcion(e.target.value)} placeholder="Ej: Somos una peluqueria especializada en cortes modernos. Atendemos con cita previa y nuestro agente IA esta disponible 24h para reservas." />
                   </div>
                 </div>
-                <input ref={fileHeroRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleHeroChange} />
-                {!fotoPersonalizada ? (
-                  <div onClick={() => fileHeroRef.current?.click()}
-                    style={{ border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 10, padding: '36px 24px', textAlign: 'center', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,229,160,0.4)'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}>
-                    <div style={{ fontSize: 36, marginBottom: 10 }}>📷</div>
-                    <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{uploadingFoto ? 'Subiendo...' : 'Subir foto de fondo'}</div>
-                    <div style={{ color: 'var(--gray5)', fontSize: 12 }}>JPG, PNG, WEBP · Máx 5MB · Mín 1200×630px</div>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'var(--gray2)', borderRadius: 10, padding: '12px 16px' }}>
-                    <img src={fotoPersonalizada} alt="hero" style={{ width: 80, height: 48, objectFit: 'cover', borderRadius: 6 }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>✅ Foto personalizada activa</div>
-                    </div>
-                    <button className="btn btn-ghost btn-sm" onClick={() => fileHeroRef.current?.click()}>Cambiar</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => { setFotoPersonalizada(''); setFotoPreview(''); }}>Quitar</button>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* TAB: Galería */}
-            {tab === 'galeria' && (
-              <div style={card}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <div>
-                    <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 15 }}>📸 Galería fotográfica</h3>
-                    <p style={{ color: 'var(--gray5)', fontSize: 12, marginTop: 4 }}>Sube hasta 12 fotos. Aparecen en la sección de galería de tu sitio web.</p>
+            {/* TAB: SERVICIOS */}
+            {tab === 'servicios' && (
+              <div>
+                <div style={CARD}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+                    <div style={{ fontFamily:F, fontSize:14, fontWeight:700, color:'#EFF4FF' }}>Tus servicios</div>
+                    <button onClick={() => setServicios(s=>[...s,{nombre:'',precio:'',duracion:''}])}
+                      style={{ background:'rgba(255,107,0,0.1)', color:'#FF6B00', border:'1px solid rgba(255,107,0,0.25)', borderRadius:8, padding:'6px 14px', fontFamily:F, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                      + Agregar servicio
+                    </button>
                   </div>
-                  <button className="btn btn-accent btn-sm" onClick={() => fileGalRef.current?.click()} disabled={uploadingGal || fotosGaleria.length >= 12}>
-                    {uploadingGal ? '⏳ Subiendo...' : '+ Agregar fotos'}
-                  </button>
-                </div>
-                <input ref={fileGalRef} type="file" accept="image/jpeg,image/png,image/webp" multiple style={{ display: 'none' }} onChange={handleGaleriaChange} />
-
-                {/* Especificaciones galería */}
-                <div style={{ background: 'rgba(0,229,160,0.04)', border: '1px solid rgba(0,229,160,0.1)', borderRadius: 8, padding: '10px 14px', marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700, marginBottom: 4 }}>📐 Especificaciones galería:</div>
-                  <div style={{ fontSize: 12, color: 'var(--gray5)', lineHeight: 1.6 }}>
-                    • Mínimo 800×600px · Ideal 1200×900px (3:4 o 4:3)<br/>
-                    • Peso máximo 5MB por foto · Formatos: JPG, PNG, WEBP<br/>
-                    • Máximo 12 fotos · Las primeras 4-8 aparecen en la portada
-                  </div>
-                </div>
-
-                {fotosGaleria.length === 0 ? (
-                  <div onClick={() => fileGalRef.current?.click()}
-                    style={{ border: '2px dashed rgba(255,255,255,0.08)', borderRadius: 10, padding: '48px 24px', textAlign: 'center', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,229,160,0.3)'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}>
-                    <div style={{ fontSize: 40, marginBottom: 10 }}>🖼️</div>
-                    <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 4 }}>Sin fotos aún</div>
-                    <div style={{ color: 'var(--gray5)', fontSize: 12 }}>Haz clic para subir tu primera foto</div>
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(140px,1fr))', gap: 10 }}>
-                    {fotosGaleria.map((foto, i) => (
-                      <div key={i} style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', aspectRatio: '4/3' }}>
-                        <img src={foto} alt={'foto ' + (i + 1)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button onClick={() => eliminarFotoGaleria(i)}
-                          style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.7)', border: 'none', color: '#fff', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          ✕
+                  {servicios.map((sv,i) => (
+                    <div key={i} style={{ background:'#111827', borderRadius:10, padding:14, marginBottom:10 }}>
+                      <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:10, marginBottom:8 }}>
+                        <div>
+                          <span style={LBL}>Nombre del servicio</span>
+                          <input className="web-inp" style={INP} placeholder="Ej: Corte clasico" value={sv.nombre} onChange={e=>setServicios(s=>s.map((x,j)=>j===i?{...x,nombre:e.target.value}:x))} />
+                        </div>
+                        <div>
+                          <span style={LBL}>Precio COP</span>
+                          <input className="web-inp" style={INP} placeholder="25000" value={sv.precio} onChange={e=>setServicios(s=>s.map((x,j)=>j===i?{...x,precio:e.target.value}:x))} />
+                        </div>
+                        <div>
+                          <span style={LBL}>Duracion min</span>
+                          <input className="web-inp" style={INP} placeholder="30" value={sv.duracion} onChange={e=>setServicios(s=>s.map((x,j)=>j===i?{...x,duracion:e.target.value}:x))} />
+                        </div>
+                      </div>
+                      {servicios.length > 1 && (
+                        <button onClick={() => setServicios(s=>s.filter((_,j)=>j!==i))}
+                          style={{ background:'rgba(239,68,68,0.08)', color:'#EF4444', border:'none', borderRadius:6, padding:'4px 12px', fontFamily:F, fontSize:11, cursor:'pointer' }}>
+                          Quitar
                         </button>
-                        <div style={{ position: 'absolute', bottom: 4, left: 6, fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>#{i + 1}</div>
-                      </div>
-                    ))}
-                    {fotosGaleria.length < 12 && (
-                      <div onClick={() => fileGalRef.current?.click()}
-                        style={{ aspectRatio: '4/3', border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 28, color: 'var(--gray5)' }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,229,160,0.3)'}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}>
-                        +
-                      </div>
-                    )}
-                  </div>
-                )}
-                <p style={{ fontSize: 11, color: 'var(--gray5)', marginTop: 10 }}>{fotosGaleria.length}/12 fotos · Las fotos se guardan automáticamente</p>
-              </div>
-            )}
-
-            {/* TAB: Configuración Web — integrada desde /dashboard/conocimiento */}
-            {tab === 'config' && (
-              <ConfiguracionWeb uid={empresa.id} empresa={empresa} />
-            )}
-
-            {/* TAB: Menú Diario */}
-            {tab === 'menu' && esRestaurante(empresa.industria) && (
-              <div style={card}>
-                <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🍽️ Menú del día</h3>
-                <p style={{ color: 'var(--gray5)', fontSize: 13, marginBottom: 20 }}>Actualiza tu menú diario con fotos. Aparece destacado en tu sitio web.</p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                  <div>
-                    <span style={label}>Título del menú</span>
-                    <input className="form-input" placeholder="Menú del día" value={menuTitulo} onChange={e => setMenuTitulo(e.target.value)} />
-                  </div>
-                  <div>
-                    <span style={label}>Precio menú completo (COP)</span>
-                    <input className="form-input" placeholder="15000" value={menuPrecioCompleto} onChange={e => setMenuPrecioCompleto(e.target.value)} />
-                  </div>
-                </div>
-                <div style={{ marginBottom: 20 }}>
-                  <span style={label}>Descripción del menú</span>
-                  <input className="form-input" placeholder="Sopa, plato fuerte, jugo y postre" value={menuDesc} onChange={e => setMenuDesc(e.target.value)} />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 14 }}>Platos del día</span>
-                  <button className="btn btn-ghost btn-sm" onClick={addPlato}>+ Agregar plato</button>
-                </div>
-
-                {platos.map((plato, i) => (
-                  <div key={i} style={{ background: 'var(--gray2)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 10 }}>
-                      <div>
-                        <span style={label}>Nombre del plato</span>
-                        <input className="form-input" placeholder="Ej: Bandeja paisa" value={plato.nombre} onChange={e => updatePlato(i, 'nombre', e.target.value)} />
-                      </div>
-                      <div>
-                        <span style={label}>Precio (COP)</span>
-                        <input className="form-input" placeholder="12000" value={plato.precio} onChange={e => updatePlato(i, 'precio', e.target.value)} />
-                      </div>
-                    </div>
-                    <div style={{ marginBottom: 10 }}>
-                      <span style={label}>Descripción</span>
-                      <input className="form-input" placeholder="Ingredientes y descripción breve" value={plato.descripcion} onChange={e => updatePlato(i, 'descripcion', e.target.value)} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <div style={{ flex: 1 }}>
-                        <span style={label}>Foto del plato</span>
-                        <input
-                          ref={el => filePlatoRefs.current[i] = el}
-                          type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
-                          onChange={e => handleFotoPlato(e, i)} />
-                        {plato.foto ? (
-                          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                            <img src={plato.foto} alt="plato" style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 6 }} />
-                            <button className="btn btn-ghost btn-sm" onClick={() => filePlatoRefs.current[i]?.click()}>Cambiar</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => updatePlato(i, 'foto', '')}>Quitar</button>
-                          </div>
-                        ) : (
-                          <button className="btn btn-ghost btn-sm" onClick={() => filePlatoRefs.current[i]?.click()} disabled={uploadingPlato === i}>
-                            {uploadingPlato === i ? '⏳ Subiendo...' : '📷 Subir foto del plato'}
-                          </button>
-                        )}
-                      </div>
-                      {platos.length > 1 && (
-                        <button className="btn btn-danger btn-sm" onClick={() => removePlato(i)} style={{ marginTop: 20 }}>🗑️</button>
                       )}
                     </div>
-                  </div>
-                ))}
-
-                <button className="btn btn-accent" onClick={guardarMenu} disabled={saving} style={{ marginTop: 8 }}>
-                  {saving ? 'Guardando...' : '💾 Guardar menú del día'}
-                </button>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* TAB: Domicilio */}
-            {tab === 'domicilio' && esTiendaORestaurante && (
-              <div style={card}>
-                <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🛵 Configurar domicilios</h3>
-                <p style={{ color: 'var(--gray5)', fontSize: 13, marginBottom: 20 }}>Habilita el botón de domicilio en tu sitio web. Los clientes pedirán por WhatsApp.</p>
+            {/* TAB: FOTOS */}
+            {tab === 'fotos' && (
+              <div>
+                {/* Foto hero */}
+                <div style={CARD}>
+                  <div style={{ fontFamily:F, fontSize:14, fontWeight:700, color:'#EFF4FF', marginBottom:4 }}>Foto principal (hero)</div>
+                  <div style={{ fontFamily:F, fontSize:12, color:'#4B6080', marginBottom:14 }}>La foto grande del encabezado de tu sitio. Horizontal 16:9, min 1200x630px.</div>
+                  <input ref={fileHeroRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleHero} />
+                  {fotoHero ? (
+                    <div style={{ display:'flex', gap:12, alignItems:'center', background:'#111827', borderRadius:10, padding:'10px 14px' }}>
+                      <img src={fotoHero} style={{ width:80, height:48, objectFit:'cover', borderRadius:6 }} />
+                      <div style={{ flex:1, fontFamily:F, fontSize:12, color:'#10B981', fontWeight:600 }}>Foto personalizada activa</div>
+                      <button onClick={() => fileHeroRef.current?.click()} style={{ background:'rgba(255,255,255,0.06)', color:'#8A9BB5', border:'none', borderRadius:6, padding:'6px 12px', fontFamily:F, fontSize:12, cursor:'pointer' }}>Cambiar</button>
+                      <button onClick={() => setFotoHero('')} style={{ background:'rgba(239,68,68,0.08)', color:'#EF4444', border:'none', borderRadius:6, padding:'6px 12px', fontFamily:F, fontSize:12, cursor:'pointer' }}>Quitar</button>
+                    </div>
+                  ) : (
+                    <div onClick={() => fileHeroRef.current?.click()}
+                      style={{ border:'2px dashed rgba(255,255,255,0.08)', borderRadius:10, padding:'28px 24px', textAlign:'center', cursor:'pointer' }}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor='rgba(255,107,0,0.35)'}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'}>
+                      <div style={{ fontFamily:F, fontSize:13, fontWeight:600, color:'#8A9BB5' }}>{uploading ? 'Subiendo...' : '+ Subir foto de fondo'}</div>
+                      <div style={{ fontFamily:F, fontSize:11, color:'#374151', marginTop:4 }}>JPG, PNG, WEBP · Max 5MB</div>
+                    </div>
+                  )}
+                </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--gray2)', borderRadius: 10, padding: '14px 18px', marginBottom: 20 }}>
-                  <input type="checkbox" checked={ofreceDomicilio} onChange={e => setOfreceDomicilio(e.target.checked)}
-                    style={{ width: 18, height: 18, cursor: 'pointer' }} />
+                {/* Galeria */}
+                <div style={CARD}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                    <div>
+                      <div style={{ fontFamily:F, fontSize:14, fontWeight:700, color:'#EFF4FF' }}>Galeria de fotos</div>
+                      <div style={{ fontFamily:F, fontSize:12, color:'#4B6080', marginTop:2 }}>{fotosGaleria.length}/12 fotos</div>
+                    </div>
+                    <button onClick={() => fileGalRef.current?.click()} disabled={uploading || fotosGaleria.length >= 12}
+                      style={{ background:'rgba(255,107,0,0.1)', color:'#FF6B00', border:'1px solid rgba(255,107,0,0.25)', borderRadius:8, padding:'6px 14px', fontFamily:F, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                      {uploading ? 'Subiendo...' : '+ Agregar fotos'}
+                    </button>
+                  </div>
+                  <input ref={fileGalRef} type="file" accept="image/*" multiple style={{ display:'none' }} onChange={handleGal} />
+                  {fotosGaleria.length === 0 ? (
+                    <div onClick={() => fileGalRef.current?.click()}
+                      style={{ border:'2px dashed rgba(255,255,255,0.06)', borderRadius:10, padding:'32px', textAlign:'center', cursor:'pointer' }}>
+                      <div style={{ fontFamily:F, fontSize:13, color:'#4B6080' }}>Sin fotos aun · Haz clic para agregar</div>
+                    </div>
+                  ) : (
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(110px,1fr))', gap:8 }}>
+                      {fotosGaleria.map((foto,i) => (
+                        <div key={i} style={{ position:'relative', borderRadius:8, overflow:'hidden', aspectRatio:'4/3' }}>
+                          <img src={foto} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                          <button onClick={() => quitarFoto(i)}
+                            style={{ position:'absolute', top:4, right:4, background:'rgba(0,0,0,0.7)', border:'none', color:'#fff', borderRadius:'50%', width:22, height:22, cursor:'pointer', fontSize:11, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: CONTACTO */}
+            {tab === 'contacto' && (
+              <div>
+                <div style={CARD}>
+                  <div style={{ fontFamily:F, fontSize:14, fontWeight:700, color:'#EFF4FF', marginBottom:16 }}>Informacion de contacto</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+                    <div>
+                      <span style={LBL}>Telefono</span>
+                      <input className="web-inp" style={INP} placeholder="3105056616" value={telefono} onChange={e=>setTelefono(e.target.value)} />
+                    </div>
+                    <div>
+                      <span style={LBL}>WhatsApp</span>
+                      <input className="web-inp" style={INP} placeholder="3105056616" value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} />
+                    </div>
+                    <div>
+                      <span style={LBL}>Direccion</span>
+                      <input className="web-inp" style={INP} placeholder="Calle 15 # 28-40" value={direccion} onChange={e=>setDireccion(e.target.value)} />
+                    </div>
+                    <div>
+                      <span style={LBL}>Ciudad</span>
+                      <input className="web-inp" style={INP} placeholder="Cali" value={ciudad} onChange={e=>setCiudad(e.target.value)} />
+                    </div>
+                  </div>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>🛵 Ofrecer domicilios</div>
-                    <div style={{ fontSize: 12, color: 'var(--gray5)' }}>Aparecerá un botón naranja "Pedir domicilio" en tu sitio web</div>
+                    <span style={LBL}>Formas de pago</span>
+                    <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:6 }}>
+                      {['Efectivo','Nequi','Daviplata','Transferencia','Tarjeta debito','Tarjeta credito'].map(p => (
+                        <button key={p} onClick={() => togPago(p)}
+                          style={{ background: formasPago.includes(p)?'rgba(255,107,0,0.12)':'rgba(255,255,255,0.04)', color: formasPago.includes(p)?'#FF8C40':'#6B7A99', border:`1px solid ${formasPago.includes(p)?'rgba(255,107,0,0.3)':'rgba(255,255,255,0.06)'}`, borderRadius:100, padding:'5px 14px', fontFamily:F, fontSize:12, cursor:'pointer', transition:'all 0.15s' }}>
+                          {p}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-
-                {ofreceDomicilio && (
-                  <>
-                    <div style={{ marginBottom: 14 }}>
-                      <span style={label}>Zonas de cobertura</span>
-                      <input className="form-input" placeholder="Ej: Barrio El Poblado, Laureles, El Estadio" value={zonasCobertura} onChange={e => setZonasCobertura(e.target.value)} />
-                    </div>
-                    <div style={{ marginBottom: 14 }}>
-                      <span style={label}>Tiempo estimado de entrega</span>
-                      <input className="form-input" placeholder="Ej: 30-45 minutos" value={tiempoEntrega} onChange={e => setTiempoEntrega(e.target.value)} />
-                    </div>
-                    <div style={{ background: 'rgba(255,69,0,0.06)', border: '1px solid rgba(255,69,0,0.2)', borderRadius: 8, padding: '12px 16px', fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                      💡 Los pedidos llegarán a tu WhatsApp configurado en la Base de conocimiento. El cliente escribe el pedido y tú confirmas.
-                    </div>
-                  </>
-                )}
               </div>
             )}
 
-            <button className="btn btn-accent btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
-              onClick={aplicarPlantilla} disabled={saving}>
-              {saving ? 'Guardando...' : step === 2 ? '💾 Guardar cambios' : '🌐 Generar mi sitio web →'}
-            </button>
-          </>
-        )}
+            {/* Botones accion */}
+            <div style={{ display:'flex', gap:12, marginTop:8 }}>
+              <button onClick={guardarBorrador} disabled={saving}
+                style={{ flex:1, background:'rgba(255,255,255,0.04)', color:'#8A9BB5', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'13px', fontFamily:F, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+                {saving ? 'Guardando...' : 'Guardar borrador'}
+              </button>
+              <button onClick={publicar} disabled={saving}
+                style={{ flex:2, background:'linear-gradient(135deg,#FF6B00,#FF9500)', color:'#fff', border:'none', borderRadius:10, padding:'13px', fontFamily:F, fontSize:14, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 20px rgba(255,107,0,0.35)' }}>
+                {saving ? 'Publicando...' : publicada ? 'Actualizar mi web' : 'Publicar mi web'}
+              </button>
+            </div>
+          </div>
 
-        {step === 2 && (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-              <div style={{ background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: 14, padding: 24 }}>
-                <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 17, marginBottom: 8 }}>✅ Tu sitio web está activo</div>
-                <div style={{ color: 'var(--gray5)', fontSize: 13, marginBottom: 16 }}>{fotosGaleria.length} fotos en galería · {esRestaurante(empresa.industria) ? 'Menú disponible · ' : ''}{empresa.ofreceDomicilio ? '🛵 Domicilios activos' : ''}</div>
-                <div style={{ background: 'var(--gray2)', borderRadius: 8, padding: '10px 14px', fontSize: 11, fontFamily: 'monospace', color: 'var(--accent)', cursor: 'pointer', wordBreak: 'break-all' }}
-                  onClick={() => window.open(siteUrl, '_blank')}>{siteUrl}</div>
-                <button className="btn btn-accent btn-sm" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }} onClick={() => window.open(siteUrl, '_blank')}>
-                  🌐 Ver mi sitio web
-                </button>
-              </div>
-              <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', minHeight: 200 }}>
-                <img src={fotoPreview || fotoPersonalizada || indConfig.img} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: 200 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.2) 100%)' }} />
-                <div style={{ position: 'absolute', bottom: 16, left: 16 }}>
-                  <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 16, fontWeight: 800, color: '#fff' }}>{empresa.nombreEmpresa}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>{indConfig.label}</div>
+          {/* ── PREVIEW DERECHA ── */}
+          <div style={{ position:'sticky', top:80 }}>
+            <div style={{ background:'#0C0F14', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden' }}>
+              {/* Barra navegador simulada */}
+              <div style={{ background:'#111827', padding:'10px 14px', display:'flex', alignItems:'center', gap:8, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display:'flex', gap:5' }}>
+                  {['#EF4444','#F59E0B','#10B981'].map((c,i) => <div key={i} style={{ width:10, height:10, borderRadius:'50%', background:c }} />)}
                 </div>
+                <div style={{ flex:1, background:'#0D1420', borderRadius:6, padding:'4px 10px', fontFamily:F, fontSize:10, color:'#4B6080', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  agenciame.com/sitio/{slug || 'tu-negocio'}
+                </div>
+                {publicada && <span style={{ fontFamily:F, fontSize:9, color:'#10B981', fontWeight:700, background:'rgba(16,185,129,0.1)', padding:'2px 8px', borderRadius:100 }}>ACTIVA</span>}
+              </div>
+
+              {/* Mini preview del sitio */}
+              <div style={{ position:'relative', height:220, overflow:'hidden' }}>
+                <img src={heroImg} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.85) 100%)' }} />
+                {/* Nav mini */}
+                <div style={{ position:'absolute', top:0, left:0, right:0, padding:'8px 12px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <span style={{ fontFamily:F, fontSize:11, fontWeight:800, color:'#fff' }}>{titulo || empresa.nombreEmpresa}</span>
+                  <div style={{ display:'flex', gap:6' }}>
+                    {['Servicios','Nosotros','Contacto'].map(l => <span key={l} style={{ fontFamily:F, fontSize:8, color:'rgba(255,255,255,0.6)' }}>{l}</span>)}
+                    <span style={{ background:'#FF6B00', color:'#fff', fontFamily:F, fontSize:8, fontWeight:700, padding:'2px 7px', borderRadius:4 }}>Reservar cita</span>
+                  </div>
+                </div>
+                {/* Contenido hero mini */}
+                <div style={{ position:'absolute', bottom:16, left:12, right:12 }}>
+                  <div style={{ background:'#FF6B00', color:'#fff', fontFamily:F, fontSize:7, fontWeight:700, padding:'2px 8px', borderRadius:100, display:'inline-block', marginBottom:6 }}>EMPRESA</div>
+                  <div style={{ fontFamily:F, fontSize:14, fontWeight:800, color:'#fff', lineHeight:1.2, marginBottom:4 }}>
+                    {heroFrase || `Bienvenidos a ${titulo || empresa.nombreEmpresa}`}
+                  </div>
+                  <div style={{ fontFamily:F, fontSize:9, color:'rgba(255,255,255,0.6)', marginBottom:8 }}>
+                    {servicios.filter(s=>s.nombre).slice(0,3).map(s=>s.nombre).join(', ') || 'Tus servicios aqui'}
+                  </div>
+                  <div style={{ display:'flex', gap:6 }}>
+                    <span style={{ background:'#FF6B00', color:'#fff', fontFamily:F, fontSize:8, fontWeight:700, padding:'4px 10px', borderRadius:4 }}>Reservar cita</span>
+                    <span style={{ background:'#25D366', color:'#fff', fontFamily:F, fontSize:8, fontWeight:700, padding:'4px 10px', borderRadius:4 }}>WhatsApp</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Servicios mini */}
+              {servicios.some(s=>s.nombre) && (
+                <div style={{ padding:'14px 14px 6px' }}>
+                  <div style={{ fontFamily:F, fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:1.5, color:'#FF6B00', textAlign:'center', marginBottom:8 }}>NUESTROS SERVICIOS</div>
+                  <div style={{ fontFamily:F, fontSize:11, fontWeight:700, color:'#EFF4FF', textAlign:'center', marginBottom:10 }}>En que podemos ayudarte?</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6, marginBottom:10 }}>
+                    {servicios.filter(s=>s.nombre).slice(0,3).map((sv,i) => (
+                      <div key={i} style={{ background:'#111827', borderRadius:8, padding:'10px 6px', textAlign:'center' }}>
+                        <div style={{ fontSize:16, marginBottom:4 }}>⭐</div>
+                        <div style={{ fontFamily:F, fontSize:9, fontWeight:600, color:'#EFF4FF', lineHeight:1.2 }}>{sv.nombre}</div>
+                        {sv.precio && <div style={{ fontFamily:F, fontSize:8, color:'#FF6B00', marginTop:3 }}>${sv.precio}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Contacto mini */}
+              <div style={{ background:'#111827', padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div>
+                  <div style={{ fontFamily:F, fontSize:10, fontWeight:700, color:'#EFF4FF' }}>{titulo || empresa.nombreEmpresa}</div>
+                  {ciudad && <div style={{ fontFamily:F, fontSize:8, color:'#4B6080', marginTop:1 }}>{ciudad}</div>}
+                  {telefono && <div style={{ fontFamily:F, fontSize:8, color:'#4B6080' }}>{telefono}</div>}
+                </div>
+                <button style={{ background:'#FF6B00', color:'#fff', border:'none', borderRadius:6, padding:'5px 12px', fontFamily:F, fontSize:9, fontWeight:700, cursor:'pointer' }}>Contactanos</button>
               </div>
             </div>
 
-            <button className="btn btn-ghost" onClick={() => setStep(1)} style={{ marginRight: 12 }}>✏️ Editar configuración</button>
-            <button className="btn btn-accent" onClick={() => window.open(siteUrl, '_blank')}>🌐 Ver sitio web</button>
+            {/* Info URL */}
+            {publicada && (
+              <div style={{ marginTop:12, background:'rgba(16,185,129,0.06)', border:'1px solid rgba(16,185,129,0.2)', borderRadius:10, padding:'12px 14px' }}>
+                <div style={{ fontFamily:F, fontSize:11, color:'#4B6080', marginBottom:4 }}>URL de tu sitio web:</div>
+                <div style={{ fontFamily:F, fontSize:12, color:'#10B981', wordBreak:'break-all', cursor:'pointer' }} onClick={() => window.open(siteUrl,'_blank')}>
+                  {siteUrl}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </DashboardLayout>
     </>
-  );
-}
-
-// ── Componente ConfiguracionWeb integrado ────────────────────────────────────
-import { serverTimestamp } from 'firebase/firestore';
-const DIAS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
-
-function ConfiguracionWeb({ uid, empresa }) {
-  const [saving, setSaving] = useState(false);
-  const [cargando, setCargando] = useState(true);
-  const [servicios, setServicios] = useState([{ nombre: '', precio: '', duracion: '', descripcion: '' }]);
-  const [horarios, setHorarios] = useState({
-    Lunes: { activo: true, desde: '08:00', hasta: '18:00' },
-    Martes: { activo: true, desde: '08:00', hasta: '18:00' },
-    Miercoles: { activo: true, desde: '08:00', hasta: '18:00' },
-    Jueves: { activo: true, desde: '08:00', hasta: '18:00' },
-    Viernes: { activo: true, desde: '08:00', hasta: '18:00' },
-    Sabado: { activo: true, desde: '08:00', hasta: '14:00' },
-    Domingo: { activo: false, desde: '08:00', hasta: '12:00' },
-  });
-  const [info, setInfo] = useState({
-    direccion: '', ciudad: '', telefono: '', whatsapp: '',
-    descripcionNegocio: '', politicaCancelacion: '',
-    formasPago: [], preguntasFrecuentes: [{ pregunta: '', respuesta: '' }],
-  });
-
-  useEffect(() => {
-    if (!uid) return;
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, 'empresas', uid, 'config', 'conocimiento'));
-        if (snap.exists()) {
-          const d = snap.data();
-          if (d.servicios) setServicios(d.servicios);
-          if (d.horarios) setHorarios(d.horarios);
-          if (d.info) setInfo(d.info);
-        } else if (empresa) {
-          setInfo(i => ({ ...i, ciudad: empresa.ciudad || '', telefono: empresa.telefono || '' }));
-        }
-      } catch (e) { console.error(e); }
-      finally { setCargando(false); }
-    })();
-  }, [uid]);
-
-  const addSv = () => setServicios(s => [...s, { nombre: '', precio: '', duracion: '', descripcion: '' }]);
-  const rmSv  = (i) => setServicios(s => s.filter((_, idx) => idx !== i));
-  const updSv = (i, f, v) => setServicios(s => s.map((sv, idx) => idx === i ? { ...sv, [f]: v } : sv));
-  const addFaq  = () => setInfo(i => ({ ...i, preguntasFrecuentes: [...(i.preguntasFrecuentes || []), { pregunta: '', respuesta: '' }] }));
-  const rmFaq   = (i) => setInfo(inf => ({ ...inf, preguntasFrecuentes: inf.preguntasFrecuentes.filter((_, idx) => idx !== i) }));
-  const updFaq  = (i, f, v) => setInfo(inf => ({ ...inf, preguntasFrecuentes: inf.preguntasFrecuentes.map((fq, idx) => idx === i ? { ...fq, [f]: v } : fq) }));
-  const togPago = (p) => setInfo(i => ({ ...i, formasPago: i.formasPago.includes(p) ? i.formasPago.filter(x => x !== p) : [...i.formasPago, p] }));
-
-  const guardar = async () => {
-    if (!servicios.some(s => s.nombre)) { toast.error('Agrega al menos un servicio'); return; }
-    setSaving(true);
-    try {
-      await setDoc(doc(db, 'empresas', uid, 'config', 'conocimiento'), {
-        servicios, horarios, info,
-        actualizadoEn: serverTimestamp(),
-      });
-      toast.success('Configuración web guardada');
-    } catch (e) { toast.error('Error al guardar'); }
-    finally { setSaving(false); }
-  };
-
-  const card  = { background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: 24, marginBottom: 20 };
-  const lbl   = { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--gray5)', marginBottom: 8, display: 'block' };
-
-  if (cargando) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray5)' }}>Cargando...</div>;
-
-  return (
-    <div>
-      <p style={{ color: 'var(--gray5)', fontSize: 14, marginBottom: 24 }}>
-        Esta información la usa tu agente IA para responder correctamente a tus clientes.
-      </p>
-
-      {/* SERVICIOS */}
-      <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 15 }}>Servicios y precios</h3>
-          <button className="btn btn-ghost btn-sm" onClick={addSv}>+ Agregar servicio</button>
-        </div>
-        {servicios.map((sv, i) => (
-          <div key={i} style={{ background: 'var(--gray2)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 10 }}>
-              <div><span style={lbl}>Nombre *</span><input className="form-input" placeholder="Ej: Corte de cabello" value={sv.nombre} onChange={e => updSv(i, 'nombre', e.target.value)} /></div>
-              <div><span style={lbl}>Precio COP</span><input className="form-input" placeholder="25000" value={sv.precio} onChange={e => updSv(i, 'precio', e.target.value)} /></div>
-              <div><span style={lbl}>Duración min</span><input className="form-input" placeholder="30" value={sv.duracion} onChange={e => updSv(i, 'duracion', e.target.value)} /></div>
-            </div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}><span style={lbl}>Descripción</span><input className="form-input" placeholder="Detalles del servicio" value={sv.descripcion} onChange={e => updSv(i, 'descripcion', e.target.value)} /></div>
-              {servicios.length > 1 && <button className="btn btn-danger btn-sm" onClick={() => rmSv(i)}>Quitar</button>}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* HORARIOS */}
-      <div style={card}>
-        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Horarios de atención</h3>
-        {DIAS.map(dia => (
-          <div key={dia} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-            <div style={{ width: 110, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input type="checkbox" checked={horarios[dia]?.activo || false}
-                onChange={e => setHorarios(h => ({ ...h, [dia]: { ...h[dia], activo: e.target.checked } }))}
-                style={{ width: 16, height: 16, cursor: 'pointer' }} />
-              <span style={{ fontSize: 14, fontWeight: 600, color: horarios[dia]?.activo ? 'var(--white)' : 'var(--gray5)' }}>{dia}</span>
-            </div>
-            {horarios[dia]?.activo ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="time" className="form-input" style={{ width: 120, padding: '6px 10px' }} value={horarios[dia]?.desde || '08:00'} onChange={e => setHorarios(h => ({ ...h, [dia]: { ...h[dia], desde: e.target.value } }))} />
-                <span style={{ color: 'var(--gray5)' }}>a</span>
-                <input type="time" className="form-input" style={{ width: 120, padding: '6px 10px' }} value={horarios[dia]?.hasta || '18:00'} onChange={e => setHorarios(h => ({ ...h, [dia]: { ...h[dia], hasta: e.target.value } }))} />
-              </div>
-            ) : <span style={{ fontSize: 13, color: 'var(--gray5)', fontStyle: 'italic' }}>Cerrado</span>}
-          </div>
-        ))}
-      </div>
-
-      {/* INFO NEGOCIO */}
-      <div style={card}>
-        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Información del negocio</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          <div><span style={lbl}>Dirección</span><input className="form-input" placeholder="Calle 5 # 10-20" value={info.direccion} onChange={e => setInfo(i => ({ ...i, direccion: e.target.value }))} /></div>
-          <div><span style={lbl}>Ciudad</span><input className="form-input" placeholder="Cali" value={info.ciudad} onChange={e => setInfo(i => ({ ...i, ciudad: e.target.value }))} /></div>
-          <div><span style={lbl}>Teléfono</span><input className="form-input" placeholder="3105056616" value={info.telefono} onChange={e => setInfo(i => ({ ...i, telefono: e.target.value }))} /></div>
-          <div><span style={lbl}>WhatsApp</span><input className="form-input" placeholder="3105056616" value={info.whatsapp} onChange={e => setInfo(i => ({ ...i, whatsapp: e.target.value }))} /></div>
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <span style={lbl}>Descripción del negocio</span>
-          <textarea className="form-input" rows={3} placeholder="Somos una peluquería especializada en cortes modernos..." value={info.descripcionNegocio} onChange={e => setInfo(i => ({ ...i, descripcionNegocio: e.target.value }))} style={{ resize: 'vertical' }} />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <span style={lbl}>Política de cancelación</span>
-          <input className="form-input" placeholder="Cancelaciones con mínimo 2 horas de anticipación" value={info.politicaCancelacion} onChange={e => setInfo(i => ({ ...i, politicaCancelacion: e.target.value }))} />
-        </div>
-        <div>
-          <span style={lbl}>Formas de pago</span>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {['Efectivo', 'Nequi', 'Daviplata', 'Transferencia', 'Tarjeta débito', 'Tarjeta crédito'].map(p => (
-              <button key={p} onClick={() => togPago(p)}
-                style={{ background: info.formasPago?.includes(p) ? 'rgba(37,99,235,0.12)' : 'var(--gray2)', border: '1px solid ' + (info.formasPago?.includes(p) ? '#2563EB' : 'rgba(255,255,255,0.06)'), borderRadius: 100, padding: '6px 14px', cursor: 'pointer', color: info.formasPago?.includes(p) ? '#60A5FA' : 'var(--gray6)', fontSize: 13, fontFamily: "'Inter', system-ui, sans-serif" }}>
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ */}
-      <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 15 }}>Preguntas frecuentes</h3>
-          <button className="btn btn-ghost btn-sm" onClick={addFaq}>+ Agregar pregunta</button>
-        </div>
-        {(info.preguntasFrecuentes || []).map((faq, i) => (
-          <div key={i} style={{ background: 'var(--gray2)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
-            <div style={{ marginBottom: 10 }}><span style={lbl}>Pregunta</span><input className="form-input" placeholder="¿Tienen estacionamiento?" value={faq.pregunta} onChange={e => updFaq(i, 'pregunta', e.target.value)} /></div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}><span style={lbl}>Respuesta</span><input className="form-input" placeholder="Sí, tenemos parqueadero gratuito." value={faq.respuesta} onChange={e => updFaq(i, 'respuesta', e.target.value)} /></div>
-              {(info.preguntasFrecuentes || []).length > 1 && <button className="btn btn-danger btn-sm" onClick={() => rmFaq(i)}>Quitar</button>}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <button className="btn btn-accent btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={guardar} disabled={saving}>
-        {saving ? 'Guardando...' : 'Guardar configuración web'}
-      </button>
-    </div>
   );
 }
