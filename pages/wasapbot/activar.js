@@ -373,10 +373,9 @@ export default function WasapBotActivar() {
                 </div>
               ))}
             </div>
-            <a href={`https://wa.me/573105056616?text=Hola, active mi WasapBot para ${nombre}. Quiero info sobre los planes.`}
-              target="_blank" rel="noreferrer"
+            <a href={`/wasapbot/panel/${empresaId}`}
               style={{display:'block',background:'linear-gradient(135deg,#25D366,#1DA851)',color:'#fff',borderRadius:12,padding:'14px',fontFamily:F,fontSize:15,fontWeight:700,textAlign:'center',boxShadow:'0 6px 24px rgba(37,211,102,0.3)',marginBottom:10}}>
-              Hablar con un asesor →
+              Ir a mi panel →
             </a>
             <Link href="/wasapbot" style={{display:'block',background:'rgba(255,255,255,0.03)',color:'#8A9BB5',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:'12px',fontFamily:F,fontSize:13,textAlign:'center'}}>
               Volver al inicio

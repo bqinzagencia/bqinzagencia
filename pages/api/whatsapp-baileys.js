@@ -146,12 +146,34 @@ REGLAS CRITICAS:
       }
     }
 
-    // 8. OpenAI
+    // 8. OpenAI con conteo de tokens
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 500,
       messages: [{ role: 'system', content: systemPrompt }, ...historial],
     });
+
+    // Registrar tokens consumidos
+    const tokensUsados = completion.usage?.total_tokens || 0;
+    if (tokensUsados > 0) {
+      const ahora  = new Date();
+      const mesKey = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}`;
+      const tokRef = adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`);
+      await tokRef.set({ usado: FieldValue.increment(tokensUsados), empresaId, mes: mesKey }, { merge: true }).catch(()=>{});
+    }
+
+    // Verificar limite de tokens
+    const PLAN_TOKENS = { basico: 50000, estandar: 150000, pro: 400000 };
+    const planId = empresa.planWasapbot || 'basico';
+    const tokLimit = PLAN_TOKENS[planId] || 50000;
+    const ahora2  = new Date();
+    const mesKey2 = `${ahora2.getFullYear()}-${String(ahora2.getMonth()+1).padStart(2,'0')}`;
+    const tokSnap = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(()=>null);
+    const tokActual = tokSnap?.exists ? (tokSnap.data().usado || 0) : 0;
+
+    if (tokActual > tokLimit) {
+      return res.json({ respuesta: `Hola. El servicio de respuestas automaticas de ${nombreEmpresa} ha alcanzado su limite mensual. Por favor contacta directamente al negocio.` });
+    }
 
     let respuesta = completion.choices[0]?.message?.content || '';
     historial.push({ role: 'assistant', content: respuesta });
@@ -163,7 +185,29 @@ REGLAS CRITICAS:
       nombreCliente = nombreEnMensaje;
     }
 
-    let respuestaLimpia = respuesta;
+    // Guardar tokens usados en Firestore
+    const tokensUsados = completion.usage?.total_tokens || 0;
+    try {
+      const { FieldValue: FV } = await import('firebase-admin/firestore');
+      await adminDb.collection('empresas').doc(empresaId).update({
+        tokensUsados:  FV.increment(tokensUsados),
+        conversaciones: FV.increment(1),
+        ultimaActividad: FV.serverTimestamp(),
+      });
+    } catch {}
+
+    // Verificar limite de tokens segun plan
+    const tokensSnap = await adminDb.collection('empresas').doc(empresaId).get();
+    const eData      = tokensSnap.data() || {};
+    const planTokens = { basico:50000, estandar:150000, pro:400000, wasapbot:15000 };
+    const limite     = planTokens[eData.planWasapbot || eData.plan] || 15000;
+    const usados     = (eData.tokensUsados || 0);
+    if (usados > limite) {
+      return res.json({ respuesta: `Lo sentimos, hemos alcanzado el limite de mensajes del mes. Escribe al ${SOPORTE_NUMERO} para ampliar tu plan.` });
+    }
+    if (usados > limite * 0.8 && usados < limite) {
+      respuestaLimpia += `\n\n_Aviso: este negocio esta cerca de su limite mensual de mensajes._`;
+    }
 
     // 10. Procesar SOPORTE_SOLICITADO
     const soporteMatch = respuesta.match(/SOPORTE_SOLICITADO:\s*(\{[^}]+\})/);

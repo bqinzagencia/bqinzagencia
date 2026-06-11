@@ -21,6 +21,122 @@ const Card = ({ label, value, sub, color='#EFF4FF' }) => (
   </div>
 );
 
+function WasapBotMetricas() {
+  const F = "'Inter', system-ui, sans-serif";
+  const CARD = '#111827';
+  const BORDER = 'rgba(255,255,255,0.07)';
+  const [clientes, setClientes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [ampliando, setAmpliando] = useState('');
+
+  useEffect(() => { cargar(); }, []);
+
+  const cargar = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch('/api/wasapbot-admin', { headers: { 'x-admin-secret': 'borrero_nexoia_admin_2026' } });
+      const d = await r.json();
+      if (d.ok) setClientes(d.clientes || []);
+    } catch {}
+    finally { setLoading(false); }
+  };
+
+  const ampliarTokens = async (empresaId, nombre) => {
+    const extra = prompt(`Tokens adicionales para ${nombre}:`);
+    if (!extra || isNaN(extra)) return;
+    setAmpliando(empresaId);
+    try {
+      await fetch('/api/wasapbot-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': 'borrero_nexoia_admin_2026' },
+        body: JSON.stringify({ accion: 'ampliar', empresaId, tokens: parseInt(extra) }),
+      });
+      alert('Tokens ampliados');
+      cargar();
+    } catch { alert('Error'); }
+    finally { setAmpliando(''); }
+  };
+
+  const cambiarPlan = async (empresaId, nombre) => {
+    const plan = prompt(`Plan para ${nombre} (basico / estandar / pro):`);
+    if (!['basico','estandar','pro'].includes(plan)) { alert('Plan invalido'); return; }
+    await fetch('/api/wasapbot-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-secret': 'borrero_nexoia_admin_2026' },
+      body: JSON.stringify({ accion: 'cambiar_plan', empresaId, plan }),
+    });
+    alert('Plan actualizado'); cargar();
+  };
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#4B6080', fontFamily: F }}>Cargando...</div>;
+
+  const PLAN_TOKENS = { basico: 50000, estandar: 150000, pro: 400000 };
+  const PLAN_PRECIO = { basico: 189000, estandar: 390000, pro: 690000 };
+  const totalMRR = clientes.reduce((s, c) => s + (PLAN_PRECIO[c.plan] || 0), 0);
+
+  return (
+    <div>
+      {/* Resumen MRR */}
+      <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+        {[
+          { label: 'Clientes WasapBot', val: clientes.length, color: '#25D366' },
+          { label: 'MRR WasapBot', val: `${new Intl.NumberFormat('es-CO').format(totalMRR)} COP`, color: '#60A5FA' },
+          { label: 'Cerca del limite', val: clientes.filter(c => (c.pctTokens || 0) >= 80).length, color: '#F59E0B' },
+        ].map((s,i) => (
+          <div key={i} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '14px 18px', flex: 1, minWidth: 160 }}>
+            <div style={{ fontFamily: F, fontSize: 10, color: '#4B6080', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{s.label}</div>
+            <div style={{ fontFamily: F, fontSize: 24, fontWeight: 800, color: s.color }}>{s.val}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabla clientes */}
+      <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 2fr 80px 80px', padding: '10px 16px', background: '#0D1420', fontSize: 10, color: '#4B6080', textTransform: 'uppercase', letterSpacing: 1, gap: 8 }}>
+          <div>Negocio</div><div>Plan</div><div>Tokens</div><div>Consumo</div><div>Ampliar</div><div>Plan</div>
+        </div>
+        {clientes.map((c,i) => {
+          const tokTotal = (PLAN_TOKENS[c.plan] || 50000) + (c.tokensExtra || 0);
+          const pctTok   = Math.min(Math.round((c.tokensUsados || 0) / tokTotal * 100), 100);
+          const col      = pctTok >= 90 ? '#EF4444' : pctTok >= 70 ? '#F59E0B' : '#25D366';
+          return (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 2fr 80px 80px', padding: '12px 16px', borderBottom: `1px solid ${BORDER}`, gap: 8, alignItems: 'center' }}>
+              <div>
+                <div style={{ fontFamily: F, fontSize: 13, fontWeight: 600, color: '#EFF4FF' }}>{c.nombre}</div>
+                <div style={{ fontFamily: F, fontSize: 10, color: '#4B6080' }}>{c.industria}</div>
+              </div>
+              <div>
+                <span style={{ background: c.plan==='pro'?'rgba(167,139,250,0.1)':c.plan==='estandar'?'rgba(37,99,235,0.1)':'rgba(107,114,128,0.1)', color: c.plan==='pro'?'#A78BFA':c.plan==='estandar'?'#60A5FA':'#9CA3AF', border: `1px solid ${c.plan==='pro'?'rgba(167,139,250,0.25)':c.plan==='estandar'?'rgba(37,99,235,0.25)':'rgba(107,114,128,0.2)'}`, borderRadius: 100, padding: '2px 8px', fontSize: 10, fontWeight: 700, fontFamily: F }}>
+                  {c.plan || 'basico'}
+                </span>
+              </div>
+              <div style={{ fontFamily: F, fontSize: 12, color: '#8A9BB5' }}>
+                {new Intl.NumberFormat('es-CO').format(c.tokensUsados || 0)}<br />
+                <span style={{ fontSize: 10, color: '#4B6080' }}>de {new Intl.NumberFormat('es-CO').format(tokTotal)}</span>
+              </div>
+              <div>
+                <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 100, height: 6, overflow: 'hidden', marginBottom: 4 }}>
+                  <div style={{ width: `${pctTok}%`, height: '100%', background: col, borderRadius: 100, transition: 'width 0.5s' }} />
+                </div>
+                <div style={{ fontFamily: F, fontSize: 10, color: col, fontWeight: 700 }}>{pctTok}%</div>
+              </div>
+              <button onClick={() => ampliarTokens(c.id, c.nombre)} disabled={ampliando===c.id}
+                style={{ background: 'rgba(37,211,102,0.08)', color: '#25D366', border: '1px solid rgba(37,211,102,0.2)', borderRadius: 6, padding: '5px 8px', fontFamily: F, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                {ampliando===c.id ? '...' : '+ Tokens'}
+              </button>
+              <button onClick={() => cambiarPlan(c.id, c.nombre)}
+                style={{ background: 'rgba(96,165,250,0.08)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 6, padding: '5px 8px', fontFamily: F, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                Plan
+              </button>
+            </div>
+          );
+        })}
+        {clientes.length === 0 && <div style={{ padding: 32, textAlign: 'center', color: '#4B6080', fontFamily: F, fontSize: 13 }}>Sin clientes WasapBot aun</div>}
+      </div>
+    </div>
+  );
+}
+
 export default function MetricasAdmin() {
   const [auth, setAuth]       = useState(false);
   const [pass, setPass]       = useState('');
@@ -161,7 +277,7 @@ export default function MetricasAdmin() {
 
       {/* Tabs */}
       <div style={{ display:'flex', gap:4, marginBottom:24, background:'#0D1420', padding:4, borderRadius:12, width:'fit-content' }}>
-        {['resumen','servicios','empresas','proyección'].map(t => (
+        {['resumen','servicios','empresas','wasapbot','proyección'].map(t => (
           <button key={t} onClick={() => setTab(t)}
             style={{ background:tab===t?'#1E293B':'transparent', border:`1px solid ${tab===t?BORDER:'transparent'}`, borderRadius:8, padding:'7px 18px', color:tab===t?'#EFF4FF':'#6B7A99', fontFamily:F, fontSize:13, fontWeight:tab===t?600:400, cursor:'pointer', textTransform:'capitalize' }}>
             {t}
@@ -281,6 +397,11 @@ export default function MetricasAdmin() {
             )}
           </div>
         </div>
+      )}
+
+      {/* WASAPBOT */}
+      {tab === 'wasapbot' && (
+        <WasapBotMetricas />
       )}
 
       {/* PROYECCIÓN */}
