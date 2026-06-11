@@ -466,7 +466,7 @@ export default function Web() {
             <div style={{ background:'#0C0F14', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden' }}>
               {/* Barra navegador simulada */}
               <div style={{ background:'#111827', padding:'10px 14px', display:'flex', alignItems:'center', gap:8, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ display:'flex', gap:5' }}>
+                <div style={{ display:'flex', gap:5 }}>
                   {['#EF4444','#F59E0B','#10B981'].map((c,i) => <div key={i} style={{ width:10, height:10, borderRadius:'50%', background:c }} />)}
                 </div>
                 <div style={{ flex:1, background:'#0D1420', borderRadius:6, padding:'4px 10px', fontFamily:F, fontSize:10, color:'#4B6080', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
@@ -482,7 +482,7 @@ export default function Web() {
                 {/* Nav mini */}
                 <div style={{ position:'absolute', top:0, left:0, right:0, padding:'8px 12px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <span style={{ fontFamily:F, fontSize:11, fontWeight:800, color:'#fff' }}>{titulo || empresa.nombreEmpresa}</span>
-                  <div style={{ display:'flex', gap:6' }}>
+                  <div style={{ display:'flex', gap:6 }}>
                     {['Servicios','Nosotros','Contacto'].map(l => <span key={l} style={{ fontFamily:F, fontSize:8, color:'rgba(255,255,255,0.6)' }}>{l}</span>)}
                     <span style={{ background:'#FF6B00', color:'#fff', fontFamily:F, fontSize:8, fontWeight:700, padding:'2px 7px', borderRadius:4 }}>Reservar cita</span>
                   </div>
