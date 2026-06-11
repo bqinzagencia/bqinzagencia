@@ -27,6 +27,13 @@ const HERO_BG = {
   aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1400&q=85',
   portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1400&q=85',
   tecnico:            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&q=85',
+  psicologo:          'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1400&q=85',
+  barbero:            'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=1400&q=85',
+  reposteria:         'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1400&q=85',
+  veterinaria:        'https://images.unsplash.com/photo-1548767797-d8c844163c4a?w=1400&q=85',
+  fotografia:         'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1400&q=85',
+  acarreos:           'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1400&q=85',
+  contador:           'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1400&q=85',
   default:            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=85',
 };
 
@@ -116,6 +123,48 @@ const STAT_IMGS = {
     'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=72&q=80',
     'https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?w=72&q=80',
     'https://images.unsplash.com/photo-1601524909162-ae8725290836?w=72&q=80',
+  ],
+  psicologo: [
+    'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=72&q=80',
+    'https://images.unsplash.com/photo-1516302752625-fcc3c50ae61f?w=72&q=80',
+    'https://images.unsplash.com/photo-1527137342181-19aab11a8ee8?w=72&q=80',
+    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=72&q=80',
+  ],
+  barbero: [
+    'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=72&q=80',
+    'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=72&q=80',
+    'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=72&q=80',
+    'https://images.unsplash.com/photo-1593702288056-7cc0e9aba5b1?w=72&q=80',
+  ],
+  reposteria: [
+    'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=72&q=80',
+    'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=72&q=80',
+    'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=72&q=80',
+    'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=72&q=80',
+  ],
+  veterinaria: [
+    'https://images.unsplash.com/photo-1548767797-d8c844163c4a?w=72&q=80',
+    'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=72&q=80',
+    'https://images.unsplash.com/photo-1601758124277-2dc6e4069d8a?w=72&q=80',
+    'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=72&q=80',
+  ],
+  fotografia: [
+    'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=72&q=80',
+    'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=72&q=80',
+    'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=72&q=80',
+    'https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=72&q=80',
+  ],
+  acarreos: [
+    'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=72&q=80',
+    'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=72&q=80',
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=72&q=80',
+    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=72&q=80',
+  ],
+  contador: [
+    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=72&q=80',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=72&q=80',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=72&q=80',
+    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=72&q=80',
   ],
   default: [
     'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=72&q=80',
