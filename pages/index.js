@@ -20,6 +20,13 @@ const INDUSTRIES = [
   { icon: '🛃', title: 'Agencias de Aduana', desc: 'Seguimiento de declaraciones, aranceles y estado de mercancias en puerto.', slug: 'aduana', color: '#0EA5E9', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80' },
   { icon: '🚢', title: 'Operadoras Portuarias', desc: 'Contenedores, ETA de buques, bodegaje y coordinacion con navieras.', slug: 'portuaria', color: '#0F766E', img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
   { icon: '💻', title: 'Soporte Técnico & Electrónica', desc: 'Celulares, computadoras y electrónica. Recepción, presupuestos y seguimiento.', slug: 'tecnico', color: '#6366F1', img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80' },
+  { icon: '✂️', title: 'Barbería & Estilo', desc: 'Turnos, reservas y clientes fieles. Tu barbería siempre llena sin perder un turno.', slug: 'barbero', color: '#1D4ED8', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&q=80' },
+  { icon: '🍰', title: 'Repostería & Chef', desc: 'Pedidos de tortas, cotizaciones automáticas y agenda de entregas sin esfuerzo.', slug: 'reposteria', color: '#EC4899', img: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=600&q=80' },
+  { icon: '🐾', title: 'Veterinaria & Mascotas', desc: 'Citas, vacunas y grooming. Recordatorios automáticos para cada mascota.', slug: 'veterinaria', color: '#10B981', img: 'https://images.unsplash.com/photo-1548767797-d8c844163c4a?w=600&q=80' },
+  { icon: '📷', title: 'Fotografía & Video', desc: 'Cotizaciones, portafolio y agenda de sesiones. Bookings confirmados automáticamente.', slug: 'fotografia', color: '#F59E0B', img: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&q=80' },
+  { icon: '🚛', title: 'Transporte & Acarreos', desc: 'Cotización de fletes, trasteos y transporte intermunicipal. Tu camión siempre con carga.', slug: 'acarreos', color: '#6B7280', img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80' },
+  { icon: '🧠', title: 'Psicología & Bienestar', desc: 'Agenda de sesiones, recordatorios y pre-consulta automática. Más pacientes, menos admin.', slug: 'psicologo', color: '#8B5CF6', img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80' },
+  { icon: '📊', title: 'Contaduría & Finanzas', desc: 'Agenda asesorías, recuerda vencimientos DIAN y onboarding de clientes automático.', slug: 'contador', color: '#0EA5E9', img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80' },
 ];
 
 const PLANES = [
