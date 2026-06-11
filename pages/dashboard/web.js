@@ -372,7 +372,7 @@ export default function Web() {
 
             {/* TAB: Configuración Web — integrada desde /dashboard/conocimiento */}
             {tab === 'config' && (
-              <ConfiguracionWeb uid={user.uid} empresa={empresa} />
+              <ConfiguracionWeb uid={empresa.id} empresa={empresa} />
             )}
 
             {/* TAB: Menú Diario */}
