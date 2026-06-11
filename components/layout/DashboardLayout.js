@@ -25,8 +25,14 @@ const INDUSTRY_PHOTOS = {
   educacion:          'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=80&q=80',  // aula educacion
   aduana:             'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=80&q=80',  // puerto contenedores
   portuaria:          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=80&q=80',  // buque puerto
-  tecnico:            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=80&q=80',  // circuitos electronicos
-  default:            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&q=80',  // oficina generica
+  tecnico:            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=80&q=80',
+  psicologo:          'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&q=80',
+  barbero:            'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=80&q=80',
+  reposteria:         'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=80&q=80',
+  veterinaria:        'https://images.unsplash.com/photo-1548767797-d8c844163c4a?w=80&q=80',
+  fotografia:         'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=80&q=80',
+  acarreos:           'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=80&q=80',
+  default:            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&q=80',
 };
 
 const NAV_ITEMS = [
