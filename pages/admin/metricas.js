@@ -45,7 +45,7 @@ export default function MetricasAdmin() {
     try {
       const [r1, r2] = await Promise.allSettled([
         fetch('https://agenciame-whatsapp-server-production.up.railway.app/health').then(r => r.json()),
-        fetch('/api/metrics-admin', { headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_METRICS_SECRET || 'nexoia_admin_metrics_2026' } }).then(r => r.json()),
+        fetch('/api/metrics-admin', { headers: { 'x-admin-secret': 'borrero_nexoia_admin_2026' } }).then(r => r.json()),
       ]);
       if (r1.status === 'fulfilled') setRailway(r1.value);
       if (r2.status === 'fulfilled') setData(r2.value);
