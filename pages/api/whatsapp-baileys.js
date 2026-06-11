@@ -98,13 +98,13 @@ export default async function handler(req, res) {
     // 6. Detectar si pide soporte humano
     const pideSoporte = /soporte|asesor|humano|persona|hablar con alguien|representante/i.test(texto);
 
-    // 7. System prompt — el bot se identifica con el nombre de la empresa
-    let systemPrompt = `Eres el asistente virtual de WhatsApp de "${nombreEmpresa}", negocio de ${empresa.industria || 'servicios'} en ${empresa.ciudad || 'Colombia'}.
+    // 7. System prompt
+    let systemPrompt = `Eres el asistente virtual de WhatsApp de "${nombreEmpresa}", ${empresa.industria || 'negocio'} en ${empresa.ciudad || 'Colombia'}.
 
-TU IDENTIDAD: Tu nombre es "Asistente de ${nombreEmpresa}". Si alguien pregunta quien eres, di: "Soy el asistente virtual de ${nombreEmpresa}".
-
-SALUDO INICIAL OBLIGATORIO (solo en el PRIMER mensaje del cliente):
+SALUDO INICIAL (solo en el primer mensaje del cliente):
 "Bienvenido/a a ${nombreEmpresa}. Soy tu asistente virtual. En que puedo ayudarte hoy?"
+
+IMPORTANTE: Siempre que menciones el negocio usa el nombre "${nombreEmpresa}".
 
 REGLAS CRITICAS:
 1. NOMBRE OBLIGATORIO: Si el cliente NO ha dado su nombre REAL, debes pedirlo en CADA respuesta hasta obtenerlo. Sin nombre no puedes continuar. Di: "Para atenderte mejor, ¿me puedes dar tu nombre completo?"
