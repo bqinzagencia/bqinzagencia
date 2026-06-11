@@ -235,7 +235,7 @@ export default function WasapBotLanding() {
 
           <div className="wb-hero-btns" style={{display:'flex',alignItems:'center',gap:14,flexWrap:'wrap',marginBottom:40}}>
             <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{fontSize:16,padding:'15px 36px'}}>
-              Activar gratis por 14 días →
+              Activa tu plan ahora →
             </button>
             <div style={{fontSize:13,color:'rgba(255,255,255,0.2)'}}>Desde $189.000/mes</div>
           </div>
@@ -424,7 +424,7 @@ export default function WasapBotLanding() {
               ))}
               <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green"
                 style={{width:'100%',marginTop:24,background:plan.popular?`linear-gradient(135deg,${plan.color},${plan.color}CC)`:'rgba(255,255,255,0.05)',color:plan.popular?'#fff':'rgba(255,255,255,0.6)',boxShadow:plan.popular?`0 6px 24px ${plan.color}44`:'none',border:plan.popular?'none':`1px solid rgba(255,255,255,0.1)`}}>
-                Empezar con {plan.nombre} →
+                Empezar con {plan.nombre} ahora →
               </button>
             </div>
           ))}
@@ -496,14 +496,14 @@ export default function WasapBotLanding() {
       {/* ── CTA FINAL ── */}
       <section style={{background:'linear-gradient(180deg,rgba(37,211,102,0.05) 0%,transparent 100%)',borderTop:'1px solid rgba(37,211,102,0.1)',padding:'80px 64px',textAlign:'center'}} className="wb-section">
         <h2 style={{fontFamily:FA,fontSize:'clamp(32px,4.5vw,60px)',fontWeight:400,letterSpacing:'-2px',marginBottom:16,color:'#F0F0F0'}}>
-          Empieza hoy.<br/><span style={{color:'#25D366'}}>Gratis 14 días.</span>
+          Empieza hoy.<br/><span style={{color:'#25D366'}}>Vende en piloto automatico.</span>
         </h2>
         <p style={{fontSize:16,color:'rgba(255,255,255,0.3)',marginBottom:36,fontWeight:300}}>
           Sin tarjeta de crédito. Sin contratos. Activo en 10 minutos.
         </p>
         <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap'}}>
           <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{fontSize:17,padding:'17px 48px'}}>
-            Activar mi WasapBot →
+            Activa tu plan ahora y empieza a vender →
           </button>
           <a href="https://wa.me/573105056616" target="_blank" rel="noreferrer" className="wb-cta-ghost" style={{fontSize:15,display:'flex',alignItems:'center',gap:8}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 1C5.93 1 1 5.93 1 12c0 1.97.518 3.82 1.426 5.427L1 23l5.734-1.498A10.956 10.956 0 0012 23c6.07 0 11-4.93 11-11S18.07 1 12 1z"/></svg>
