@@ -19,11 +19,31 @@ const INDUSTRIAS = [
 ];
 
 const STATS = [
-  { num:'2.4M+', label:'Mensajes respondidos', icon:'💬' },
-  { num:'98%',   label:'Tasa de respuesta',    icon:'✓' },
-  { num:'< 3s',  label:'Tiempo de respuesta',  icon:'⚡' },
-  { num:'24/7',  label:'Disponibilidad',       icon:'◉' },
+  { num:'2.4M+', label:'Mensajes respondidos', svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.5" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> },
+  { num:'98%',   label:'Tasa de respuesta',    svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg> },
+  { num:'< 3s',  label:'Tiempo de respuesta',  svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
+  { num:'24/7',  label:'Disponibilidad',       svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> },
 ];
+
+const FEAT_ICONS = [
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>,
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>,
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+];
+
+const IND_IMGS = {
+  restaurante: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80',
+  barbero:     'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&q=80',
+  taller:      'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=400&q=80',
+  veterinaria: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80',
+  peluqueria:  'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80',
+  contador:    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=80',
+  reposteria:  'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=400&q=80',
+  fotografia:  'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=400&q=80',
+};
 
 const FEATURES = [
   { icon:'🤖', title:'IA entrenada con tu negocio',   desc:'El bot aprende tus servicios, precios, horarios y responde como si fueras tú. Sin respuestas genéricas.' },
@@ -297,8 +317,8 @@ export default function WasapBotLanding() {
           <div className="wb-stats" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:1,background:'var(--border)'}}>
             {STATS.map((s,i)=>(
               <div key={i} style={{background:i%2===0?'var(--card)':'var(--bg)',padding:'32px 24px',textAlign:'center'}}>
-                <div style={{fontSize:32,marginBottom:8}}>{s.icon}</div>
-                <div style={{fontFamily:FA,fontSize:'clamp(28px,3vw,42px)',fontWeight:400,color:'#25D366',letterSpacing:'-1px',marginBottom:6,animation:'count-up 0.6s ease both',animationDelay:`${i*0.1}s`}}>{s.num}</div>
+                <div style={{width:52,height:52,borderRadius:14,background:'rgba(37,211,102,0.08)',border:'1px solid rgba(37,211,102,0.15)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>{s.svg}</div>
+                <div style={{fontFamily:FA,fontSize:'clamp(28px,3vw,42px)',fontWeight:400,color:'#25D366',letterSpacing:'-1px',marginBottom:6}}>{s.num}</div>
                 <div style={{fontSize:12,color:'rgba(255,255,255,0.3)',fontWeight:300}}>{s.label}</div>
               </div>
             ))}
@@ -320,7 +340,9 @@ export default function WasapBotLanding() {
         <div className="wb-feat-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
           {FEATURES.map((f,i)=>(
             <div key={i} className="wb-feat">
-              <div style={{fontSize:32,marginBottom:16}}>{f.icon}</div>
+              <div style={{width:48,height:48,borderRadius:12,background:'rgba(37,211,102,0.08)',border:'1px solid rgba(37,211,102,0.15)',display:'flex',alignItems:'center',justifyContent:'center',color:'#25D366',marginBottom:20,flexShrink:0}}>
+                {FEAT_ICONS[i]}
+              </div>
               <div style={{fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>{f.title}</div>
               <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',lineHeight:1.7,fontWeight:300}}>{f.desc}</div>
             </div>
@@ -328,19 +350,42 @@ export default function WasapBotLanding() {
         </div>
       </section>
 
-      {/* ── INDUSTRIAS ── */}
-      <section style={{background:'rgba(37,211,102,0.02)',borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',padding:'64px 64px'}} className="wb-section">
-        <div style={{maxWidth:1200,margin:'0 auto',textAlign:'center'}}>
-          <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:12}}>Para todo tipo de negocio</p>
-          <h2 style={{fontFamily:FA,fontSize:'clamp(28px,3.5vw,46px)',fontWeight:400,letterSpacing:'-1px',color:'#F0F0F0',marginBottom:8}}>Funciona para tu industria</h2>
-          <p style={{fontSize:14,color:'rgba(255,255,255,0.3)',marginBottom:36,fontWeight:300}}>Haz clic para ver como respondería el bot</p>
-          <div className="wb-ind-pills" style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',marginBottom:0}}>
+      {/* ── INDUSTRIAS CON FOTOS REALES ── */}
+      <section style={{background:'rgba(37,211,102,0.02)',borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',padding:'80px 64px'}} className="wb-section">
+        <div style={{maxWidth:1200,margin:'0 auto'}}>
+          <div style={{textAlign:'center',marginBottom:48}}>
+            <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:12}}>Para todo tipo de negocio</p>
+            <h2 style={{fontFamily:FA,fontSize:'clamp(28px,3.5vw,46px)',fontWeight:400,letterSpacing:'-1px',color:'#F0F0F0',marginBottom:8}}>Funciona para tu industria</h2>
+            <p style={{fontSize:14,color:'rgba(255,255,255,0.3)',marginBottom:0,fontWeight:300}}>Haz clic para ver como responderia el bot</p>
+          </div>
+
+          {/* Grid de fotos por industria */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:28}}>
             {INDUSTRIAS.map((i,idx)=>(
-              <button key={i.value} onClick={()=>{setInd(idx);setMsgStep(0);window.scrollTo({top:0,behavior:'smooth'});}}
-                style={{background:ind===idx?'rgba(37,211,102,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${ind===idx?'rgba(37,211,102,0.35)':'rgba(255,255,255,0.07)'}`,borderRadius:100,padding:'9px 18px',fontSize:13,cursor:'pointer',color:ind===idx?'#25D366':'rgba(255,255,255,0.45)',fontWeight:ind===idx?700:400,transition:'all 0.15s',whiteSpace:'nowrap'}}>
-                {i.emoji} {i.label}
-              </button>
+              <div key={i.value} onClick={()=>{setInd(idx);setMsgStep(0);window.scrollTo({top:0,behavior:'smooth'});}} style={{position:'relative',borderRadius:14,overflow:'hidden',aspectRatio:'4/3',cursor:'pointer',border:`2px solid ${ind===idx?'#25D366':'transparent'}`,transition:'all 0.2s',transform:ind===idx?'scale(1.02)':'scale(1)'}}>
+                <img src={IND_IMGS[i.value]||IND_IMGS.restaurante} alt={i.label} style={{width:'100%',height:'100%',objectFit:'cover',transition:'transform 0.4s'}} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.06)'} onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}/>
+                <div style={{position:'absolute',inset:0,background:ind===idx?'linear-gradient(180deg,transparent 30%,rgba(37,211,102,0.7) 100%)':'linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.75) 100%)'}}/>
+                <div style={{position:'absolute',bottom:10,left:12,right:12,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <span style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#fff'}}>{i.label}</span>
+                  {ind===idx&&<span style={{background:'#25D366',color:'#fff',fontSize:9,fontWeight:700,padding:'2px 8px',borderRadius:100}}>ACTIVO</span>}
+                </div>
+              </div>
             ))}
+          </div>
+
+          {/* Preview del chat de la industria seleccionada */}
+          <div style={{background:'var(--card)',border:'1px solid rgba(37,211,102,0.15)',borderRadius:16,padding:'24px 28px',display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
+            <div style={{width:48,height:48,borderRadius:12,overflow:'hidden',flexShrink:0}}>
+              <img src={IND_IMGS[cur.value]||IND_IMGS.restaurante} alt={cur.label} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+            </div>
+            <div style={{flex:1,minWidth:200}}>
+              <div style={{fontSize:12,fontWeight:700,color:'#25D366',marginBottom:4,textTransform:'uppercase',letterSpacing:1}}>{cur.label}</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.5)',fontStyle:'italic'}}>Cliente: "{cur.msg[0]}"</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',marginTop:4}}>Bot: "{cur.msg[1].slice(0,80)}..."</div>
+            </div>
+            <button onClick={()=>router.push('/wasapbot/activar')} style={{background:'linear-gradient(135deg,#25D366,#1DA851)',color:'#fff',border:'none',borderRadius:10,padding:'10px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',flexShrink:0}}>
+              Activar para {cur.label}
+            </button>
           </div>
         </div>
       </section>
@@ -387,7 +432,9 @@ export default function WasapBotLanding() {
 
         {/* Garantia */}
         <div style={{marginTop:40,background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.15)',borderRadius:16,padding:'20px 28px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
-          <div style={{width:44,height:44,borderRadius:10,background:'rgba(37,211,102,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22}}>🛡️</div>
+          <div style={{width:44,height:44,borderRadius:10,background:'rgba(37,211,102,0.1)',border:'1px solid rgba(37,211,102,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
           <div>
             <div style={{fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>Garantía de satisfacción</div>
             <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300}}>Si en los primeros 14 días no estás satisfecho, te devolvemos el dinero. Sin preguntas.</div>
