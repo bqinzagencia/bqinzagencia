@@ -23,9 +23,9 @@ const INDUSTRIES = [
 ];
 
 const PLANES = [
-  { name: 'Emprendedor', price: '149.000', features: ['1 Agente IA activo', '500 conversaciones/mes', 'Chat web + WhatsApp', 'CRM hasta 200 contactos', 'Agendamiento básico', 'Soporte por email'], cta: 'Comenzar gratis', popular: false },
-  { name: 'Profesional', price: '349.000', features: ['3 Agentes IA activos', 'Conversaciones ilimitadas', 'WhatsApp + Instagram + Web', 'Llamadas IA (100/mes)', 'CRM ilimitado + pipeline', 'Página web con IA', 'Reportes avanzados', 'Soporte 24/7'], cta: 'Empezar 14 días gratis', popular: true },
-  { name: 'Agencia', price: '890.000', features: ['Agentes IA ilimitados', 'Multisede y multiempresa', 'Llamadas IA ilimitadas', 'White-label / marca propia', 'API completa', 'Gestor dedicado', 'Capacitación incluida', 'SLA 99.9%'], cta: 'Hablar con ventas', popular: false },
+  { name: 'Emprendedor', price: '189.000', features: ['1 Agente IA activo', '500 conversaciones/mes', 'Chat web + WhatsApp', 'CRM hasta 200 contactos', 'Agendamiento básico', 'Soporte por email'], cta: 'Comenzar gratis', popular: false },
+  { name: 'Profesional', price: '490.000', features: ['3 Agentes IA activos', 'Conversaciones ilimitadas', 'WhatsApp + Instagram + Web', 'Llamadas IA (100/mes)', 'CRM ilimitado + pipeline', 'Página web con IA', 'Reportes avanzados', 'Soporte 24/7'], cta: 'Empezar 14 días gratis', popular: true },
+  { name: 'Agencia', price: '1.190.000', features: ['Agentes IA ilimitados', 'Multisede y multiempresa', 'Llamadas IA ilimitadas', 'White-label / marca propia', 'API completa', 'Gestor dedicado', 'Capacitación incluida', 'SLA 99.9%'], cta: 'Hablar con ventas', popular: false },
 ];
 
 // ─── Paleta única NEXOIA ──────────────────────────────────────────────────────
