@@ -1,5 +1,5 @@
 // pages/api/whatsapp-baileys.js
-// Flujo completo: chat + pedidos conversacionales
+// Flujo completo: chat + pedidos + inventario del día
 import { db as adminDb } from '../../lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import OpenAI from 'openai';
@@ -8,50 +8,154 @@ import { enviarEmailCita, enviarEmailSoporte, enviarEmailPedido } from '../../li
 const openai         = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const SERVER_SECRET  = process.env.SERVER_SECRET    || 'agenciame2026secreto_nexoia';
 const SOPORTE_NUMERO = process.env.SOPORTE_WHATSAPP || '573105056616';
-
-// Historial de conversacion por cliente
-const historiales = new Map();
-// Estado de pedido en curso por cliente: { items:[], paso:'menu'|'pidiendo'|'confirmando' }
+const historiales    = new Map();
 const pedidosEnCurso = new Map();
 
-// ── Helpers ──────────────────────────────────────────────────
-const PIDE_MENU_RE    = /\b(menu|menú|carta|catalogo|catálogo|platos?|productos?|foto|fotos|muestrame|muéstrame|qué (tienen|tienes|hay)|qué (ofrecen|ofrece)|ver (el )?menu|ver (el )?catalogo|que tienen|que hay)\b/i;
-const CONFIRMA_RE     = /\b(si|sí|confirmar|confirmo|correcto|listo|dale|va|ok|enviar pedido|hacer pedido|eso es todo|eso es|si señor|de una)\b/i;
-const CANCELA_RE      = /\b(no|cancelar|cancela|olvidalo|olvídalo|salir|no gracias)\b/i;
-const VER_PEDIDO_RE   = /\b(ver (mi )?pedido|resumen|total|cuanto (es|sale|vale|cuesta)|mi pedido|que llevo|que tengo)\b/i;
-
-function formatearPesos(n) {
-  return Number(n || 0).toLocaleString('es-CO');
+function hoyKey() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-
-function calcularTotal(items) {
-  return items.reduce((acc, it) => acc + (Number(it.precio || 0) * it.cantidad), 0);
-}
-
+function fmtP(n) { return Number(n || 0).toLocaleString('es-CO'); }
+function calcTotal(items) { return items.reduce((a, it) => a + Number(it.precio || 0) * it.cantidad, 0); }
 function resumenPedido(items) {
-  if (!items.length) return 'Tu pedido está vacío.';
-  return items.map(it => `• ${it.cantidad}x ${it.nombre} — $${formatearPesos(Number(it.precio || 0) * it.cantidad)} COP`).join('\n');
+  return items.map(it => `• ${it.cantidad}x ${it.nombre} — $${fmtP(Number(it.precio||0)*it.cantidad)} COP`).join('\n');
 }
 
-// Detecta si el texto contiene números seguidos de nombre de plato
-// Ej: "1 bandeja, 2 limonadas" o "quiero 1 bandeja y 1 jugo"
+const PIDE_MENU_RE  = /\b(menu|menú|carta|catalogo|catálogo|platos?|productos?|foto|fotos|muestrame|muéstrame|qué (tienen|tienes|hay)|qué (ofrecen|ofrece)|ver (el )?menu|ver (el )?catalogo|que tienen|que hay)\b/i;
+const CONFIRMA_RE   = /\b(si|sí|confirmar|confirmo|correcto|listo|dale|va|ok|enviar pedido|hacer pedido|eso es todo|eso es|si señor|de una)\b/i;
+const CANCELA_RE    = /\b(cancelar|cancela|olvidalo|olvídalo|salir|no gracias)\b/i;
+const VER_PEDIDO_RE = /\b(ver (mi )?pedido|resumen|total|cuanto (es|sale|vale|cuesta)|mi pedido|que llevo|que tengo)\b/i;
+
+// ── Obtener menú del día con stock ───────────────────────────
+// Primero intenta el inventario diario, luego cae al catálogo base
+async function getMenuDisponible(empresaId) {
+  const diaKey = hoyKey();
+  try {
+    const diaSnap = await adminDb.collection('empresas').doc(empresaId)
+      .collection('menuDia').doc(diaKey).get();
+
+    if (diaSnap.exists && diaSnap.data().abierto === true) {
+      const items = (diaSnap.data().items || [])
+        .filter(it => it.activo !== false && it.stockActual > 0)
+        .sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      return { items, tieneInventario: true, diaKey };
+    }
+  } catch {}
+
+  // Fallback: catálogo base sin stock
+  try {
+    const catSnap = await adminDb.collection('empresas').doc(empresaId)
+      .collection('config').doc('conocimiento').get();
+    const items = catSnap.exists ? (catSnap.data().servicios || []).filter(s => s.nombre?.trim()) : [];
+    return { items, tieneInventario: false, diaKey };
+  } catch {}
+
+  return { items: [], tieneInventario: false, diaKey };
+}
+
+// ── Descontar stock del inventario diario ────────────────────
+async function descontarInventario(empresaId, pedidoItems, diaKey) {
+  try {
+    const docRef = adminDb.collection('empresas').doc(empresaId)
+      .collection('menuDia').doc(diaKey);
+    const snap = await docRef.get();
+    if (!snap.exists) return;
+
+    const menuItems = snap.data().items || [];
+    const alertas   = [];
+    let cambios     = false;
+
+    for (const pedItem of pedidoItems) {
+      const idx = menuItems.findIndex(mi =>
+        mi.nombre.toLowerCase() === pedItem.nombre.toLowerCase() ||
+        mi.itemId === pedItem.itemId
+      );
+      if (idx === -1) continue;
+
+      const anterior = menuItems[idx].stockActual || 0;
+      const nuevo    = Math.max(0, anterior - (pedItem.cantidad || 1));
+      menuItems[idx].stockActual = nuevo;
+      cambios = true;
+
+      if (nuevo === 0) {
+        menuItems[idx].activo = false;
+        alertas.push({ nombre: menuItems[idx].nombre, tipo: 'agotado', stock: 0 });
+      } else if (nuevo <= 3 && !menuItems[idx].alertaEnviada) {
+        menuItems[idx].alertaEnviada = true;
+        alertas.push({ nombre: menuItems[idx].nombre, tipo: 'bajo', stock: nuevo });
+      }
+    }
+
+    if (cambios) await docRef.update({ items: menuItems });
+
+    // Enviar email de alerta si hay productos bajos o agotados
+    if (alertas.length > 0) {
+      const empSnap = await adminDb.collection('empresas').doc(empresaId).get();
+      const emp     = empSnap.data();
+      if (emp?.email) {
+        const { enviarEmailInventario } = await import('../../lib/emailWasapbot');
+        await enviarEmailInventario({
+          emailNegocio:  emp.email,
+          nombreNegocio: emp.nombreEmpresa || 'tu negocio',
+          alertas,
+          panelUrl: `https://agenciame.com/wasapbot/panel/inventario/${empresaId}`,
+        }).catch(() => {});
+      }
+    }
+  } catch (e) {
+    console.error('descontarInventario error:', e.message);
+  }
+}
+
+// ── Parsear selección del cliente ─────────────────────────────
 function parsearSeleccion(texto, menu) {
   const seleccion = [];
-  const textoLower = texto.toLowerCase();
+  const textoL    = texto.toLowerCase();
 
-  for (const item of menu) {
-    const nombreLower = item.nombre.toLowerCase();
-    // Buscar el item en el texto
-    if (!textoLower.includes(nombreLower.split(' ')[0])) continue;
+  // Por número: "1 bandeja", "quiero el 3", "2 y 4"
+  const nums = texto.match(/\b(\d+)\b/g) || [];
+  for (const numStr of nums) {
+    const idx = parseInt(numStr) - 1;
+    if (idx >= 0 && idx < menu.length) {
+      // Buscar si hay cantidad antes: "2 bandeja" -> cant=2, item=bandeja(idx 0)
+      const cantRe  = new RegExp(`(\\d+)\\s*(?:x\\s*)?(?:del?\\s*)?(?:plato\\s*)?\\b${numStr}\\b`);
+      const cMatch  = texto.match(cantRe);
+      const cantidad = (cMatch && parseInt(cMatch[1]) !== idx + 1) ? parseInt(cMatch[1]) : 1;
+      if (!seleccion.find(s => s.nombre === menu[idx].nombre)) {
+        seleccion.push({ ...menu[idx], cantidad });
+      }
+    }
+  }
 
-    // Buscar cantidad antes del nombre
-    const regex = new RegExp(`(\\d+)\\s*(?:x\\s*)?${nombreLower.split(' ')[0]}`, 'i');
-    const match = texto.match(regex);
-    const cantidad = match ? parseInt(match[1]) : 1;
-    seleccion.push({ ...item, cantidad });
+  // Por nombre: "quiero bandeja" o "una bandeja paisa"
+  if (seleccion.length === 0) {
+    for (const item of menu) {
+      const nombreL = item.nombre.toLowerCase().split(' ')[0]; // primera palabra
+      if (textoL.includes(nombreL)) {
+        const cantRe = new RegExp(`(\\d+)\\s*(?:x\\s*)?${nombreL}`, 'i');
+        const m      = texto.match(cantRe);
+        const cant   = m ? parseInt(m[1]) : 1;
+        if (!seleccion.find(s => s.nombre === item.nombre))
+          seleccion.push({ ...item, cantidad: cant });
+      }
+    }
   }
 
   return seleccion;
+}
+
+async function registrarMensaje(adminDb, empresaId, numeroCliente, nombreCliente, contactoId, texto, respuesta) {
+  try {
+    const convRef = adminDb.collection('empresas').doc(empresaId).collection('conversaciones');
+    const convKey = `wa_${numeroCliente}`;
+    await convRef.doc(convKey).set({
+      nombreCliente: nombreCliente || `WhatsApp ${numeroCliente}`,
+      telefono: numeroCliente, canal: 'whatsapp',
+      ultimoTexto: texto, ultimoMensaje: FieldValue.serverTimestamp(), contactoId,
+    }, { merge: true });
+    await convRef.doc(convKey).collection('mensajes').add({ rol: 'cliente', texto, creadoEn: FieldValue.serverTimestamp() });
+    await convRef.doc(convKey).collection('mensajes').add({ rol: 'agente', texto: respuesta, creadoEn: FieldValue.serverTimestamp() });
+  } catch {}
 }
 
 export default async function handler(req, res) {
@@ -74,14 +178,12 @@ export default async function handler(req, res) {
     const empresa       = empresaSnap.data();
     const nombreEmpresa = empresa.nombreEmpresa || 'nuestro negocio';
     const emailNegocio  = empresa.email || null;
-    // Número Nequi del negocio (el dueño lo configura en el panel)
-    const nequi         = empresa.nequi || empresa.whatsapp?.numero || null;
+    const nequi         = empresa.nequi || null;
 
-    // ── 2. Trial 1 hora ──────────────────────────────────────
+    // ── 2. Trial ─────────────────────────────────────────────
     const planActivo = empresa.planActivo === true && empresa.plan && empresa.plan !== 'wasapbot';
     if (!planActivo && empresa.producto === 'wasapbot') {
-      const creadoEn = empresa.creadoEn?.toDate
-        ? empresa.creadoEn.toDate()
+      const creadoEn = empresa.creadoEn?.toDate ? empresa.creadoEn.toDate()
         : empresa.creadoEn ? new Date(empresa.creadoEn) : null;
       if (creadoEn) {
         const msDesde = Date.now() - creadoEn.getTime();
@@ -90,27 +192,24 @@ export default async function handler(req, res) {
             respuesta: `Hola 👋 El periodo de prueba de *${nombreEmpresa}* ha finalizado.\n\nActiva tu plan en:\n👉 https://agenciame.com/wasapbot`,
             imagenes: [],
           });
-        const mins = Math.ceil((3600000 - msDesde) / 60000);
-        if (mins < 10) req._trialAviso = `\n\n_⏳ Quedan ~${mins} min de prueba gratuita._`;
+        if ((3600000 - msDesde) < 600000) {
+          const mins = Math.ceil((3600000 - msDesde) / 60000);
+          req._trialAviso = `\n\n_⏳ Quedan ~${mins} min de prueba gratuita._`;
+        }
       }
     }
 
-    // ── 3. Conocimiento ──────────────────────────────────────
-    const conocimientoSnap = await adminDb
-      .collection('empresas').doc(empresaId)
-      .collection('config').doc('conocimiento').get();
-    const conocimiento  = conocimientoSnap.exists ? conocimientoSnap.data() : null;
-    const todosLosItems = (conocimiento?.servicios || []).filter(s => s.nombre?.trim());
-    const itemsConFoto  = todosLosItems.filter(s => s.foto?.startsWith('http'));
-    const permitePedidos = conocimiento?.permitePedidos === true ||
-      (empresa.industria && ['restaurante','reposteria','tienda','farmacia'].includes(empresa.industria));
+    // ── 3. Menú disponible (inventario del día o catálogo base) ──
+    const { items: menuDisponible, tieneInventario, diaKey } = await getMenuDisponible(empresaId);
+    const itemsConFoto   = menuDisponible.filter(s => s.foto?.startsWith('http'));
+    const permitePedidos = ['restaurante','reposteria','tienda','farmacia'].includes(empresa.industria);
 
     // ── 4. Contacto ──────────────────────────────────────────
     const contactosRef = adminDb.collection('empresas').doc(empresaId).collection('contactos');
-    const cQuery       = await contactosRef.where('telefono','==',numeroCliente).limit(1).get();
+    const cQuery       = await contactosRef.where('telefono', '==', numeroCliente).limit(1).get();
     let contactoId, nombreCliente = null;
     if (cQuery.empty) {
-      const doc  = await contactosRef.add({ telefono:numeroCliente, nombre:`WhatsApp ${numeroCliente}`, canal:'whatsapp', fuente:'whatsapp-bot', estado:'nuevo', creadoEn:FieldValue.serverTimestamp() });
+      const doc  = await contactosRef.add({ telefono: numeroCliente, nombre: `WhatsApp ${numeroCliente}`, canal: 'whatsapp', fuente: 'whatsapp-bot', estado: 'nuevo', creadoEn: FieldValue.serverTimestamp() });
       contactoId = doc.id;
     } else {
       const snap    = cQuery.docs[0];
@@ -119,58 +218,56 @@ export default async function handler(req, res) {
       if (!nombreCliente || nombreCliente.startsWith('WhatsApp ')) nombreCliente = null;
     }
 
-    // ── 5. Clave de sesion ───────────────────────────────────
+    // ── 5. Sesión ────────────────────────────────────────────
     const sesionKey = `${empresaId}_${numeroCliente}`;
     if (!historiales.has(sesionKey)) historiales.set(sesionKey, []);
     const historial = historiales.get(sesionKey);
 
     // ── 6. FLUJO DE PEDIDOS ──────────────────────────────────
-    // Solo para negocios con permitePedidos=true y que tengan items
-    if (permitePedidos && todosLosItems.length > 0) {
-
+    if (permitePedidos && menuDisponible.length > 0) {
       const pedido = pedidosEnCurso.get(sesionKey) || { items: [], paso: 'idle' };
 
-      // Cliente pide el menu — iniciar flujo
+      // Cliente pide ver el menú → iniciar flujo
       if (PIDE_MENU_RE.test(texto) && pedido.paso === 'idle') {
-        pedidosEnCurso.set(sesionKey, { items: [], paso: 'pidiendo' });
+        pedidosEnCurso.set(sesionKey, { items: [], paso: 'pidiendo', diaKey });
 
-        // Construir lista numerada del menu
-        const listaMenu = todosLosItems.map((item, i) =>
-          `*${i + 1}.* ${item.nombre}${item.precio ? ` — $${formatearPesos(item.precio)} COP` : ''}${item.descripcion ? `\n    _${item.descripcion}_` : ''}`
-        ).join('\n\n');
+        const listaMenu = menuDisponible.map((item, i) => {
+          let linea = `*${i + 1}.* ${item.nombre}`;
+          if (item.precio) linea += ` — $${fmtP(item.precio)} COP`;
+          if (tieneInventario && item.stockActual <= 5)
+            linea += ` _(${item.stockActual} disponibles)_`;
+          return linea;
+        }).join('\n\n');
 
         const respMenu = `🍽️ *Menú de ${nombreEmpresa}*\n\n${listaMenu}\n\n` +
-          `📝 Escríbeme qué deseas pedir. Puedes decir:\n` +
-          `_"1 bandeja paisa y 2 limonadas"_\n` +
-          `_"quiero el 3 y el 5"_\n\n` +
-          `Para ver tu pedido escribe *"ver pedido"*\n` +
-          `Para cancelar escribe *"cancelar"*`;
+          `📝 ¿Qué deseas pedir? Escribe el número o el nombre:\n` +
+          `_Ej: "1 bandeja y 2 limonadas" o "el 3 y el 5"_\n\n` +
+          `Escribe *"ver pedido"* para ver tu selección\n` +
+          `Escribe *"cancelar"* para salir`;
 
-        // Enviar fotos del menu
         const imagenes = itemsConFoto.slice(0, 6).map(s => ({
           url:     s.foto,
-          caption: `*${s.nombre}*${s.precio ? `\n💰 $${formatearPesos(s.precio)} COP` : ''}${s.descripcion ? `\n${s.descripcion}` : ''}`,
+          caption: `*${s.nombre}*${s.precio ? `\n💰 $${fmtP(s.precio)} COP` : ''}${s.descripcion ? `\n${s.descripcion}` : ''}`,
         }));
 
         await registrarMensaje(adminDb, empresaId, numeroCliente, nombreCliente, contactoId, texto, respMenu);
         return res.json({ respuesta: respMenu, imagenes });
       }
 
-      // Cliente está en modo pidiendo — procesar seleccion
+      // Modo pidiendo — procesar respuesta del cliente
       if (pedido.paso === 'pidiendo' || pedido.paso === 'confirmando') {
 
-        // Ver resumen del pedido
+        // Ver resumen
         if (VER_PEDIDO_RE.test(texto)) {
-          const total   = calcularTotal(pedido.items);
-          const resumen = resumenPedido(pedido.items);
-          const resp    = pedido.items.length > 0
-            ? `🛒 *Tu pedido actual:*\n\n${resumen}\n\n💵 *Total: $${formatearPesos(total)} COP*\n\n¿Deseas agregar algo más o confirmar tu pedido?\nEscribe *"confirmar"* para finalizar o sigue pidiendo.`
-            : `Tu pedido está vacío. Dime qué deseas pedir del menú.`;
+          const total  = calcTotal(pedido.items);
+          const resp   = pedido.items.length > 0
+            ? `🛒 *Tu pedido:*\n\n${resumenPedido(pedido.items)}\n\n💵 *Total: $${fmtP(total)} COP*\n\n¿Agregar algo más o escribir *"confirmar"*?`
+            : `Tu pedido está vacío. Dime qué quieres pedir.`;
           await registrarMensaje(adminDb, empresaId, numeroCliente, nombreCliente, contactoId, texto, resp);
           return res.json({ respuesta: resp, imagenes: [] });
         }
 
-        // Cancelar pedido
+        // Cancelar
         if (CANCELA_RE.test(texto) && pedido.paso === 'confirmando') {
           pedidosEnCurso.set(sesionKey, { items: [], paso: 'idle' });
           const resp = `Pedido cancelado ❌\n\n¿En qué más puedo ayudarte?`;
@@ -178,9 +275,9 @@ export default async function handler(req, res) {
           return res.json({ respuesta: resp, imagenes: [] });
         }
 
-        // CONFIRMAR pedido final
+        // CONFIRMAR pedido
         if (CONFIRMA_RE.test(texto) && pedido.paso === 'confirmando' && pedido.items.length > 0) {
-          const total = calcularTotal(pedido.items);
+          const total = calcTotal(pedido.items);
 
           // Guardar pedido en Firestore
           const pedidoRef = await adminDb.collection('empresas').doc(empresaId)
@@ -195,178 +292,138 @@ export default async function handler(req, res) {
               creadoEn:      FieldValue.serverTimestamp(),
             });
 
-          // Resetear pedido
+          // Descontar del inventario del día
+          await descontarInventario(empresaId, pedido.items, pedido.diaKey || diaKey);
+
+          // Reset pedido en memoria
           pedidosEnCurso.set(sesionKey, { items: [], paso: 'idle' });
 
           // Email al negocio
           await enviarEmailPedido({
-            emailNegocio,
-            nombreNegocio: nombreEmpresa,
+            emailNegocio, nombreNegocio: nombreEmpresa,
             nombreCliente: nombreCliente || `+${numeroCliente}`,
-            telefono:      numeroCliente,
-            items:         pedido.items,
-            total,
-            nequi,
-            empresaId,
-            pedidoId:      pedidoRef.id,
+            telefono: numeroCliente, items: pedido.items,
+            total, nequi, empresaId, pedidoId: pedidoRef.id,
           }).catch(() => {});
 
           // Respuesta al cliente
           const resumen = resumenPedido(pedido.items);
-          let respConf = `✅ *¡Pedido confirmado!* 🎉\n\n` +
-            `📋 *Pedido #${pedidoRef.id.slice(-6).toUpperCase()}*\n${resumen}\n\n` +
-            `💵 *Total: $${formatearPesos(total)} COP*\n\n`;
-
-          if (nequi) {
-            respConf += `💳 *Pago por Nequi:*\n📱 ${nequi}\n\n`;
-          }
-
-          respConf += `⏳ Tu pedido está *en proceso*. Te avisamos cuando esté listo.\n\n` +
-            `_¿Algo más en lo que pueda ayudarte?_`;
-
-          await registrarMensaje(adminDb, empresaId, numeroCliente, nombreCliente, contactoId, texto, respConf);
+          let respConf  = `✅ *¡Pedido confirmado!* 🎉\n\n` +
+            `📋 *#${pedidoRef.id.slice(-6).toUpperCase()}*\n${resumen}\n\n` +
+            `💵 *Total: $${fmtP(total)} COP*\n\n`;
+          if (nequi) respConf += `💳 *Pago por Nequi:*\n📱 ${nequi}\n\n`;
+          respConf += `⏳ Tu pedido está *en proceso*. ¡Gracias por tu compra! 🙏`;
 
           // Actualizar contadores
-          try {
-            await adminDb.collection('empresas').doc(empresaId).update({
-              pedidosTotal:    FieldValue.increment(1),
-              ultimaActividad: FieldValue.serverTimestamp(),
-            });
-          } catch {}
+          await adminDb.collection('empresas').doc(empresaId).update({
+            pedidosTotal: FieldValue.increment(1), ultimaActividad: FieldValue.serverTimestamp(),
+          }).catch(() => {});
 
+          await registrarMensaje(adminDb, empresaId, numeroCliente, nombreCliente, contactoId, texto, respConf);
           return res.json({ respuesta: respConf, imagenes: [] });
         }
 
-        // Procesar items seleccionados por numero o nombre
-        const seleccionPorNombre = parsearSeleccion(texto, todosLosItems);
-        const seleccionPorNumero = [];
-
-        // Detectar seleccion por numero: "quiero el 1, 2 y 3" o "1 y 2"
-        const numerosEnTexto = texto.match(/\b(\d+)\b/g);
-        if (numerosEnTexto) {
-          for (const numStr of numerosEnTexto) {
-            const idx = parseInt(numStr) - 1;
-            if (idx >= 0 && idx < todosLosItems.length) {
-              // Ver si hay cantidad antes del numero
-              const cantRegex = new RegExp(`(\\d+)\\s*(?:x\\s*)?${numStr}`, 'i');
-              const cantMatch = texto.match(cantRegex);
-              const cantidad  = cantMatch && parseInt(cantMatch[1]) !== idx + 1 ? parseInt(cantMatch[1]) : 1;
-              seleccionPorNumero.push({ ...todosLosItems[idx], cantidad });
-            }
-          }
-        }
-
-        const seleccion = seleccionPorNombre.length > 0 ? seleccionPorNombre : seleccionPorNumero;
-
+        // Parsear selección de ítems
+        const seleccion = parsearSeleccion(texto, menuDisponible);
         if (seleccion.length > 0) {
-          // Agregar al pedido acumulado
           const nuevosItems = [...pedido.items];
           for (const sel of seleccion) {
             const existe = nuevosItems.findIndex(it => it.nombre === sel.nombre);
-            if (existe >= 0) {
-              nuevosItems[existe].cantidad += sel.cantidad;
-            } else {
-              nuevosItems.push(sel);
-            }
+            if (existe >= 0) nuevosItems[existe].cantidad += sel.cantidad;
+            else nuevosItems.push(sel);
           }
-          const nuevoTotal = calcularTotal(nuevosItems);
-          pedidosEnCurso.set(sesionKey, { items: nuevosItems, paso: 'confirmando' });
+          const nuevoTotal = calcTotal(nuevosItems);
+          pedidosEnCurso.set(sesionKey, { items: nuevosItems, paso: 'confirmando', diaKey });
 
           const agregados = seleccion.map(s => `${s.cantidad}x ${s.nombre}`).join(', ');
-          const resumen   = resumenPedido(nuevosItems);
-
           const resp = `✅ Agregado: *${agregados}*\n\n` +
-            `🛒 *Tu pedido hasta ahora:*\n${resumen}\n\n` +
-            `💵 *Total: $${formatearPesos(nuevoTotal)} COP*\n\n` +
-            `¿Deseas agregar algo más?\n` +
-            `• Escribe *"confirmar"* para finalizar el pedido\n` +
-            `• O sigue eligiendo del menú`;
+            `🛒 *Tu pedido:*\n${resumenPedido(nuevosItems)}\n\n` +
+            `💵 *Total: $${fmtP(nuevoTotal)} COP*\n\n` +
+            `¿Deseas algo más?\n• Escribe *"confirmar"* para finalizar\n• O sigue eligiendo del menú`;
 
           await registrarMensaje(adminDb, empresaId, numeroCliente, nombreCliente, contactoId, texto, resp);
           return res.json({ respuesta: resp, imagenes: [] });
         }
-
-        // Si está en modo pidiendo pero no entendió la seleccion — ayuda
-        if (pedido.paso === 'pidiendo' || pedido.paso === 'confirmando') {
-          // No interrumpir si el mensaje no tiene relacion con el pedido
-          // Dejar que lo maneje el GPT normal pero mantener el estado
-        }
       }
     }
 
-    // ── 7. Flujo normal con GPT ──────────────────────────────
-    historial.push({ role:'user', content:texto });
+    // ── 7. Flujo normal GPT ───────────────────────────────────
+    historial.push({ role: 'user', content: texto });
     if (historial.length > 10) historial.splice(0, historial.length - 10);
 
     // Horario
     let horarioTexto = '';
+    const conocimiento = await adminDb.collection('empresas').doc(empresaId)
+      .collection('config').doc('conocimiento').get().then(s => s.exists ? s.data() : null).catch(() => null);
     if (conocimiento?.horarios?.general) horarioTexto = conocimiento.horarios.general;
     else if (conocimiento?.horarios) {
       const dias = Object.entries(conocimiento.horarios).filter(([,v])=>v?.activo)
-        .map(([dia,v])=>`${dia}: ${v.desde||'?'}-${v.hasta||'?'}`);
+        .map(([d,v])=>`${d}: ${v.desde||'?'}-${v.hasta||'?'}`);
       if (dias.length) horarioTexto = dias.join(', ');
     }
 
-    // Hora Colombia
-    const ahoraCol  = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Bogota'}));
+    const ahoraCol  = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
     const diaActual = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'][ahoraCol.getDay()];
     const horaStr   = `${String(ahoraCol.getHours()).padStart(2,'0')}:${String(ahoraCol.getMinutes()).padStart(2,'0')}`;
     const fechaStr  = `${String(ahoraCol.getDate()).padStart(2,'0')}/${String(ahoraCol.getMonth()+1).padStart(2,'0')}/${ahoraCol.getFullYear()}`;
 
-    // Menu para el prompt
-    const menuTexto = todosLosItems.map(s => {
-      let l = `• ${s.nombre}`;
-      if (s.precio) l += ` — $${formatearPesos(s.precio)} COP`;
-      if (s.descripcion) l += ` — ${s.descripcion}`;
-      return l;
-    }).join('\n');
+    const menuTexto = menuDisponible.length > 0
+      ? menuDisponible.map(s => {
+          let l = `• ${s.nombre}`;
+          if (s.precio) l += ` — $${fmtP(s.precio)} COP`;
+          if (s.descripcion) l += ` — ${s.descripcion}`;
+          return l;
+        }).join('\n')
+      : 'Catalogo en actualizacion.';
 
     const systemPrompt = `Eres el asistente virtual de WhatsApp de "${nombreEmpresa}", ${empresa.industria||'negocio'} en ${empresa.ciudad||'Colombia'}.
-Fecha y hora en Colombia: ${diaActual} ${fechaStr} ${horaStr}.
+Fecha y hora: ${diaActual} ${fechaStr} ${horaStr}.
 ${horarioTexto ? `HORARIO: ${horarioTexto}` : ''}
 
-CATALOGO REGISTRADO (SOLO usa estos items, NUNCA inventes otros):
-${menuTexto || 'Catalogo en actualizacion.'}
+MENU/CATALOGO DE HOY (solo estos items, nunca inventes otros):
+${menuTexto}
 
-${permitePedidos ? `SISTEMA DE PEDIDOS: Este negocio acepta pedidos por WhatsApp. Cuando el cliente pida el menu, dile que puede escribir los nombres o numeros de lo que desea. El sistema lo guiara automaticamente.` : ''}
-
-SALUDO INICIAL (solo en el primer mensaje): "Bienvenido/a a ${nombreEmpresa}! Soy tu asistente 🤖 ¿En que te puedo ayudar?"
+${permitePedidos ? 'El negocio acepta pedidos. Cuando el cliente pida el menú, el sistema lo guiará automáticamente.' : ''}
 
 REGLAS:
-1. NUNCA inventes productos o precios que no esten en el catalogo.
-2. Si el cliente no ha dado su nombre, pidelo amablemente una vez.
-3. Maximo 3 parrafos cortos, tono amigable.
+1. NUNCA inventes items que no estén en el menú de hoy.
+2. Si el cliente no ha dado su nombre, pídelo amablemente una vez.
+3. Máximo 3 párrafos, tono amigable.
 4. Al confirmar cita: CITA_DETECTADA: {"nombre":"X","servicio":"X","fecha":"DD/MM/YYYY","hora":"HH:MM"}
 5. Si piden asesor: SOPORTE_SOLICITADO: {"nombre":"X","motivo":"X"}
-6. Idioma: espanol colombiano.${nombreCliente ? `\nNOMBRE DEL CLIENTE: ${nombreCliente}.` : ''}
-${conocimiento?.info?.direccion ? `DIRECCION: ${conocimiento.info.direccion}` : ''}
-${conocimiento?.info?.formasPago?.length ? `FORMAS DE PAGO: ${conocimiento.info.formasPago.join(', ')}` : ''}`;
+6. Idioma: español colombiano.${nombreCliente ? `\nNOMBRE DEL CLIENTE: ${nombreCliente}.` : ''}
+${conocimiento?.info?.direccion ? `DIRECCIÓN: ${conocimiento.info.direccion}` : ''}`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini', max_tokens: 400,
-      messages: [{ role:'system', content:systemPrompt }, ...historial],
+      messages: [{ role: 'system', content: systemPrompt }, ...historial],
     });
-    const respuesta = completion.choices[0]?.message?.content || '';
-    historial.push({ role:'assistant', content:respuesta });
+    const respuesta    = completion.choices[0]?.message?.content || '';
+    historial.push({ role: 'assistant', content: respuesta });
 
     // Tokens
     const tokensUsados = completion.usage?.total_tokens || 0;
     if (tokensUsados > 0) {
       const mesKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
       await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`)
-        .set({ usado:FieldValue.increment(tokensUsados), empresaId, mes:mesKey }, { merge:true }).catch(()=>{});
+        .set({ usado: FieldValue.increment(tokensUsados), empresaId, mes: mesKey }, { merge: true }).catch(() => {});
     }
+
+    const PLAN_TOKENS = { basico: 50000, estandar: 150000, pro: 400000, wasapbot: 15000 };
+    const tokLimit    = PLAN_TOKENS[empresa.planWasapbot || empresa.plan || 'wasapbot'] || 15000;
+    const mesKey2     = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+    const tokSnap     = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(() => null);
+    if (tokSnap?.exists && (tokSnap.data().usado || 0) > tokLimit)
+      return res.json({ respuesta: `El servicio de ${nombreEmpresa} ha alcanzado su límite mensual.`, imagenes: [] });
 
     // Capturar nombre
     const nombreDetectado = extraerNombre(texto);
     if (nombreDetectado && (!nombreCliente || nombreCliente.startsWith('WhatsApp ')))
-      await contactosRef.doc(contactoId).update({ nombre:nombreDetectado }).catch(()=>{});
+      await contactosRef.doc(contactoId).update({ nombre: nombreDetectado }).catch(() => {});
 
-    try {
-      await adminDb.collection('empresas').doc(empresaId).update({
-        tokensUsados:FieldValue.increment(tokensUsados), conversaciones:FieldValue.increment(1), ultimaActividad:FieldValue.serverTimestamp(),
-      });
-    } catch {}
+    await adminDb.collection('empresas').doc(empresaId).update({
+      tokensUsados: FieldValue.increment(tokensUsados), conversaciones: FieldValue.increment(1), ultimaActividad: FieldValue.serverTimestamp(),
+    }).catch(() => {});
 
     let respuestaLimpia = respuesta
       .replace(/\n?CITA_DETECTADA:.*$/m, '')
@@ -377,8 +434,8 @@ ${conocimiento?.info?.formasPago?.length ? `FORMAS DE PAGO: ${conocimiento.info.
     // Soporte
     if (/SOPORTE_SOLICITADO/.test(respuesta) || /soporte|asesor|humano|persona real/i.test(texto)) {
       try {
-        await adminDb.collection('empresas').doc(empresaId).collection('soportes').add({ nombreCliente:nombreCliente||`WhatsApp ${numeroCliente}`, telefono:numeroCliente, mensaje:texto, estado:'pendiente', creadoEn:FieldValue.serverTimestamp() });
-        await enviarEmailSoporte({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nombreCliente||`+${numeroCliente}`, telefono:numeroCliente, mensaje:texto, empresaId });
+        await adminDb.collection('empresas').doc(empresaId).collection('soportes').add({ nombreCliente: nombreCliente || `WhatsApp ${numeroCliente}`, telefono: numeroCliente, mensaje: texto, estado: 'pendiente', creadoEn: FieldValue.serverTimestamp() });
+        await enviarEmailSoporte({ emailNegocio, nombreNegocio: nombreEmpresa, nombreCliente: nombreCliente || `+${numeroCliente}`, telefono: numeroCliente, mensaje: texto, empresaId });
       } catch {}
     }
 
@@ -386,19 +443,19 @@ ${conocimiento?.info?.formasPago?.length ? `FORMAS DE PAGO: ${conocimiento.info.
     const citaMatch = respuesta.match(/CITA_DETECTADA:\s*(\{[^}]+\})/);
     if (citaMatch) {
       try {
-        const c = JSON.parse(citaMatch[1]);
+        const c       = JSON.parse(citaMatch[1]);
         const nomCita = c.nombre || nombreCliente || `WhatsApp ${numeroCliente}`;
-        await adminDb.collection('empresas').doc(empresaId).collection('citas').add({ nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fechaHora:parsearFechaHora(c.fecha,c.hora), fecha:c.fecha||'', hora:c.hora||'', estado:'pendiente', canal:'whatsapp', fuente:'whatsapp-bot', notas:'Agendado por WasapBot', contactoId, creadoEn:FieldValue.serverTimestamp() });
-        await enviarEmailCita({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fecha:c.fecha||'?', hora:c.hora||'?', empresaId });
+        await adminDb.collection('empresas').doc(empresaId).collection('citas').add({ nombreCliente: nomCita, telefono: numeroCliente, servicio: c.servicio || 'Consulta', fechaHora: parsearFechaHora(c.fecha, c.hora), fecha: c.fecha || '', hora: c.hora || '', estado: 'pendiente', canal: 'whatsapp', fuente: 'whatsapp-bot', notas: 'Agendado por WasapBot', contactoId, creadoEn: FieldValue.serverTimestamp() });
+        await enviarEmailCita({ emailNegocio, nombreNegocio: nombreEmpresa, nombreCliente: nomCita, telefono: numeroCliente, servicio: c.servicio || 'Consulta', fecha: c.fecha || '?', hora: c.hora || '?', empresaId });
       } catch (e) { console.error('cita error:', e.message); }
     }
 
-    // Fotos si piden menu
+    // Fotos si piden menú
     let imagenes = [];
     if (PIDE_MENU_RE.test(texto) && itemsConFoto.length > 0) {
       imagenes = itemsConFoto.slice(0, 6).map(s => ({
         url:     s.foto,
-        caption: `*${s.nombre}*${s.precio ? `\n💰 $${formatearPesos(s.precio)} COP` : ''}${s.descripcion ? `\n${s.descripcion}` : ''}`,
+        caption: `*${s.nombre}*${s.precio ? `\n💰 $${fmtP(s.precio)} COP` : ''}${s.descripcion ? `\n${s.descripcion}` : ''}`,
       }));
     }
 
@@ -409,17 +466,6 @@ ${conocimiento?.info?.formasPago?.length ? `FORMAS DE PAGO: ${conocimiento.info.
     console.error('whatsapp-baileys error:', err);
     return res.status(500).json({ error: err.message });
   }
-}
-
-// ── Helpers ──────────────────────────────────────────────────
-async function registrarMensaje(adminDb, empresaId, numeroCliente, nombreCliente, contactoId, texto, respuesta) {
-  try {
-    const convRef = adminDb.collection('empresas').doc(empresaId).collection('conversaciones');
-    const convKey = `wa_${numeroCliente}`;
-    await convRef.doc(convKey).set({ nombreCliente:nombreCliente||`WhatsApp ${numeroCliente}`, telefono:numeroCliente, canal:'whatsapp', ultimoTexto:texto, ultimoMensaje:FieldValue.serverTimestamp(), contactoId }, { merge:true });
-    await convRef.doc(convKey).collection('mensajes').add({ rol:'cliente', texto, creadoEn:FieldValue.serverTimestamp() });
-    await convRef.doc(convKey).collection('mensajes').add({ rol:'agente', texto:respuesta, creadoEn:FieldValue.serverTimestamp() });
-  } catch {}
 }
 
 function extraerNombre(texto) {
@@ -436,10 +482,10 @@ function extraerNombre(texto) {
 
 function parsearFechaHora(fecha, hora) {
   try {
-    const partes = (fecha||'').match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
-    if (!partes) return new Date();
-    const anio = partes[3] ? parseInt(partes[3]) : new Date().getFullYear();
+    const p = (fecha||'').match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+    if (!p) return new Date();
+    const anio = p[3] ? parseInt(p[3]) : new Date().getFullYear();
     const hp   = (hora||'').match(/(\d{1,2}):?(\d{2})?/);
-    return new Date(anio<100?2000+anio:anio, parseInt(partes[2])-1, parseInt(partes[1]), hp?parseInt(hp[1]):9, hp?.[2]?parseInt(hp[2]):0);
+    return new Date(anio<100?2000+anio:anio, parseInt(p[2])-1, parseInt(p[1]), hp?parseInt(hp[1]):9, hp?.[2]?parseInt(hp[2]):0);
   } catch { return new Date(); }
 }
