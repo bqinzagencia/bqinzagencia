@@ -1,4 +1,4 @@
-// pages/wasapbot/activar.js — v9: color SIEMPRE visible en iconos
+// pages/wasapbot/activar.js — v10: paso 3 con QR + codigo por numero
 import { useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -12,6 +12,8 @@ const STEPS  = ['Tu negocio','Catalogo','WhatsApp','Listo'];
 const CATS   = ['Todos','Gastronomia','Belleza','Salud','Comercio','Logistica',
                 'Tecnologia','Educacion','Finanzas','Deporte','Bienestar',
                 'Creativo','Automotriz','Mascotas','Inmuebles','Otro'];
+const WA_SERVER = 'https://agenciame-whatsapp-server-production.up.railway.app';
+const WA_SECRET = 'agenciame2026secreto_nexoia';
 
 const IND = {
   restaurante:  { color:'#F59E0B', r:'245,158,11',  cat:'Gastronomia', desc:'Menu digital, pedidos y reservas automaticas' },
@@ -34,7 +36,6 @@ const IND = {
   otro:         { color:'#94A3B8', r:'148,163,184', cat:'Otro',        desc:'Cualquier tipo de negocio o servicio' },
 };
 
-/* SVG con color pasado como atributo directo — NO currentColor */
 function IndIcon({ id, color, size = 22 }) {
   const p = { fill:'none', stroke:color, strokeWidth:1.8, strokeLinecap:'round', strokeLinejoin:'round' };
   const w = size, h = size;
@@ -83,6 +84,12 @@ export default function WasapBotActivar() {
   ]);
   const [preguntas, setPreguntas]    = useState(['','','']);
   const fileRefs                     = useRef([]);
+
+  // Estado exclusivo del paso 3
+  const [metodoConexion, setMetodoConexion] = useState(''); // '' | 'qr' | 'codigo'
+  const [telefonoCodigo, setTelefonoCodigo] = useState('');
+  const [codigoBot, setCodigoBot]           = useState('');
+  const [solicitandoCodigo, setSolicitandoCodigo] = useState(false);
 
   const cfg    = industria ? getConfigIndustria(industria) : null;
   const ph     = cfg?.placeholders || {};
@@ -146,22 +153,22 @@ export default function WasapBotActivar() {
       await fetch('/api/wasapbot-servicios',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({empresaId,servicios:iv,horario,preguntas:pf,
           tipoCatalogo:cfg?.tipoCatalogo||'servicios',permitePedidos:cfg?.permitePedidos||false})});
-      setStep(3); iniciarBot();
+      setStep(3);
     } catch(e) { setError(e.message); }
     finally { setLoading(false); }
   };
 
-  const iniciarBot = async () => {
-    setLoading(true);
-    const WA = 'https://agenciame-whatsapp-server-production.up.railway.app';
+  // ── Método QR (flujo original) ──
+  const iniciarConQR = async () => {
+    setMetodoConexion('qr'); setLoading(true);
     try {
-      await fetch(WA+'/sesion/iniciar',{method:'POST',
-        headers:{'Content-Type':'application/json','x-server-secret':'agenciame2026secreto_nexoia'},
+      await fetch(WA_SERVER+'/sesion/iniciar',{method:'POST',
+        headers:{'Content-Type':'application/json','x-server-secret':WA_SECRET},
         body:JSON.stringify({empresaId})});
       let n = 0;
       const poll = async () => {
-        if (n++>30) { setError('Tiempo agotado.'); setLoading(false); return; }
-        const r2 = await fetch(WA+'/sesion/'+empresaId+'/qr',{headers:{'x-server-secret':'agenciame2026secreto_nexoia'}}).catch(()=>null);
+        if (n++>30) { setError('Tiempo agotado. Intenta de nuevo.'); setLoading(false); return; }
+        const r2 = await fetch(WA_SERVER+'/sesion/'+empresaId+'/qr',{headers:{'x-server-secret':WA_SECRET}}).catch(()=>null);
         const d2 = r2 ? await r2.json().catch(()=>({})) : {};
         if (d2.status==='connected') { setNumero(d2.numero||''); setStep(4); setLoading(false); return; }
         if (d2.qrBase64) { setQrBase64(d2.qrBase64); setLoading(false); pollStatus(); return; }
@@ -171,12 +178,39 @@ export default function WasapBotActivar() {
     } catch(e) { setError(e.message); setLoading(false); }
   };
 
+  // ── Método Código (sin segundo dispositivo) ──
+  const solicitarCodigo = async () => {
+    const tel = telefonoCodigo.replace(/\D/g,'');
+    if (tel.length < 10) { setError('Escribe tu numero de WhatsApp completo con codigo de pais (ej: 573001234567)'); return; }
+    setError(''); setSolicitandoCodigo(true);
+    try {
+      // Primero iniciar sesion
+      await fetch(WA_SERVER+'/sesion/iniciar',{method:'POST',
+        headers:{'Content-Type':'application/json','x-server-secret':WA_SECRET},
+        body:JSON.stringify({empresaId})});
+      await new Promise(r=>setTimeout(r,2000));
+      // Luego solicitar pairing code
+      const r = await fetch(WA_SERVER+'/sesion/'+empresaId+'/pairing-code',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-server-secret':WA_SECRET},
+        body:JSON.stringify({telefono:tel}),
+      });
+      const d = await r.json();
+      if (d.code) {
+        setCodigoBot(d.code);
+        pollStatus(); // empezar a esperar conexion
+      } else {
+        setError(d.error || 'No se pudo generar el codigo. Intenta con QR.');
+      }
+    } catch(e) { setError('Error al solicitar codigo: '+e.message); }
+    finally { setSolicitandoCodigo(false); }
+  };
+
   const pollStatus = () => {
-    const WA = 'https://agenciame-whatsapp-server-production.up.railway.app';
     let n = 0;
     const check = async () => {
       if (n++>60) return;
-      const r = await fetch(WA+'/sesion/'+empresaId+'/status',{headers:{'x-server-secret':'agenciame2026secreto_nexoia'}}).catch(()=>null);
+      const r = await fetch(WA_SERVER+'/sesion/'+empresaId+'/status',{headers:{'x-server-secret':WA_SECRET}}).catch(()=>null);
       const d = r ? await r.json().catch(()=>({})) : {};
       if (d.status==='connected') { setNumero(d.numero||''); setStep(4); return; }
       setTimeout(check, 3000);
@@ -215,13 +249,18 @@ export default function WasapBotActivar() {
         .bsearch{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px 16px 11px 42px;font-family:${F};font-size:13px;color:#EFF4FF;outline:none;width:100%;transition:all .2s}
         .bsearch:focus{border-color:rgba(37,211,102,.4);background:rgba(37,211,102,.03);box-shadow:0 0 0 3px rgba(37,211,102,.07)}
         .bsearch::placeholder{color:rgba(255,255,255,.22)}
+        .metodo-card{background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:18px;padding:22px;cursor:pointer;transition:all .2s;flex:1;text-align:left}
+        .metodo-card:hover{border-color:rgba(37,211,102,.35);background:rgba(37,211,102,.04);transform:translateY(-2px)}
+        .metodo-card.sel{border-color:rgba(37,211,102,.5);background:rgba(37,211,102,.07);box-shadow:0 6px 24px rgba(37,211,102,.15)}
+        .codigo-digit{width:48px;height:56px;border-radius:12px;background:rgba(37,211,102,.1);border:2px solid rgba(37,211,102,.3);display:flex;align-items:center;justify-content:center;font-family:${F};font-size:22px;font-weight:800;color:#25D366;letter-spacing:0}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
         @keyframes ok{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:scale(1)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
         .aup{animation:up .3s cubic-bezier(.4,0,.2,1) both}
         select.wi option{background:#0E1118}
-        @media(max-width:600px){.ind-grid{grid-template-columns:1fr!important}.two-col{grid-template-columns:1fr!important}}
+        @media(max-width:600px){.ind-grid{grid-template-columns:1fr!important}.two-col{grid-template-columns:1fr!important}.metodos-grid{flex-direction:column!important}}
       `}}/>
 
       {/* NAV */}
@@ -277,9 +316,7 @@ export default function WasapBotActivar() {
             <div style={{marginBottom:40}}>
               <p style={{fontFamily:F,fontSize:12,fontWeight:700,color:'rgba(37,211,102,.8)',letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>PASO 1 DE 4</p>
               <h1 style={{fontFamily:FA,fontSize:50,fontWeight:400,letterSpacing:'-2.5px',color:'#F5F5F5',marginBottom:12,lineHeight:1.02}}>Cuentanos sobre<br/>tu negocio</h1>
-              <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,.33)',fontWeight:300,lineHeight:1.75,maxWidth:480}}>
-                Configuramos tu bot automaticamente con el vocabulario, las respuestas y la personalidad de tu industria.
-              </p>
+              <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,.33)',fontWeight:300,lineHeight:1.75,maxWidth:480}}>Configuramos tu bot automaticamente con el vocabulario y la personalidad de tu industria.</p>
             </div>
 
             <div style={CARD}>
@@ -295,7 +332,6 @@ export default function WasapBotActivar() {
                   Cambiar <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>}
               </div>
-
               {indCfg&&(
                 <div style={{display:'flex',alignItems:'center',gap:14,background:'rgba('+indCfg.r+',.08)',border:'1.5px solid rgba('+indCfg.r+',.35)',borderRadius:14,padding:'13px 16px',marginBottom:18,boxShadow:'0 4px 24px rgba('+indCfg.r+',.18)'}}>
                   <div style={{width:44,height:44,borderRadius:13,background:'rgba('+indCfg.r+',.18)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
@@ -310,79 +346,34 @@ export default function WasapBotActivar() {
                   </div>
                 </div>
               )}
-
               <div style={{position:'relative',marginBottom:12}}>
                 <svg style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2.5" strokeLinecap="round">
                   <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
                 <input className="bsearch" value={busq} onChange={e=>setBusq(e.target.value)} placeholder="Buscar tipo de negocio..."/>
               </div>
-
               <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:16}}>
                 {CATS.map(cat=>(
                   <button key={cat} className={'cpill'+(catFiltro===cat?' on':'')} onClick={()=>setCatFiltro(cat)}>{cat}</button>
                 ))}
               </div>
-
               {indsFiltradas.length===0?(
                 <div style={{textAlign:'center',padding:'32px 0',fontFamily:F,fontSize:13,color:'rgba(255,255,255,.25)'}}>Sin resultados para "{busq}"</div>
               ):(
                 <div className="ind-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
                   {indsFiltradas.map(ind=>{
-                    const c   = IND[ind.value] || IND.otro;
-                    const sel = industria===ind.value;
+                    const c=IND[ind.value]||IND.otro, sel=industria===ind.value;
                     return(
-                      <button
-                        key={ind.value}
-                        className="icard"
-                        onClick={()=>setIndustria(ind.value)}
-                        style={{
-                          /* fondo: seleccionado = color de industria / no seleccionado = muy sutil */
-                          background: sel
-                            ? 'rgba('+c.r+',.12)'
-                            : 'rgba(255,255,255,.03)',
-                          /* borde: seleccionado = color, no seleccionado = muy sutil */
-                          border:'1.5px solid '+(sel
-                            ? 'rgba('+c.r+',.5)'
-                            : 'rgba(255,255,255,.08)'),
-                          boxShadow: sel
-                            ? '0 6px 28px rgba('+c.r+',.25)'
-                            : 'none',
-                          transform: sel ? 'translateY(-2px)' : 'none',
-                        }}>
-
-                        {/* Caja icono — siempre con el color de industria */}
-                        <div style={{
-                          width:44, height:44, borderRadius:13, flexShrink:0,
-                          display:'flex', alignItems:'center', justifyContent:'center',
-                          /* fondo de la caja: seleccionado = más saturado */
-                          background: sel
-                            ? 'rgba('+c.r+',.22)'
-                            : 'rgba('+c.r+',.1)',
-                          transition:'background .2s',
-                        }}>
-                          {/* EL ICONO SIEMPRE EN SU COLOR — nunca gris */}
+                      <button key={ind.value} className="icard" onClick={()=>setIndustria(ind.value)}
+                        style={{background:sel?'rgba('+c.r+',.12)':'rgba(255,255,255,.03)',border:'1.5px solid '+(sel?'rgba('+c.r+',.5)':'rgba(255,255,255,.08)'),boxShadow:sel?'0 6px 28px rgba('+c.r+',.25)':'none',transform:sel?'translateY(-2px)':'none'}}>
+                        <div style={{width:44,height:44,borderRadius:13,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:sel?'rgba('+c.r+',.22)':'rgba('+c.r+',.1)',transition:'background .2s'}}>
                           <IndIcon id={ind.value} color={c.color} size={22}/>
                         </div>
-
-                        {/* Texto */}
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontFamily:F,fontSize:13,fontWeight:700,
-                            color:sel?'#F0F4FF':'rgba(255,255,255,.7)',
-                            marginBottom:2,transition:'color .2s'}}>{ind.label}</div>
-                          <div style={{fontFamily:F,fontSize:11,fontWeight:300,
-                            color:'rgba(255,255,255,.3)',
-                            lineHeight:1.4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{c.desc}</div>
+                          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:sel?'#F0F4FF':'rgba(255,255,255,.7)',marginBottom:2}}>{ind.label}</div>
+                          <div style={{fontFamily:F,fontSize:11,fontWeight:300,color:'rgba(255,255,255,.3)',lineHeight:1.4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{c.desc}</div>
                         </div>
-
-                        {/* Checkmark */}
-                        <div style={{
-                          width:20, height:20, borderRadius:6, flexShrink:0,
-                          background: sel ? c.color : 'transparent',
-                          border:'1.5px solid '+(sel ? c.color : 'rgba(255,255,255,.15)'),
-                          display:'flex', alignItems:'center', justifyContent:'center',
-                          transition:'all .2s',
-                        }}>
+                        <div style={{width:20,height:20,borderRadius:6,flexShrink:0,background:sel?c.color:'transparent',border:'1.5px solid '+(sel?c.color:'rgba(255,255,255,.15)'),display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}>
                           {sel&&<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="4" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
                         </div>
                       </button>
@@ -416,9 +407,7 @@ export default function WasapBotActivar() {
                 </svg>
                 <input className="wi" style={{...INP,paddingLeft:46}} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tucorreo@gmail.com"/>
               </div>
-              <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',margin:'10px 0 0',fontWeight:300}}>
-                Recibiras resumenes diarios y alertas cuando un cliente pida hablar contigo.
-              </p>
+              <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',margin:'10px 0 0',fontWeight:300}}>Recibiras resumenes diarios y alertas de citas agendadas.</p>
             </div>
 
             <button className="bmain" onClick={crearEmpresa} disabled={loading}>
@@ -485,8 +474,7 @@ export default function WasapBotActivar() {
                   <div>
                     <label style={LBL}>{cfg.labelPrecio}</label>
                     <input className="wi" style={INP} value={item.precio}
-                      onChange={e=>setItems(p=>p.map((it,i)=>i===idx?{...it,precio:e.target.value}:it))}
-                      placeholder={ph['precio'+(idx+1)]||'0'}/>
+                      onChange={e=>setItems(p=>p.map((it,i)=>i===idx?{...it,precio:e.target.value}:it))} placeholder={ph['precio'+(idx+1)]||'0'}/>
                   </div>
                   {cfg.tieneCategoria&&(
                     <div>
@@ -502,8 +490,7 @@ export default function WasapBotActivar() {
                 <div>
                   <label style={LBL}>{cfg.labelDescripcion}</label>
                   <input className="wi" style={INP} value={item.descripcion}
-                    onChange={e=>setItems(p=>p.map((it,i)=>i===idx?{...it,descripcion:e.target.value}:it))}
-                    placeholder={ph['desc'+(idx+1)]||'Descripcion breve...'}/>
+                    onChange={e=>setItems(p=>p.map((it,i)=>i===idx?{...it,descripcion:e.target.value}:it))} placeholder={ph['desc'+(idx+1)]||'Descripcion breve...'}/>
                 </div>
               </div>
             ))}
@@ -534,38 +521,249 @@ export default function WasapBotActivar() {
           </div>
         )}
 
-        {/* ═══ PASO 3: QR ═══ */}
+        {/* ═══════════════════════════════════════════════
+            PASO 3 — CONEXION WHATSAPP (QR o CODIGO)
+        ═══════════════════════════════════════════════ */}
         {step===3&&(
-          <div className="aup" style={{textAlign:'center'}}>
-            <p style={{fontFamily:F,fontSize:12,fontWeight:700,color:'rgba(37,211,102,.8)',letterSpacing:2,textTransform:'uppercase',marginBottom:18}}>PASO 3 DE 4</p>
-            <h1 style={{fontFamily:FA,fontSize:44,fontWeight:400,letterSpacing:'-2px',color:'#F5F5F5',marginBottom:12,lineHeight:1.02}}>Conecta tu WhatsApp</h1>
-            <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,.32)',fontWeight:300,marginBottom:44,lineHeight:1.75,maxWidth:460,margin:'0 auto 44px'}}>
-              Escanea el codigo QR con tu celular. En 10 segundos tu bot queda activo.
-            </p>
-            {loading&&!qrBase64&&(
-              <div style={{padding:'72px 0'}}>
-                <div style={{width:52,height:52,border:'3px solid rgba(37,211,102,.1)',borderTop:'3px solid #25D366',borderRadius:'50%',animation:'spin .9s linear infinite',margin:'0 auto 22px'}}/>
-                <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.22)'}}>Iniciando tu bot...</div>
+          <div className="aup">
+            <div style={{textAlign:'center',marginBottom:40}}>
+              <p style={{fontFamily:F,fontSize:12,fontWeight:700,color:'rgba(37,211,102,.8)',letterSpacing:2,textTransform:'uppercase',marginBottom:18}}>PASO 3 DE 4</p>
+              <h1 style={{fontFamily:FA,fontSize:44,fontWeight:400,letterSpacing:'-2px',color:'#F5F5F5',marginBottom:12,lineHeight:1.02}}>Conecta tu WhatsApp</h1>
+              <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,.32)',fontWeight:300,lineHeight:1.75,maxWidth:500,margin:'0 auto'}}>
+                Elige cómo conectar según tu situación. Ambas opciones funcionan igual de bien.
+              </p>
+            </div>
+
+            {/* ── SELECTOR DE MÉTODO ── */}
+            {!metodoConexion&&(
+              <div className="metodos-grid" style={{display:'flex',gap:14,marginBottom:8}}>
+
+                {/* Opción A: QR */}
+                <div className="metodo-card" onClick={iniciarConQR}>
+                  <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+                    <div style={{width:46,height:46,borderRadius:13,background:'rgba(37,211,102,.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.8" strokeLinecap="round">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                        <line x1="14" y1="14" x2="14" y2="14"/><line x1="17" y1="14" x2="21" y2="14"/><line x1="14" y1="17" x2="14" y2="21"/>
+                        <line x1="17" y1="17" x2="17" y2="17"/><line x1="21" y1="17" x2="21" y2="21"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:2}}>Escanear código QR</div>
+                      <div style={{fontFamily:F,fontSize:11,color:'#25D366',fontWeight:600}}>Recomendado</div>
+                    </div>
+                  </div>
+                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.4)',lineHeight:1.6,margin:'0 0 14px'}}>
+                    Abre WhatsApp en otro celular o computador y escanea el código con la cámara.
+                  </p>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                    {['Tienes otro celular','Tienes PC cerca','Celular y PC a la vez'].map((t,i)=>(
+                      <span key={i} style={{background:'rgba(37,211,102,.08)',color:'rgba(37,211,102,.7)',borderRadius:99,padding:'3px 10px',fontFamily:F,fontSize:10,fontWeight:600}}>✓ {t}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Opción B: Código */}
+                <div className="metodo-card" onClick={()=>setMetodoConexion('codigo')}>
+                  <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+                    <div style={{width:46,height:46,borderRadius:13,background:'rgba(96,165,250,.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2"/>
+                        <line x1="12" y1="18" x2="12" y2="18"/>
+                        <path d="M9 8h1l1 4 1-4h1"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:2}}>Código por número</div>
+                      <div style={{fontFamily:F,fontSize:11,color:'#60A5FA',fontWeight:600}}>Para un solo celular</div>
+                    </div>
+                  </div>
+                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.4)',lineHeight:1.6,margin:'0 0 14px'}}>
+                    WhatsApp te envía un código de 8 dígitos directamente al celular. No necesitas escanearlo con cámara.
+                  </p>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                    {['Solo tienes este celular','Estas en movil','Sin PC disponible'].map((t,i)=>(
+                      <span key={i} style={{background:'rgba(96,165,250,.08)',color:'rgba(96,165,250,.7)',borderRadius:99,padding:'3px 10px',fontFamily:F,fontSize:10,fontWeight:600}}>✓ {t}</span>
+                    ))}
+                  </div>
+                </div>
+
               </div>
             )}
-            {qrBase64&&(
-              <div>
-                <div style={{background:'#fff',borderRadius:24,padding:24,display:'inline-block',marginBottom:36,boxShadow:'0 28px 80px rgba(0,0,0,.7)'}}>
-                  <img src={qrBase64} alt="QR" style={{width:240,height:240,display:'block'}}/>
-                </div>
-                <div style={{...CARD,textAlign:'left',maxWidth:460,margin:'0 auto 28px'}}>
-                  <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.5)',marginBottom:16,textTransform:'uppercase',letterSpacing:1.2}}>Como escanear</div>
-                  {['Abre WhatsApp en tu celular','Ve a Ajustes > Dispositivos vinculados','Toca Vincular un dispositivo','Apunta la camara al codigo QR'].map((t,i)=>(
-                    <div key={i} style={{display:'flex',gap:14,alignItems:'flex-start',marginBottom:i<3?12:0}}>
-                      <div style={{width:24,height:24,borderRadius:8,background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366',flexShrink:0,marginTop:1}}>{i+1}</div>
-                      <span style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.42)',lineHeight:1.6}}>{t}</span>
+
+            {/* ── FLUJO QR ── */}
+            {metodoConexion==='qr'&&(
+              <div className="aup" style={{textAlign:'center'}}>
+                <button onClick={()=>{setMetodoConexion('');setQrBase64('');setLoading(false);}}
+                  style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)',cursor:'pointer',marginBottom:24,display:'inline-flex',alignItems:'center',gap:6}}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
+                  Cambiar método
+                </button>
+
+                {loading&&!qrBase64&&(
+                  <div style={{padding:'60px 0'}}>
+                    <div style={{width:52,height:52,border:'3px solid rgba(37,211,102,.1)',borderTop:'3px solid #25D366',borderRadius:'50%',animation:'spin .9s linear infinite',margin:'0 auto 22px'}}/>
+                    <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.22)'}}>Generando codigo QR...</div>
+                  </div>
+                )}
+
+                {qrBase64&&(
+                  <div>
+                    <div style={{background:'#fff',borderRadius:24,padding:24,display:'inline-block',marginBottom:28,boxShadow:'0 28px 80px rgba(0,0,0,.7)'}}>
+                      <img src={qrBase64} alt="QR" style={{width:240,height:240,display:'block'}}/>
                     </div>
-                  ))}
-                </div>
-                <div style={{display:'inline-flex',alignItems:'center',gap:10,background:'rgba(245,158,11,.07)',border:'1px solid rgba(245,158,11,.18)',borderRadius:99,padding:'9px 18px'}}>
-                  <div style={{width:8,height:8,borderRadius:'50%',background:'#F59E0B',animation:'pulse 1.5s ease infinite'}}/>
-                  <span style={{fontFamily:F,fontSize:12,color:'rgba(245,158,11,.85)',fontWeight:500}}>Esperando escaneo...</span>
-                </div>
+
+                    <div style={{...CARD,textAlign:'left',maxWidth:460,margin:'0 auto 24px'}}>
+                      <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.5)',marginBottom:14,textTransform:'uppercase',letterSpacing:1.2}}>Como escanear</div>
+                      {[
+                        'Abre WhatsApp en tu otro celular o PC',
+                        'Ve a Ajustes → Dispositivos vinculados',
+                        'Toca "Vincular un dispositivo"',
+                        'Apunta la camara al codigo QR de arriba',
+                      ].map((t,i)=>(
+                        <div key={i} style={{display:'flex',gap:14,alignItems:'flex-start',marginBottom:i<3?12:0}}>
+                          <div style={{width:24,height:24,borderRadius:8,background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366',flexShrink:0,marginTop:1}}>{i+1}</div>
+                          <span style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.42)',lineHeight:1.6}}>{t}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{display:'inline-flex',alignItems:'center',gap:10,background:'rgba(245,158,11,.07)',border:'1px solid rgba(245,158,11,.18)',borderRadius:99,padding:'9px 18px'}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:'#F59E0B',animation:'pulse 1.5s ease infinite'}}/>
+                      <span style={{fontFamily:F,fontSize:12,color:'rgba(245,158,11,.85)',fontWeight:500}}>Esperando que escanees...</span>
+                    </div>
+
+                    {/* Sugerencia para quienes solo tienen un celular */}
+                    <div style={{marginTop:24,background:'rgba(96,165,250,.05)',border:'1px solid rgba(96,165,250,.15)',borderRadius:14,padding:'14px 18px',textAlign:'left',maxWidth:460,margin:'24px auto 0'}}>
+                      <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#60A5FA',marginBottom:6}}>¿Solo tienes este celular?</div>
+                      <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)',lineHeight:1.6,marginBottom:10}}>
+                        No necesitas escanearlo. Usa el método de código numérico — WhatsApp te lo envía directamente.
+                      </div>
+                      <button onClick={()=>{setMetodoConexion('codigo');setQrBase64('');setLoading(false);}}
+                        style={{background:'rgba(96,165,250,.1)',color:'#60A5FA',border:'1px solid rgba(96,165,250,.25)',borderRadius:9,padding:'8px 16px',fontFamily:F,fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                        Cambiar a código numérico →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── FLUJO CÓDIGO POR NÚMERO ── */}
+            {metodoConexion==='codigo'&&(
+              <div className="aup">
+                <button onClick={()=>setMetodoConexion('')}
+                  style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)',cursor:'pointer',marginBottom:28,display:'inline-flex',alignItems:'center',gap:6}}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
+                  Cambiar método
+                </button>
+
+                {!codigoBot ? (
+                  /* Solicitar codigo */
+                  <div style={{...CARD,maxWidth:480,margin:'0 auto'}}>
+                    <div style={{display:'flex',gap:14,alignItems:'flex-start',marginBottom:24}}>
+                      <div style={{width:46,height:46,borderRadius:13,background:'rgba(96,165,250,.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round">
+                          <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>Conectar con código de WhatsApp</div>
+                        <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.35)',lineHeight:1.6}}>
+                          Escribe el número de WhatsApp que usará el bot y te enviamos un código de 8 dígitos.
+                        </div>
+                      </div>
+                    </div>
+
+                    <label style={LBL}>Numero de WhatsApp del bot</label>
+                    <div style={{position:'relative',marginBottom:8}}>
+                      <span style={{position:'absolute',left:16,top:'50%',transform:'translateY(-50%)',fontFamily:F,fontSize:14,color:'rgba(255,255,255,.4)',pointerEvents:'none'}}>+</span>
+                      <input className="wi" style={{...INP,paddingLeft:30}} type="tel"
+                        value={telefonoCodigo}
+                        onChange={e=>setTelefonoCodigo(e.target.value.replace(/\D/g,''))}
+                        placeholder="57 300 123 4567"/>
+                    </div>
+                    <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginBottom:24,fontWeight:300}}>
+                      Incluye el codigo de pais sin el +. Colombia: 57, seguido del numero de 10 digitos.
+                    </p>
+
+                    {/* Pasos visuales */}
+                    <div style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.06)',borderRadius:12,padding:'14px 16px',marginBottom:24}}>
+                      <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.35)',textTransform:'uppercase',letterSpacing:1,marginBottom:12}}>Qué va a pasar</div>
+                      {[
+                        {n:'1', t:'Presionas el botón y escribimos tu número a WhatsApp', color:'#60A5FA'},
+                        {n:'2', t:'WhatsApp te envía un código de 8 dígitos por mensaje', color:'#60A5FA'},
+                        {n:'3', t:'Lo escribes aquí y tu bot queda conectado', color:'#25D366'},
+                      ].map((s,i)=>(
+                        <div key={i} style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:i<2?10:0}}>
+                          <div style={{width:22,height:22,borderRadius:7,background:'rgba('+((s.color==='#25D366')?'37,211,102':'96,165,250')+',.12)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:800,color:s.color,flexShrink:0,marginTop:1}}>{s.n}</div>
+                          <span style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.4)',lineHeight:1.5}}>{s.t}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button className="bmain" onClick={solicitarCodigo} disabled={solicitandoCodigo||!telefonoCodigo.trim()}>
+                      {solicitandoCodigo
+                        ?<><span style={{width:17,height:17,border:'2.5px solid rgba(255,255,255,.3)',borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite',display:'inline-block',flexShrink:0}}/>Enviando solicitud...</>
+                        :<>Enviar codigo a mi WhatsApp<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg></>}
+                    </button>
+                  </div>
+                ) : (
+                  /* Mostrar codigo recibido */
+                  <div style={{textAlign:'center',maxWidth:480,margin:'0 auto'}}>
+
+                    {/* Codigo en grande */}
+                    <div style={{marginBottom:32}}>
+                      <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.4)',marginBottom:16,fontWeight:300}}>
+                        WhatsApp te envio este codigo. Abré WhatsApp y busca el mensaje de <strong style={{color:'#EFF4FF'}}>WhatsApp</strong>:
+                      </div>
+
+                      <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+                        {/* Mostrar codigo en bloques de 4 */}
+                        {[codigoBot.slice(0,4), codigoBot.slice(4,8)].map((bloque,bi)=>(
+                          <div key={bi} style={{display:'flex',gap:6}}>
+                            {bloque.split('').map((digit,di)=>(
+                              <div key={di} className="codigo-digit">{digit}</div>
+                            ))}
+                            {bi===0&&<div style={{display:'flex',alignItems:'center',padding:'0 4px',fontFamily:F,fontSize:22,fontWeight:800,color:'rgba(37,211,102,.4)'}}>–</div>}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',fontWeight:300}}>
+                        Este codigo expira en 60 segundos
+                      </div>
+                    </div>
+
+                    {/* Instrucciones */}
+                    <div style={{...CARD,textAlign:'left',marginBottom:24}}>
+                      <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.5)',marginBottom:14,textTransform:'uppercase',letterSpacing:1.2}}>Donde ingresar el codigo</div>
+                      {[
+                        'Abre WhatsApp en tu celular',
+                        'Ve a Ajustes → Dispositivos vinculados',
+                        'Toca "Vincular con numero de telefono"',
+                        'Ingresa el codigo de 8 digitos que aparece arriba',
+                      ].map((t,i)=>(
+                        <div key={i} style={{display:'flex',gap:14,alignItems:'flex-start',marginBottom:i<3?12:0}}>
+                          <div style={{width:24,height:24,borderRadius:8,background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366',flexShrink:0,marginTop:1}}>{i+1}</div>
+                          <span style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.42)',lineHeight:1.6}}>{t}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{display:'inline-flex',alignItems:'center',gap:10,background:'rgba(37,211,102,.06)',border:'1px solid rgba(37,211,102,.18)',borderRadius:99,padding:'9px 18px',marginBottom:20}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:'#25D366',animation:'pulse 1.5s ease infinite'}}/>
+                      <span style={{fontFamily:F,fontSize:12,color:'rgba(37,211,102,.85)',fontWeight:500}}>Esperando que ingreses el codigo...</span>
+                    </div>
+
+                    <div>
+                      <button onClick={()=>{setCodigoBot('');setTelefonoCodigo('');}}
+                        style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,.25)',cursor:'pointer',textDecoration:'underline'}}>
+                        No recibí el código — intentar de nuevo
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -587,7 +785,7 @@ export default function WasapBotActivar() {
             </p>
             <div style={{...CARD,textAlign:'left',maxWidth:500,margin:'0 auto 28px'}}>
               <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.3)',marginBottom:16,textTransform:'uppercase',letterSpacing:1.2}}>Tu bot ya hace todo esto</div>
-              {['Responde preguntas 24/7 sin que tu estes pendiente','Presenta tu catalogo con precios y fotos','Agenda citas y te envia confirmacion por correo','Captura nombre, telefono y correo del cliente','Te avisa cuando necesitan hablar con una persona'].map((t,i)=>(
+              {['Responde preguntas 24/7 sin que estes pendiente','Presenta tu catalogo con precios y fotos','Agenda citas y envia confirmacion por email','Captura nombre, telefono y correo del cliente','Te avisa cuando necesitan hablar con una persona'].map((t,i)=>(
                 <div key={i} style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:i<4?13:0}}>
                   <div style={{width:22,height:22,borderRadius:7,background:'rgba(37,211,102,.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
