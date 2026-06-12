@@ -5,10 +5,15 @@ import OpenAI from 'openai';
 import { enviarEmailCita, enviarEmailSoporte } from '../../lib/emailWasapbot';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const SERVER_SECRET     = process.env.SERVER_SECRET     || 'agenciame2026secreto_nexoia';
-const SOPORTE_NUMERO    = process.env.SOPORTE_WHATSAPP  || '573105056616';
+const SERVER_SECRET      = process.env.SERVER_SECRET      || 'agenciame2026secreto_nexoia';
+const SOPORTE_NUMERO     = process.env.SOPORTE_WHATSAPP   || '573105056616';
 const SOPORTE_EMPRESA_ID = process.env.SOPORTE_EMPRESA_ID || '';
-const historiales       = new Map();
+const historiales        = new Map();
+
+// Detecta si el cliente pide ver el menu / catalogo / productos con fotos
+function pideFotos(texto) {
+  return /menu|menú|carta|catalogo|catálogo|platos|productos|fotos|foto|ver|muestrame|muéstrame|tienes fotos|con foto/i.test(texto);
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -90,29 +95,31 @@ export default async function handler(req, res) {
     historial.push({ role: 'user', content: texto });
     if (historial.length > 10) historial.splice(0, historial.length - 10);
 
-    // 6. Soporte humano detectado por palabras clave
+    // 6. Soporte humano
     const pideSoporte = /soporte|asesor|humano|persona|hablar con alguien|representante/i.test(texto);
 
-    // 7. Hora Colombia + horario negocio
-    const ahoraCol   = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-    const diaActual  = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'][ahoraCol.getDay()];
-    const horaActual = `${String(ahoraCol.getHours()).padStart(2,'0')}:${String(ahoraCol.getMinutes()).padStart(2,'0')}`;
+    // 7. Hora Colombia
+    const ahoraCol    = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    const diaActual   = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'][ahoraCol.getDay()];
+    const horaActual  = `${String(ahoraCol.getHours()).padStart(2,'0')}:${String(ahoraCol.getMinutes()).padStart(2,'0')}`;
     const fechaActual = `${String(ahoraCol.getDate()).padStart(2,'0')}/${String(ahoraCol.getMonth()+1).padStart(2,'0')}/${ahoraCol.getFullYear()}`;
 
     let horarioTexto = '';
     if (conocimiento?.horarios) {
       const hs = conocimiento.horarios;
-      if (hs.general) {
-        horarioTexto = hs.general;
-      } else {
-        const dias = Object.entries(hs)
-          .filter(([, v]) => v?.activo)
-          .map(([dia, v]) => `${dia}: ${v.desde || '?'}-${v.hasta || '?'}`);
+      if (hs.general) { horarioTexto = hs.general; }
+      else {
+        const dias = Object.entries(hs).filter(([, v]) => v?.activo)
+          .map(([dia, v]) => `${dia}: ${v.desde||'?'}-${v.hasta||'?'}`);
         if (dias.length) horarioTexto = dias.join(', ');
       }
     }
 
     // 8. System prompt
+    // Preparar servicios CON instruccion de imagen
+    const serviciosConFoto = (conocimiento?.servicios || []).filter(s => s.nombre);
+    const tieneImagenes = serviciosConFoto.some(s => s.foto);
+
     let systemPrompt = `Eres el asistente virtual de WhatsApp de "${nombreEmpresa}", ${empresa.industria || 'negocio'} en ${empresa.ciudad || 'Colombia'}.
 Fecha y hora actual en Colombia: ${diaActual} ${fechaActual} ${horaActual}.
 
@@ -124,43 +131,34 @@ ${horarioTexto ? `HORARIO DE ATENCION: ${horarioTexto}` : ''}
 REGLAS DE AGENDAMIENTO:
 ${horarioTexto
   ? `- SOLO agenda citas dentro del horario: ${horarioTexto}.
-- Si el cliente pide cita FUERA del horario o en dia no laborable, NO la agendes. Dile amablemente los horarios disponibles.
-- Antes de confirmar una cita verifica que la fecha y hora esten dentro del horario de atencion.
-- Si el cliente dice "lo antes posible" ofrece el proximo horario disponible dentro del rango de atencion.`
+- Si el cliente pide cita FUERA del horario o en dia no laborable, NO la agendes.
+- Si el cliente dice "lo antes posible" ofrece el proximo horario dentro del rango de atencion.`
   : '- Agenda citas segun la disponibilidad del negocio.'}
 
 REGLAS GENERALES:
-1. NOMBRE OBLIGATORIO: Si el cliente no ha dado su nombre, pidelo en cada respuesta hasta obtenerlo. Di: "¿Me puedes dar tu nombre completo para atenderte mejor?"
-2. Responde de forma concisa (max 3 parrafos), amigable y profesional.
+1. NOMBRE OBLIGATORIO: Si el cliente no ha dado su nombre pidelo amablemente.
+2. Responde concisamente (max 3 parrafos), amigable y profesional.
 3. Usa emojis moderadamente (max 2 por mensaje).
-4. Cuando confirmes una cita valida, agrega en nueva linea al final de tu respuesta:
-   CITA_DETECTADA: {"nombre":"NOMBRE_CLIENTE","servicio":"NOMBRE_SERVICIO","fecha":"DD/MM/YYYY","hora":"HH:MM"}
-5. Idioma: espanol colombiano.
-6. Si el cliente pide hablar con una persona, di que avisas al equipo y agrega en nueva linea:
-   SOPORTE_SOLICITADO: {"nombre":"NOMBRE_CLIENTE","motivo":"MOTIVO_BREVE"}`;
+4. Al confirmar una cita agrega al final: CITA_DETECTADA: {"nombre":"NOMBRE","servicio":"SERVICIO","fecha":"DD/MM/YYYY","hora":"HH:MM"}
+5. Si piden hablar con persona agrega: SOPORTE_SOLICITADO: {"nombre":"NOMBRE","motivo":"MOTIVO"}
+6. Idioma: espanol colombiano.
+${tieneImagenes ? `7. IMPORTANTE: cuando el cliente pida ver el menu, catalogo o fotos, responde describiendo brevemente los productos y di que a continuacion enviamos las fotos. NO digas que no puedes enviar fotos — SI podemos enviarlas automaticamente.` : ''}`;
 
-    if (nombreCliente) {
-      systemPrompt += `\n\nNOMBRE DEL CLIENTE: ${nombreCliente} — NO vuelvas a pedirlo.`;
-    } else {
-      systemPrompt += `\n\nEL CLIENTE NO HA DADO SU NOMBRE AUN. Pidelo amablemente.`;
-    }
+    if (nombreCliente) systemPrompt += `\n\nNOMBRE DEL CLIENTE: ${nombreCliente} — NO vuelvas a pedirlo.`;
+    else systemPrompt += `\n\nEL CLIENTE NO HA DADO SU NOMBRE AUN.`;
 
     if (conocimiento) {
-      if (conocimiento.servicios?.length > 0) {
-        const svcs = conocimiento.servicios.filter(s => s.nombre)
-          .map(s => `- ${s.nombre}: $${s.precio || 'consultar'} COP${s.duracion ? ` (${s.duracion} min)` : ''}`)
+      if (serviciosConFoto.length > 0) {
+        const svcs = serviciosConFoto
+          .map(s => `- ${s.nombre}: $${s.precio || 'consultar'} COP${s.descripcion ? ` — ${s.descripcion}` : ''}`)
           .join('\n');
-        systemPrompt += `\n\nSERVICIOS:\n${svcs}`;
+        systemPrompt += `\n\nCATALOGO/MENU:\n${svcs}`;
       }
-      if (conocimiento.info?.descripcionNegocio)
-        systemPrompt += `\n\nDESCRIPCION: ${conocimiento.info.descripcionNegocio}`;
-      if (conocimiento.info?.direccion)
-        systemPrompt += `\nDIRECCION: ${conocimiento.info.direccion}`;
-      if (conocimiento.info?.formasPago?.length)
-        systemPrompt += `\nFORMAS DE PAGO: ${conocimiento.info.formasPago.join(', ')}`;
+      if (conocimiento.info?.descripcionNegocio) systemPrompt += `\n\nDESCRIPCION: ${conocimiento.info.descripcionNegocio}`;
+      if (conocimiento.info?.direccion) systemPrompt += `\nDIRECCION: ${conocimiento.info.direccion}`;
+      if (conocimiento.info?.formasPago?.length) systemPrompt += `\nFORMAS DE PAGO: ${conocimiento.info.formasPago.join(', ')}`;
       if (conocimiento.info?.preguntasFrecuentes?.length > 0) {
-        const faqs = conocimiento.info.preguntasFrecuentes
-          .filter(f => f.pregunta)
+        const faqs = conocimiento.info.preguntasFrecuentes.filter(f => f.pregunta)
           .map(f => `P: ${f.pregunta}\nR: ${f.respuesta}`).join('\n');
         systemPrompt += `\n\nFAQS:\n${faqs}`;
       }
@@ -168,9 +166,8 @@ REGLAS GENERALES:
 
     // 9. GPT
     const completion = await openai.chat.completions.create({
-      model:      'gpt-4o-mini',
-      max_tokens: 500,
-      messages:   [{ role: 'system', content: systemPrompt }, ...historial],
+      model: 'gpt-4o-mini', max_tokens: 500,
+      messages: [{ role: 'system', content: systemPrompt }, ...historial],
     });
     let respuesta = completion.choices[0]?.message?.content || '';
     historial.push({ role: 'assistant', content: respuesta });
@@ -186,11 +183,11 @@ REGLAS GENERALES:
 
     // Limite mensual
     const PLAN_TOKENS = { basico:50000, estandar:150000, pro:400000, wasapbot:15000 };
-    const planId   = empresa.planWasapbot || empresa.plan || 'wasapbot';
-    const tokLimit = PLAN_TOKENS[planId] || 15000;
-    const now2     = new Date();
-    const mesKey2  = `${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}`;
-    const tokSnap  = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(() => null);
+    const planId    = empresa.planWasapbot || empresa.plan || 'wasapbot';
+    const tokLimit  = PLAN_TOKENS[planId] || 15000;
+    const now2      = new Date();
+    const mesKey2   = `${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}`;
+    const tokSnap   = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(() => null);
     const tokActual = tokSnap?.exists ? (tokSnap.data().usado || 0) : 0;
     if (tokActual > tokLimit)
       return res.json({ respuesta: `El servicio de respuestas automáticas de ${nombreEmpresa} ha alcanzado su límite mensual.` });
@@ -202,7 +199,6 @@ REGLAS GENERALES:
       nombreCliente = nombreEnMensaje;
     }
 
-    // Contadores
     try {
       await adminDb.collection('empresas').doc(empresaId).update({
         tokensUsados:    FieldValue.increment(tokensUsados),
@@ -211,79 +207,54 @@ REGLAS GENERALES:
       });
     } catch {}
 
-    // 12. Limpiar etiquetas
+    // 12. Limpiar etiquetas del texto
     let respuestaLimpia = respuesta
       .replace(/\n?CITA_DETECTADA:.*$/m, '')
       .replace(/\n?SOPORTE_SOLICITADO:.*$/m, '')
       .trim();
     if (req._trialAviso) respuestaLimpia += req._trialAviso;
 
-    // 13. Soporte humano → email al negocio
+    // 13. Soporte humano → email
     const soporteMatch = respuesta.match(/SOPORTE_SOLICITADO:\s*(\{[^}]+\})/);
     if (soporteMatch || pideSoporte) {
       try {
-        // Guardar en Firestore
         await adminDb.collection('empresas').doc(empresaId).collection('soportes').add({
           nombreCliente: nombreCliente || `WhatsApp ${numeroCliente}`,
-          telefono:      numeroCliente,
-          mensaje:       texto,
-          estado:        'pendiente',
-          creadoEn:      FieldValue.serverTimestamp(),
+          telefono: numeroCliente, mensaje: texto, estado: 'pendiente',
+          creadoEn: FieldValue.serverTimestamp(),
         });
-
-        // Email al negocio — GRATIS, sin costo adicional
         await enviarEmailSoporte({
-          emailNegocio,
-          nombreNegocio: nombreEmpresa,
+          emailNegocio, nombreNegocio: nombreEmpresa,
           nombreCliente: nombreCliente || `+${numeroCliente}`,
-          telefono:      numeroCliente,
-          mensaje:       texto,
-          empresaId,
+          telefono: numeroCliente, mensaje: texto, empresaId,
         });
       } catch {}
     }
 
-    // 14. Cita detectada → Firestore + email al negocio
+    // 14. Cita detectada → Firestore + email
     const citaMatch = respuesta.match(/CITA_DETECTADA:\s*(\{[^}]+\})/);
     if (citaMatch) {
       try {
         const citaData   = JSON.parse(citaMatch[1]);
         const nombreCita = citaData.nombre || nombreCliente || `WhatsApp ${numeroCliente}`;
-
         if (citaData.nombre && (!nombreCliente || nombreCliente.startsWith('WhatsApp ')))
           await contactosRef.doc(contactoId).update({ nombre: citaData.nombre });
-
-        // Guardar cita
         await adminDb.collection('empresas').doc(empresaId).collection('citas').add({
-          nombreCliente: nombreCita,
-          telefono:      numeroCliente,
-          servicio:      citaData.servicio || 'Consulta',
-          fechaHora:     parsearFechaHora(citaData.fecha, citaData.hora),
-          fecha:         citaData.fecha || '',
-          hora:          citaData.hora  || '',
-          estado:        'pendiente',   // pendiente hasta que el negocio confirme
-          canal:         'whatsapp',
-          fuente:        'whatsapp-bot',
-          notas:         'Agendado por WasapBot',
-          contactoId,
-          creadoEn:      FieldValue.serverTimestamp(),
+          nombreCliente: nombreCita, telefono: numeroCliente,
+          servicio: citaData.servicio || 'Consulta',
+          fechaHora: parsearFechaHora(citaData.fecha, citaData.hora),
+          fecha: citaData.fecha || '', hora: citaData.hora || '',
+          estado: 'pendiente', canal: 'whatsapp', fuente: 'whatsapp-bot',
+          notas: 'Agendado por WasapBot', contactoId,
+          creadoEn: FieldValue.serverTimestamp(),
         });
-
-        // Email al negocio — notificacion inmediata GRATIS
         await enviarEmailCita({
-          emailNegocio,
-          nombreNegocio: nombreEmpresa,
-          nombreCliente: nombreCita,
-          telefono:      numeroCliente,
-          servicio:      citaData.servicio || 'Consulta',
-          fecha:         citaData.fecha || '?',
-          hora:          citaData.hora  || '?',
-          empresaId,
+          emailNegocio, nombreNegocio: nombreEmpresa,
+          nombreCliente: nombreCita, telefono: numeroCliente,
+          servicio: citaData.servicio || 'Consulta',
+          fecha: citaData.fecha || '?', hora: citaData.hora || '?', empresaId,
         });
-
-      } catch (eCita) {
-        console.error('Error guardando cita:', eCita.message);
-      }
+      } catch (eCita) { console.error('Error guardando cita:', eCita.message); }
     }
 
     // 15. Conversacion
@@ -297,7 +268,23 @@ REGLAS GENERALES:
     await convRef.doc(convKey).collection('mensajes').add({ rol:'cliente', texto, creadoEn: FieldValue.serverTimestamp() });
     await convRef.doc(convKey).collection('mensajes').add({ rol:'agente', texto: respuestaLimpia, creadoEn: FieldValue.serverTimestamp() });
 
-    return res.json({ respuesta: respuestaLimpia });
+    // ── 16. IMAGENES: si el cliente pide ver fotos/menu/catalogo ──────────────
+    // Buscar servicios que tengan foto cargada en Cloudinary
+    let imagenes = [];
+    const quiereFotos = pideFotos(texto);
+
+    if (quiereFotos && serviciosConFoto.length > 0) {
+      // Tomar máximo 6 items con foto para no saturar el chat
+      imagenes = serviciosConFoto
+        .filter(s => s.foto && s.foto.startsWith('http'))
+        .slice(0, 6)
+        .map(s => ({
+          url:     s.foto,
+          caption: `*${s.nombre}*${s.precio ? `\n💰 $${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')} COP` : ''}${s.descripcion ? `\n${s.descripcion}` : ''}`,
+        }));
+    }
+
+    return res.json({ respuesta: respuestaLimpia, imagenes });
 
   } catch (err) {
     console.error('Error whatsapp-baileys:', err);
@@ -327,7 +314,7 @@ function parsearFechaHora(fecha, hora) {
       const mes  = parseInt(partes[2]) - 1;
       const anio = partes[3] ? parseInt(partes[3]) : ahora.getFullYear();
       const hp   = hora?.match(/(\d{1,2}):?(\d{2})?/);
-      return new Date(anio < 100 ? 2000 + anio : anio, mes, dia,
+      return new Date(anio < 100 ? 2000+anio : anio, mes, dia,
         hp ? parseInt(hp[1]) : 9, hp?.[2] ? parseInt(hp[2]) : 0);
     }
   } catch {}
