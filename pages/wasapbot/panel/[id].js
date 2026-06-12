@@ -6,7 +6,6 @@ import { useRouter } from 'next/router';
 import { getConfigIndustria } from '../../../lib/wasapbotConfig';
 import dynamic from 'next/dynamic';
 
-// Carga dinamica para evitar SSR issues con el boton flotante
 const AsesorWasapbot = dynamic(() => import('../../../components/AsesorWasapbot'), { ssr: false });
 
 const F  = "'Inter', system-ui, sans-serif";
@@ -86,11 +85,7 @@ export default function WasapBotPanel() {
       if (!r.ok) return;
       const d = await r.json();
       if (d.ok && d.citas) {
-        const sorted = [...d.citas].sort((a,b) => {
-          const ta = a.fechaHora?._seconds || 0;
-          const tb = b.fechaHora?._seconds || 0;
-          return tb - ta;
-        });
+        const sorted = [...d.citas].sort((a,b) => (b.fechaHora?._seconds||0)-(a.fechaHora?._seconds||0));
         setCitas(sorted);
       }
     } catch {}
@@ -100,12 +95,11 @@ export default function WasapBotPanel() {
     setUpdatingCita(citaId);
     try {
       const r = await fetch('/api/wasapbot-panel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'actualizarCita', empresaId: id, citaId, estado: nuevoEstado }),
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ accion:'actualizarCita', empresaId:id, citaId, estado:nuevoEstado }),
       });
       const d = await r.json();
-      if (d.ok) setCitas(prev => prev.map(c => c.id === citaId ? { ...c, estado: nuevoEstado } : c));
+      if (d.ok) setCitas(prev => prev.map(c => c.id===citaId ? {...c,estado:nuevoEstado} : c));
     } catch {}
     setUpdatingCita(null);
   };
@@ -126,102 +120,98 @@ export default function WasapBotPanel() {
   const reconectar = async () => {
     setReconect(true); setQrBase64('');
     try {
-      await fetch(`${WA}/sesion/iniciar`, {
-        method:'POST', headers:{'Content-Type':'application/json','x-server-secret':SECRET},
-        body: JSON.stringify({ empresaId:id }),
-      });
-      let n = 0;
-      const poll = async () => {
-        if (n++>20) { setReconect(false); return; }
-        const r = await fetch(`${WA}/sesion/${id}/qr`, { headers:{'x-server-secret':SECRET} }).catch(()=>null);
-        const d = r ? await r.json().catch(()=>({})) : {};
-        if (d.qrBase64) { setQrBase64(d.qrBase64); setReconect(false); setTab('qr'); return; }
-        if (d.status==='connected') { setStatus('connected'); setQrBase64(''); setReconect(false); setTab('inicio'); return; }
-        setTimeout(poll, 2000);
+      await fetch(`${WA}/sesion/iniciar`,{method:'POST',headers:{'Content-Type':'application/json','x-server-secret':SECRET},body:JSON.stringify({empresaId:id})});
+      let n=0;
+      const poll=async()=>{
+        if(n++>20){setReconect(false);return;}
+        const r=await fetch(`${WA}/sesion/${id}/qr`,{headers:{'x-server-secret':SECRET}}).catch(()=>null);
+        const d=r?await r.json().catch(()=>({})):{};
+        if(d.qrBase64){setQrBase64(d.qrBase64);setReconect(false);setTab('qr');return;}
+        if(d.status==='connected'){setStatus('connected');setQrBase64('');setReconect(false);setTab('inicio');return;}
+        setTimeout(poll,2000);
       };
       poll();
-    } catch { setReconect(false); }
+    } catch{setReconect(false);}
   };
 
   const guardarCatalogo = async () => {
     setSavingCat(true); setSaveMsg('');
     try {
-      const r = await fetch('/api/wasapbot-servicios', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ empresaId:id, servicios:itemsEdit }),
-      });
+      const r = await fetch('/api/wasapbot-servicios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({empresaId:id,servicios:itemsEdit})});
       const d = await r.json();
-      if (d.ok) { setSaveMsg('✓ Catálogo guardado'); setConocimiento(prev=>({...prev,servicios:itemsEdit})); setEditando(false); }
-      else       { setSaveMsg('Error al guardar: '+(d.error||'')); }
-    } catch { setSaveMsg('Error de conexión'); }
+      if(d.ok){setSaveMsg('✓ Catálogo guardado');setConocimiento(prev=>({...prev,servicios:itemsEdit}));setEditando(false);}
+      else setSaveMsg('Error: '+(d.error||''));
+    } catch{setSaveMsg('Error de conexión');}
     setSavingCat(false);
-    setTimeout(()=>setSaveMsg(''), 3000);
+    setTimeout(()=>setSaveMsg(''),3000);
   };
 
   const toDate = ts => {
-    if (!ts) return null;
-    if (ts._seconds) return new Date(ts._seconds*1000);
-    if (ts.toDate)   return ts.toDate();
+    if(!ts)return null;
+    if(ts._seconds)return new Date(ts._seconds*1000);
+    if(ts.toDate)return ts.toDate();
     return null;
   };
-
-  const fmtFecha = (ts) => {
-    const d = toDate(ts);
-    if (!d) return '—';
+  const fmtFecha = ts => {
+    const d=toDate(ts);
+    if(!d)return '—';
     return d.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
   };
 
-  if (loadError) return (
+  if(loadError)return(
     <div style={{minHeight:'100vh',background:'#06090D',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}}>
       <div style={{fontSize:48,marginBottom:16}}>⚠️</div>
       <div style={{fontFamily:F,fontSize:16,fontWeight:700,color:'#EF4444',marginBottom:8}}>No se pudo cargar el panel</div>
       <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.4)',textAlign:'center',maxWidth:380,marginBottom:24}}>{loadError}</div>
-      <button onClick={()=>{setLoadError('');cargarDatos();}}
-        style={{background:'#25D366',color:'#fff',border:'none',borderRadius:10,padding:'10px 24px',fontFamily:F,fontSize:14,fontWeight:700,cursor:'pointer'}}>
-        Reintentar
-      </button>
+      <button onClick={()=>{setLoadError('');cargarDatos();}} style={{background:'#25D366',color:'#fff',border:'none',borderRadius:10,padding:'10px 24px',fontFamily:F,fontSize:14,fontWeight:700,cursor:'pointer'}}>Reintentar</button>
     </div>
   );
 
-  if (!empresa) return (
+  if(!empresa)return(
     <div style={{minHeight:'100vh',background:'#06090D',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div style={{width:36,height:36,border:'3px solid rgba(37,211,102,0.2)',borderTop:'3px solid #25D366',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
-  const plan      = PLANES[empresa.planWasapbot||empresa.plan] || PLANES.wasapbot;
+  const plan      = PLANES[empresa.planWasapbot||empresa.plan]||PLANES.wasapbot;
   const pctTokens = Math.min(Math.round((stats.tokensUsados/plan.tokens)*100),100);
   const pctConvs  = Math.min(Math.round((stats.total/plan.convs)*100),100);
   const connected = status==='connected';
   const cfg       = getConfigIndustria(empresa.industria||'otro');
   const servicios = conocimiento?.servicios||[];
 
-  const citasFiltradas = citasFiltro==='todos' ? citas : citas.filter(c=>c.estado===citasFiltro);
-  const citasHoy = citas.filter(c => {
-    const d = toDate(c.fechaHora||c.creadoEn);
-    if (!d) return false;
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
-    return d >= hoy;
+  const citasFiltradas = citasFiltro==='todos'?citas:citas.filter(c=>c.estado===citasFiltro);
+  const citasHoy = citas.filter(c=>{
+    const d=toDate(c.fechaHora||c.creadoEn);
+    if(!d)return false;
+    const hoy=new Date();hoy.setHours(0,0,0,0);
+    return d>=hoy;
   }).length;
 
-  const CARD = { background:'#0C0F14', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:20 };
-  const INP  = { width:'100%', background:'#06090D', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, padding:'8px 11px', color:'#EFF4FF', fontFamily:F, fontSize:13, outline:'none', boxSizing:'border-box' };
+  const CARD={background:'#0C0F14',border:'1px solid rgba(255,255,255,0.07)',borderRadius:14,padding:20};
+  const INP ={width:'100%',background:'#06090D',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'8px 11px',color:'#EFF4FF',fontFamily:F,fontSize:13,outline:'none',boxSizing:'border-box'};
 
-  const TABS = [
-    { key:'inicio',   label:'Inicio',        icon:'◉'  },
-    { key:'citas',    label:'Citas',          icon:'📅', badge: citasHoy > 0 ? citasHoy : null },
-    { key:'convs',    label:'Conversaciones', icon:'💬' },
-    { key:'catalogo', label:'Mi catálogo',    icon:'📋' },
-    { key:'config',   label:'Configuración',  icon:'⚙️' },
+  const TABS=[
+    {key:'inicio',   label:'Inicio',        icon:'◉'},
+    {key:'citas',    label:'Citas',          icon:'📅', badge:citasHoy>0?citasHoy:null},
+    {key:'convs',    label:'Conversaciones', icon:'💬'},
+    {key:'catalogo', label:'Catálogo base',  icon:'📋'},
+    {key:'config',   label:'Configuración',  icon:'⚙️'},
   ];
 
-  return (
+  // Links externos (páginas separadas)
+  const LINKS=[
+    {href:`/wasapbot/panel/inventario/${id}`, label:'Inventario / Menú día', icon:'📦', color:'#60A5FA', bg:'rgba(96,165,250,0.08)', border:'rgba(96,165,250,0.2)'},
+    {href:`/wasapbot/panel/pedidos/${id}`,    label:'Pedidos del día',        icon:'🛒', color:'#25D366', bg:'rgba(37,211,102,0.06)', border:'rgba(37,211,102,0.15)'},
+  ];
+
+  return(
     <>
       <Head><title>{empresa.nombreEmpresa} — WasapBot Panel</title></Head>
       <style dangerouslySetInnerHTML={{__html:`
         body{margin:0;background:#06090D;color:#EFF4FF;font-family:${F};overflow-x:hidden}
-        *{box-sizing:border-box} a{text-decoration:none;color:inherit}
+        *{box-sizing:border-box}a{text-decoration:none;color:inherit}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes pulse-g{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)}70%{box-shadow:0 0 0 10px rgba(37,211,102,0)}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -239,6 +229,8 @@ export default function WasapBotPanel() {
         .filtro-pill:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.65)}
         .filtro-pill.on{background:rgba(37,211,102,0.1);border-color:rgba(37,211,102,0.35);color:#6EF0A0}
         select.cat-inp option{background:#0E1118}
+        .ext-link{display:flex;align-items:center;gap:8px;border-radius:8px;padding:8px 14px;font-family:${F};font-size:13px;font-weight:600;transition:all 0.15s;text-decoration:none}
+        .ext-link:hover{opacity:0.8;transform:translateX(2px)}
       `}}/>
 
       {/* NAV */}
@@ -259,8 +251,10 @@ export default function WasapBotPanel() {
 
       <div style={{display:'flex',minHeight:'calc(100vh - 58px)'}}>
 
-        {/* SIDEBAR */}
-        <div style={{width:200,borderRight:'1px solid rgba(255,255,255,0.05)',padding:'20px 10px',flexShrink:0,display:'flex',flexDirection:'column',gap:3}}>
+        {/* ═══ SIDEBAR ═══ */}
+        <div style={{width:210,borderRight:'1px solid rgba(255,255,255,0.05)',padding:'16px 10px',flexShrink:0,display:'flex',flexDirection:'column',gap:2}}>
+
+          {/* Tabs de navegación */}
           {TABS.map(t=>(
             <button key={t.key} className={`wb-tab${tab===t.key?' on':''}`} onClick={()=>setTab(t.key)}>
               <span style={{fontSize:14}}>{t.icon}</span>
@@ -268,20 +262,35 @@ export default function WasapBotPanel() {
               {t.badge&&<span style={{background:'#25D366',color:'#000',borderRadius:99,padding:'1px 7px',fontSize:10,fontWeight:800,minWidth:18,textAlign:'center'}}>{t.badge}</span>}
             </button>
           ))}
+
+          {/* Separador */}
+          <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'8px 4px'}}/>
+
+          {/* Links a páginas externas — Inventario y Pedidos */}
+          {LINKS.map(l=>(
+            <Link key={l.href} href={l.href} className="ext-link"
+              style={{background:l.bg,border:`1px solid ${l.border}`,color:l.color}}>
+              <span style={{fontSize:14}}>{l.icon}</span>
+              <span style={{flex:1}}>{l.label}</span>
+              <span style={{fontSize:10,opacity:0.6}}>↗</span>
+            </Link>
+          ))}
+
           <div style={{flex:1}}/>
-          <div style={{padding:'12px',background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.12)',borderRadius:10,marginTop:'auto'}}>
+
+          {/* Card del plan */}
+          <div style={{padding:'12px',background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.12)',borderRadius:10,marginTop:8}}>
             <div style={{fontFamily:F,fontSize:10,color:'#4B6080',marginBottom:4}}>Plan actual</div>
             <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:plan.color,marginBottom:2}}>{plan.nombre}</div>
             <div style={{fontFamily:F,fontSize:11,color:'#4B6080',marginBottom:10}}>{plan.precio}/mes</div>
-            <a href="https://wa.me/573105056616?text=Quiero mejorar mi plan WasapBot"
-              target="_blank" rel="noreferrer"
+            <a href="https://wa.me/573105056616?text=Quiero mejorar mi plan WasapBot" target="_blank" rel="noreferrer"
               style={{display:'block',background:'#25D366',color:'#fff',borderRadius:8,padding:'7px',fontFamily:F,fontSize:11,fontWeight:700,textAlign:'center'}}>
               Mejorar plan
             </a>
           </div>
         </div>
 
-        {/* CONTENIDO */}
+        {/* ═══ CONTENIDO ═══ */}
         <div style={{flex:1,padding:'28px 32px',overflowY:'auto'}}>
 
           {/* ══ INICIO ══ */}
@@ -296,12 +305,31 @@ export default function WasapBotPanel() {
                     <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EF4444',marginBottom:3}}>Bot desconectado</div>
                     <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.35)'}}>Tu WhatsApp no está respondiendo. Reconecta el bot.</div>
                   </div>
-                  <button onClick={reconectar} disabled={reconect}
-                    style={{background:'#EF4444',color:'#fff',border:'none',borderRadius:8,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',opacity:reconect?0.7:1}}>
+                  <button onClick={reconectar} disabled={reconect} style={{background:'#EF4444',color:'#fff',border:'none',borderRadius:8,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',opacity:reconect?0.7:1}}>
                     {reconect?'Conectando...':'Reconectar bot'}
                   </button>
                 </div>
               )}
+
+              {/* Accesos rápidos a Inventario y Pedidos */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
+                <Link href={`/wasapbot/panel/inventario/${id}`}
+                  style={{background:'rgba(96,165,250,0.06)',border:'1px solid rgba(96,165,250,0.2)',borderRadius:14,padding:'18px 20px',display:'flex',alignItems:'center',gap:14,textDecoration:'none',transition:'all 0.15s'}}>
+                  <span style={{fontSize:28}}>📦</span>
+                  <div>
+                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#60A5FA',marginBottom:3}}>Inventario / Menú del día</div>
+                    <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.3)'}}>Stock, porciones y plantillas</div>
+                  </div>
+                </Link>
+                <Link href={`/wasapbot/panel/pedidos/${id}`}
+                  style={{background:'rgba(37,211,102,0.06)',border:'1px solid rgba(37,211,102,0.2)',borderRadius:14,padding:'18px 20px',display:'flex',alignItems:'center',gap:14,textDecoration:'none',transition:'all 0.15s'}}>
+                  <span style={{fontSize:28}}>🛒</span>
+                  <div>
+                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#25D366',marginBottom:3}}>Pedidos del día</div>
+                    <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.3)'}}>Ver y gestionar pedidos</div>
+                  </div>
+                </Link>
+              </div>
 
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:20}}>
                 {[
@@ -325,7 +353,7 @@ export default function WasapBotPanel() {
                     <button onClick={()=>setTab('citas')} style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'#25D366',cursor:'pointer'}}>Ver todas →</button>
                   </div>
                   {citas.filter(c=>c.estado!=='cancelada').slice(0,3).map((c,i)=>{
-                    const est = ESTADO_CITA[c.estado]||ESTADO_CITA.pendiente;
+                    const est=ESTADO_CITA[c.estado]||ESTADO_CITA.pendiente;
                     return(
                       <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<2?'1px solid rgba(255,255,255,0.05)':'none'}}>
                         <div style={{width:40,height:40,borderRadius:10,background:'rgba(37,211,102,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>📅</div>
@@ -368,11 +396,10 @@ export default function WasapBotPanel() {
               <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
                 <div>
                   <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:4}}>Citas agendadas</h2>
-                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>El bot agenda aquí automáticamente. Confirma o cancela cada cita.</p>
+                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>El bot agenda aquí automáticamente.</p>
                 </div>
                 <button onClick={cargarCitas} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:9,padding:'8px 16px',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.5)',cursor:'pointer'}}>↻ Actualizar</button>
               </div>
-
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
                 {Object.entries(ESTADO_CITA).map(([key,est])=>(
                   <div key={key} style={{background:est.bg,border:`1px solid ${est.border}`,borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
@@ -381,7 +408,6 @@ export default function WasapBotPanel() {
                   </div>
                 ))}
               </div>
-
               <div style={{display:'flex',gap:6,marginBottom:18,flexWrap:'wrap'}}>
                 {[{key:'todos',label:'Todas'},{key:'pendiente',label:'Pendientes'},{key:'confirmada',label:'Confirmadas'},{key:'cancelada',label:'Canceladas'},{key:'completada',label:'Completadas'}].map(f=>(
                   <button key={f.key} className={`filtro-pill${citasFiltro===f.key?' on':''}`} onClick={()=>setCitasFiltro(f.key)}>
@@ -389,16 +415,10 @@ export default function WasapBotPanel() {
                   </button>
                 ))}
               </div>
-
               {citasFiltradas.length===0?(
                 <div style={{...CARD,textAlign:'center',padding:'60px 20px'}}>
                   <div style={{fontSize:48,marginBottom:12}}>📅</div>
-                  <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:'#EFF4FF',marginBottom:8}}>
-                    {citasFiltro==='todos'?'Sin citas registradas aún':`Sin citas ${ESTADO_CITA[citasFiltro]?.label.toLowerCase()||citasFiltro}`}
-                  </div>
-                  <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.3)',maxWidth:360,margin:'0 auto'}}>
-                    {citasFiltro==='todos'?'Cuando un cliente agende una cita por WhatsApp, aparecerá aquí y recibirás un email.':'No hay citas con este estado.'}
-                  </div>
+                  <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:'#EFF4FF',marginBottom:8}}>{citasFiltro==='todos'?'Sin citas aún':`Sin citas ${ESTADO_CITA[citasFiltro]?.label.toLowerCase()||citasFiltro}`}</div>
                 </div>
               ):(
                 <div>
@@ -410,9 +430,7 @@ export default function WasapBotPanel() {
                       <div key={cita.id||i} className="cita-row">
                         <div style={{display:'flex',alignItems:'flex-start',gap:14,flexWrap:'wrap'}}>
                           <div style={{width:52,height:58,borderRadius:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                            <div style={{fontFamily:F,fontSize:9,fontWeight:700,color:'#4B6080',textTransform:'uppercase',letterSpacing:0.5}}>
-                              {cita.fecha?.split('/')[1]?(['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(cita.fecha.split('/')[1])]||''):''}
-                            </div>
+                            <div style={{fontFamily:F,fontSize:9,fontWeight:700,color:'#4B6080',textTransform:'uppercase',letterSpacing:0.5}}>{cita.fecha?.split('/')[1]?(['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(cita.fecha.split('/')[1])]||''):''}</div>
                             <div style={{fontFamily:FA,fontSize:22,color:'#EFF4FF',lineHeight:1}}>{cita.fecha?.split('/')[0]||'?'}</div>
                             <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366'}}>{cita.hora||'?'}</div>
                           </div>
@@ -422,28 +440,12 @@ export default function WasapBotPanel() {
                               <span style={{background:est.bg,color:est.color,border:`1px solid ${est.border}`,borderRadius:99,padding:'2px 10px',fontFamily:F,fontSize:10,fontWeight:700}}>{est.label}</span>
                             </div>
                             <div style={{fontFamily:F,fontSize:13,color:'#8A9BB5',marginBottom:4}}>📋 {cita.servicio||'Consulta'}</div>
-                            <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
-                              {cita.telefono&&(
-                                <a href={`https://wa.me/${cita.telefono}`} target="_blank" rel="noreferrer"
-                                  style={{fontFamily:F,fontSize:12,color:'#25D366',display:'flex',alignItems:'center',gap:4}}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.26 2 2 6.26 2 11.5c0 1.69.44 3.28 1.2 4.66L2 22l5.97-1.17C9.24 21.57 10.35 22 11.5 22 16.74 22 21 17.74 21 12.5 21 7.26 16.74 3 11.5 3z" fill="none" stroke="#25D366" strokeWidth="1.5"/></svg>
-                                  +{cita.telefono}
-                                </a>
-                              )}
-                              <span style={{fontFamily:F,fontSize:11,color:'#374151'}}>Agendado: {fmtFecha(cita.creadoEn)}</span>
-                            </div>
+                            {cita.telefono&&<a href={`https://wa.me/${cita.telefono}`} target="_blank" rel="noreferrer" style={{fontFamily:F,fontSize:12,color:'#25D366'}}>+{cita.telefono}</a>}
                           </div>
-                          <div style={{display:'flex',gap:7,flexShrink:0,alignItems:'flex-start',flexWrap:'wrap'}}>
-                            {esPend&&<>
-                              <button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'confirmada')} style={{background:'rgba(37,211,102,0.1)',color:'#25D366',border:'1px solid rgba(37,211,102,0.3)'}}>{updating?'...':'✓ Confirmar'}</button>
-                              <button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'cancelada')} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)'}}>{updating?'...':'✕ Cancelar'}</button>
-                            </>}
-                            {esConf&&<>
-                              <button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'completada')} style={{background:'rgba(96,165,250,0.1)',color:'#60A5FA',border:'1px solid rgba(96,165,250,0.25)'}}>{updating?'...':'✓ Completar'}</button>
-                              <button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'cancelada')} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)'}}>{updating?'...':'Cancelar'}</button>
-                            </>}
-                            {(cita.estado==='cancelada'||cita.estado==='completada')&&
-                              <button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'pendiente')} style={{background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.4)',border:'1px solid rgba(255,255,255,0.08)'}}>{updating?'...':'↩ Reabrir'}</button>}
+                          <div style={{display:'flex',gap:7,flexShrink:0,flexWrap:'wrap'}}>
+                            {esPend&&<><button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'confirmada')} style={{background:'rgba(37,211,102,0.1)',color:'#25D366',border:'1px solid rgba(37,211,102,0.3)'}}>{updating?'...':'✓ Confirmar'}</button><button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'cancelada')} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)'}}>{updating?'...':'✕'}</button></>}
+                            {esConf&&<><button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'completada')} style={{background:'rgba(96,165,250,0.1)',color:'#60A5FA',border:'1px solid rgba(96,165,250,0.25)'}}>{updating?'...':'✓ Completar'}</button><button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'cancelada')} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)'}}>{updating?'...':'Cancelar'}</button></>}
+                            {(cita.estado==='cancelada'||cita.estado==='completada')&&<button className="btn-est" disabled={updating} onClick={()=>actualizarEstadoCita(cita.id,'pendiente')} style={{background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.4)',border:'1px solid rgba(255,255,255,0.08)'}}>{updating?'...':'↩ Reabrir'}</button>}
                           </div>
                         </div>
                       </div>
@@ -451,16 +453,6 @@ export default function WasapBotPanel() {
                   })}
                 </div>
               )}
-
-              <div style={{background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.12)',borderRadius:12,padding:'14px 18px',marginTop:20,display:'flex',gap:12,alignItems:'flex-start'}}>
-                <span style={{fontSize:18,flexShrink:0}}>💡</span>
-                <div>
-                  <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:'#25D366',marginBottom:4}}>¿Cómo funciona?</div>
-                  <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>
-                    El bot agenda aquí automáticamente y te envía email a <strong style={{color:'rgba(255,255,255,0.5)'}}>{empresa.email}</strong>. Confirma cada cita para mantener tu agenda organizada.
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -471,9 +463,7 @@ export default function WasapBotPanel() {
               <div style={CARD}>
                 {convs.map((c,i)=>(
                   <div key={i} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 0',borderBottom:i<convs.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
-                    <div style={{width:40,height:40,borderRadius:'50%',background:'rgba(37,211,102,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:14,fontWeight:700,color:'#25D366',flexShrink:0}}>
-                      {(c.nombreCliente||'?')[0].toUpperCase()}
-                    </div>
+                    <div style={{width:40,height:40,borderRadius:'50%',background:'rgba(37,211,102,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:14,fontWeight:700,color:'#25D366',flexShrink:0}}>{(c.nombreCliente||'?')[0].toUpperCase()}</div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:'#EFF4FF'}}>{c.nombreCliente||'Cliente sin nombre'}</div>
                       <div style={{fontFamily:F,fontSize:11,color:'#4B6080'}}>+{c.telefono||''}</div>
@@ -490,17 +480,18 @@ export default function WasapBotPanel() {
             </div>
           )}
 
-          {/* ══ CATÁLOGO ══ */}
+          {/* ══ CATÁLOGO BASE ══ */}
           {tab==='catalogo'&&(
             <div>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
+              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:12}}>
                 <div>
-                  <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:4}}>{cfg.labelCatalogo}</h2>
-                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>Lo que tu bot le muestra a tus clientes</p>
+                  <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:4}}>{cfg.labelCatalogo} base</h2>
+                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>
+                    Define tus platos/productos aquí. Luego usa <strong style={{color:'#60A5FA'}}>Inventario / Menú del día</strong> para gestionar el stock y las porciones diarias.
+                  </p>
                 </div>
                 {!editando?(
-                  <button onClick={()=>{setItemsEdit(servicios.map(s=>({...s})));setEditando(true);}}
-                    style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>✏️ Editar catálogo</button>
+                  <button onClick={()=>{setItemsEdit(servicios.map(s=>({...s})));setEditando(true);}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>✏️ Editar</button>
                 ):(
                   <div style={{display:'flex',gap:8}}>
                     <button onClick={()=>setEditando(false)} style={{background:'rgba(255,255,255,0.04)',color:'#6B7A99',border:'1px solid rgba(255,255,255,0.08)',borderRadius:9,padding:'9px 16px',fontFamily:F,fontSize:13,cursor:'pointer'}}>Cancelar</button>
@@ -508,32 +499,41 @@ export default function WasapBotPanel() {
                   </div>
                 )}
               </div>
+
+              {/* Tip */}
+              <div style={{background:'rgba(96,165,250,0.06)',border:'1px solid rgba(96,165,250,0.2)',borderRadius:12,padding:'12px 16px',marginBottom:18,display:'flex',gap:10,alignItems:'flex-start'}}>
+                <span style={{fontSize:16,flexShrink:0}}>💡</span>
+                <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.45)',lineHeight:1.6}}>
+                  Este es el catálogo base (nombres, precios, fotos). Para gestionar el <strong style={{color:'#60A5FA'}}>stock del día</strong>, ir a <Link href={`/wasapbot/panel/inventario/${id}`} style={{color:'#60A5FA',fontWeight:700}}>Inventario / Menú del día →</Link>
+                </div>
+              </div>
+
               {saveMsg&&<div style={{background:saveMsg.startsWith('✓')?'rgba(37,211,102,0.08)':'rgba(239,68,68,0.08)',border:`1px solid ${saveMsg.startsWith('✓')?'rgba(37,211,102,0.25)':'rgba(239,68,68,0.25)'}`,borderRadius:9,padding:'10px 14px',marginBottom:16,fontFamily:F,fontSize:13,color:saveMsg.startsWith('✓')?'#25D366':'#EF4444'}}>{saveMsg}</div>}
+
               {!editando&&(
                 servicios.length===0?(
                   <div style={{...CARD,textAlign:'center',padding:'48px 20px'}}>
                     <div style={{fontSize:40,marginBottom:12}}>📋</div>
                     <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:'#EFF4FF',marginBottom:8}}>Sin items en el catálogo</div>
-                    <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.3)',marginBottom:20}}>Agrega tus {cfg.labelCatalogo.toLowerCase()} para que el bot los pueda mostrar.</div>
-                    <button onClick={()=>{setItemsEdit([{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]);setEditando(true);}}
-                      style={{background:'#25D366',color:'#fff',border:'none',borderRadius:9,padding:'10px 24px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer'}}>Agregar primer item</button>
+                    <button onClick={()=>{setItemsEdit([{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]);setEditando(true);}} style={{background:'#25D366',color:'#fff',border:'none',borderRadius:9,padding:'10px 24px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer'}}>Agregar primer item</button>
                   </div>
                 ):(
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:14}}>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:14}}>
                     {servicios.map((s,i)=>(
                       <div key={i} style={{...CARD,padding:0,overflow:'hidden'}}>
-                        {s.foto?<img src={s.foto} alt={s.nombre} style={{width:'100%',height:130,objectFit:'cover',display:'block'}}/>:<div style={{width:'100%',height:70,background:'rgba(37,211,102,0.05)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>📌</div>}
-                        <div style={{padding:14}}>
-                          {s.categoria&&<span style={{background:'rgba(255,255,255,0.05)',color:'#6B7A99',borderRadius:100,padding:'2px 8px',fontFamily:F,fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,display:'inline-block',marginBottom:6}}>{s.categoria}</span>}
-                          <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>{s.nombre||'Sin nombre'}</div>
-                          {s.descripcion&&<div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:8,lineHeight:1.5}}>{s.descripcion}</div>}
-                          {s.precio&&<div style={{fontFamily:FA,fontSize:18,color:'#25D366'}}>${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')||s.precio}</div>}
+                        {s.foto?<img src={s.foto} alt={s.nombre} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>:<div style={{width:'100%',height:60,background:'rgba(37,211,102,0.05)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>📌</div>}
+                        <div style={{padding:12}}>
+                          {s.categoria&&<span style={{background:'rgba(255,255,255,0.05)',color:'#6B7A99',borderRadius:100,padding:'2px 8px',fontFamily:F,fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,display:'inline-block',marginBottom:5}}>{s.categoria}</span>}
+                          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>{s.nombre||'Sin nombre'}</div>
+                          {s.descripcion&&<div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:6,lineHeight:1.4}}>{s.descripcion}</div>}
+                          {s.precio&&<div style={{fontFamily:FA,fontSize:16,color:'#25D366'}}>${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')||s.precio}</div>}
                         </div>
                       </div>
                     ))}
                   </div>
                 )
               )}
+
               {editando&&(
                 <div>
                   {itemsEdit.map((item,idx)=>(
@@ -567,8 +567,7 @@ export default function WasapBotPanel() {
                       )}
                     </div>
                   ))}
-                  <button onClick={()=>setItemsEdit(prev=>[...prev,{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}])}
-                    style={{width:'100%',background:'none',border:'1px dashed rgba(255,255,255,0.1)',borderRadius:10,padding:'11px',fontFamily:F,fontSize:13,color:'#4B6080',cursor:'pointer',marginTop:4}}>
+                  <button onClick={()=>setItemsEdit(prev=>[...prev,{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}])} style={{width:'100%',background:'none',border:'1px dashed rgba(255,255,255,0.1)',borderRadius:10,padding:'11px',fontFamily:F,fontSize:13,color:'#4B6080',cursor:'pointer',marginTop:4}}>
                     + Agregar {cfg.labelItem.toLowerCase()}
                   </button>
                 </div>
@@ -590,8 +589,7 @@ export default function WasapBotPanel() {
               ):(
                 <div>
                   <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24}}>Genera un nuevo QR para reconectar tu número de WhatsApp.</p>
-                  <button onClick={reconectar} disabled={reconect}
-                    style={{background:'linear-gradient(135deg,#25D366,#1DA851)',color:'#fff',border:'none',borderRadius:12,padding:'14px 36px',fontFamily:F,fontSize:15,fontWeight:700,cursor:'pointer'}}>
+                  <button onClick={reconectar} disabled={reconect} style={{background:'linear-gradient(135deg,#25D366,#1DA851)',color:'#fff',border:'none',borderRadius:12,padding:'14px 36px',fontFamily:F,fontSize:15,fontWeight:700,cursor:'pointer'}}>
                     {reconect?'Generando QR...':'Generar QR'}
                   </button>
                 </div>
@@ -617,8 +615,7 @@ export default function WasapBotPanel() {
                     <div key={k}><span style={{color:'#4B6080'}}>{k}:</span> {v}</div>
                   ))}
                 </div>
-                <a href="https://wa.me/573105056616" target="_blank" rel="noreferrer"
-                  style={{display:'inline-block',marginTop:16,background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600}}>
+                <a href="https://wa.me/573105056616" target="_blank" rel="noreferrer" style={{display:'inline-block',marginTop:16,background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600}}>
                   Actualizar información con soporte
                 </a>
               </div>
@@ -628,7 +625,6 @@ export default function WasapBotPanel() {
         </div>
       </div>
 
-      {/* ── BOTÓN FLOTANTE ASESOR ── aparece en todas las vistas */}
       <AsesorWasapbot empresa={empresa} />
     </>
   );
