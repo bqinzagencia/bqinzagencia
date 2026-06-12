@@ -4,199 +4,181 @@ import { FieldValue } from 'firebase-admin/firestore';
 import OpenAI from 'openai';
 import { enviarEmailCita, enviarEmailSoporte } from '../../lib/emailWasapbot';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const SERVER_SECRET      = process.env.SERVER_SECRET      || 'agenciame2026secreto_nexoia';
-const SOPORTE_NUMERO     = process.env.SOPORTE_WHATSAPP   || '573105056616';
-const SOPORTE_EMPRESA_ID = process.env.SOPORTE_EMPRESA_ID || '';
-const historiales        = new Map();
+const openai         = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const SERVER_SECRET  = process.env.SERVER_SECRET     || 'agenciame2026secreto_nexoia';
+const SOPORTE_NUMERO = process.env.SOPORTE_WHATSAPP  || '573105056616';
+const historiales    = new Map();
 
-// Detecta si el cliente pide ver el menu / catalogo / productos con fotos
-function pideFotos(texto) {
-  return /menu|menú|carta|catalogo|catálogo|platos|productos|fotos|foto|ver|muestrame|muéstrame|tienes fotos|con foto/i.test(texto);
+// Solo dispara cuando el cliente pide explicitamente el catalogo/menu/fotos
+function pideCatalogo(texto) {
+  return /\b(menu|menú|carta|catalogo|catálogo|platos?|productos?|foto|fotos|muestrame|muéstrame|qué (tienen|tienes|hay)|qué (ofrecen|ofrece)|ver (el )?menu|ver (el )?catalogo)\b/i.test(texto);
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  const secret = req.headers['x-server-secret'];
-  if (secret !== SERVER_SECRET) return res.status(401).json({ error: 'No autorizado' });
+  if (req.headers['x-server-secret'] !== SERVER_SECRET)
+    return res.status(401).json({ error: 'No autorizado' });
 
   const { empresaId, numeroCliente, texto } = req.body;
   if (!empresaId || !numeroCliente || !texto)
-    return res.status(400).json({ error: 'Faltan campos requeridos' });
+    return res.status(400).json({ error: 'Faltan campos' });
 
   try {
-    // 1. Datos empresa
+    // ── 1. Empresa ───────────────────────────────────────────
     const empresaSnap = await adminDb.collection('empresas').doc(empresaId).get();
     if (!empresaSnap.exists) {
       historiales.delete(`${empresaId}_${numeroCliente}`);
-      return res.json({ respuesta: null });
+      return res.json({ respuesta: null, imagenes: [] });
     }
     const empresa       = empresaSnap.data();
     const nombreEmpresa = empresa.nombreEmpresa || 'nuestro negocio';
     const emailNegocio  = empresa.email || null;
 
-    // 2. Trial 1 hora
+    // ── 2. Trial 1 hora ──────────────────────────────────────
     const planActivo = empresa.planActivo === true && empresa.plan && empresa.plan !== 'wasapbot';
     if (!planActivo && empresa.producto === 'wasapbot') {
-      const ahora       = new Date();
-      const UNA_HORA_MS = 60 * 60 * 1000;
-      const creadoEn    = empresa.creadoEn?.toDate ? empresa.creadoEn.toDate()
-        : (empresa.creadoEn ? new Date(empresa.creadoEn) : null);
+      const creadoEn = empresa.creadoEn?.toDate
+        ? empresa.creadoEn.toDate()
+        : empresa.creadoEn ? new Date(empresa.creadoEn) : null;
       if (creadoEn) {
-        const msDesde = ahora - creadoEn;
-        if (msDesde > UNA_HORA_MS) {
+        const msDesde = Date.now() - creadoEn.getTime();
+        if (msDesde > 3600000)
           return res.json({
-            respuesta:
-              `Hola 👋 El periodo de prueba gratuito de *${nombreEmpresa}* (1 hora) ha finalizado.\n\n` +
-              `Para seguir recibiendo respuestas automáticas activa un plan en:\n` +
-              `👉 https://agenciame.com/wasapbot\n\n` +
-              `¿Dudas? Escríbenos al *+${SOPORTE_NUMERO}* 🟢`,
+            respuesta: `Hola 👋 El periodo de prueba de *${nombreEmpresa}* (1 hora) ha finalizado.\n\nActiva tu plan en:\n👉 https://agenciame.com/wasapbot\n\n¿Dudas? *+${SOPORTE_NUMERO}* 🟢`,
+            imagenes: [],
           });
-        }
-        const msRestantes = UNA_HORA_MS - msDesde;
-        if (msRestantes < 10 * 60 * 1000) {
-          const mins = Math.ceil(msRestantes / 60000);
-          req._trialAviso = `\n\n_⏳ Quedan ~${mins} min de tu prueba gratuita. Activa tu plan en agenciame.com/wasapbot_`;
-        }
+        const mins = Math.ceil((3600000 - msDesde) / 60000);
+        if (mins < 10) req._trialAviso = `\n\n_⏳ Quedan ~${mins} min de prueba gratuita._`;
       }
     }
 
-    // 3. Conocimiento
+    // ── 3. Conocimiento del negocio ──────────────────────────
     const conocimientoSnap = await adminDb
       .collection('empresas').doc(empresaId)
       .collection('config').doc('conocimiento').get();
     const conocimiento = conocimientoSnap.exists ? conocimientoSnap.data() : null;
 
-    // 4. Contacto
+    // Servicios/menú registrados en el panel
+    const todosLosItems  = (conocimiento?.servicios || []).filter(s => s.nombre?.trim());
+    const itemsConFoto   = todosLosItems.filter(s => s.foto?.startsWith('http'));
+    const hayMenu        = todosLosItems.length > 0;
+    const hayFotos       = itemsConFoto.length > 0;
+
+    // ── 4. Contacto ──────────────────────────────────────────
     const contactosRef  = adminDb.collection('empresas').doc(empresaId).collection('contactos');
-    const contactoQuery = await contactosRef.where('telefono', '==', numeroCliente).limit(1).get();
+    const cQuery        = await contactosRef.where('telefono','==',numeroCliente).limit(1).get();
     let contactoId, nombreCliente = null;
 
-    if (contactoQuery.empty) {
-      const doc = await contactosRef.add({
-        telefono: numeroCliente, nombre: `WhatsApp ${numeroCliente}`,
-        canal: 'whatsapp', fuente: 'whatsapp-bot', estado: 'nuevo',
-        creadoEn: FieldValue.serverTimestamp(),
-      });
+    if (cQuery.empty) {
+      const doc  = await contactosRef.add({ telefono:numeroCliente, nombre:`WhatsApp ${numeroCliente}`, canal:'whatsapp', fuente:'whatsapp-bot', estado:'nuevo', creadoEn:FieldValue.serverTimestamp() });
       contactoId = doc.id;
     } else {
-      const docSnap = contactoQuery.docs[0];
-      contactoId    = docSnap.id;
-      nombreCliente = docSnap.data().nombre;
-      if (!nombreCliente || nombreCliente.startsWith('WhatsApp ') || nombreCliente === numeroCliente)
-        nombreCliente = null;
+      const snap     = cQuery.docs[0];
+      contactoId     = snap.id;
+      nombreCliente  = snap.data().nombre;
+      if (!nombreCliente || nombreCliente.startsWith('WhatsApp ')) nombreCliente = null;
     }
 
-    // 5. Historial
-    const historialKey = `${empresaId}_${numeroCliente}`;
-    if (!historiales.has(historialKey)) historiales.set(historialKey, []);
-    const historial = historiales.get(historialKey);
-    if (historial.length > 20) historial.splice(0, historial.length - 10);
-    historial.push({ role: 'user', content: texto });
+    // ── 5. Historial ─────────────────────────────────────────
+    const hKey = `${empresaId}_${numeroCliente}`;
+    if (!historiales.has(hKey)) historiales.set(hKey, []);
+    const historial = historiales.get(hKey);
+    historial.push({ role:'user', content:texto });
     if (historial.length > 10) historial.splice(0, historial.length - 10);
 
-    // 6. Soporte humano
-    const pideSoporte = /soporte|asesor|humano|persona|hablar con alguien|representante/i.test(texto);
-
-    // 7. Hora Colombia
-    const ahoraCol    = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-    const diaActual   = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'][ahoraCol.getDay()];
-    const horaActual  = `${String(ahoraCol.getHours()).padStart(2,'0')}:${String(ahoraCol.getMinutes()).padStart(2,'0')}`;
-    const fechaActual = `${String(ahoraCol.getDate()).padStart(2,'0')}/${String(ahoraCol.getMonth()+1).padStart(2,'0')}/${ahoraCol.getFullYear()}`;
-
+    // ── 6. Horario ───────────────────────────────────────────
     let horarioTexto = '';
-    if (conocimiento?.horarios) {
-      const hs = conocimiento.horarios;
-      if (hs.general) { horarioTexto = hs.general; }
-      else {
-        const dias = Object.entries(hs).filter(([, v]) => v?.activo)
-          .map(([dia, v]) => `${dia}: ${v.desde||'?'}-${v.hasta||'?'}`);
-        if (dias.length) horarioTexto = dias.join(', ');
-      }
+    if (conocimiento?.horarios?.general) {
+      horarioTexto = conocimiento.horarios.general;
+    } else if (conocimiento?.horarios) {
+      const dias = Object.entries(conocimiento.horarios)
+        .filter(([,v]) => v?.activo)
+        .map(([dia,v]) => `${dia}: ${v.desde||'?'}-${v.hasta||'?'}`);
+      if (dias.length) horarioTexto = dias.join(', ');
     }
 
-    // 8. System prompt
-    // Preparar servicios CON instruccion de imagen
-    const serviciosConFoto = (conocimiento?.servicios || []).filter(s => s.nombre);
-    const tieneImagenes = serviciosConFoto.some(s => s.foto);
+    // ── 7. Hora Colombia ─────────────────────────────────────
+    const ahoraCol  = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Bogota'}));
+    const diaActual = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'][ahoraCol.getDay()];
+    const horaStr   = `${String(ahoraCol.getHours()).padStart(2,'0')}:${String(ahoraCol.getMinutes()).padStart(2,'0')}`;
+    const fechaStr  = `${String(ahoraCol.getDate()).padStart(2,'0')}/${String(ahoraCol.getMonth()+1).padStart(2,'0')}/${ahoraCol.getFullYear()}`;
 
-    let systemPrompt = `Eres el asistente virtual de WhatsApp de "${nombreEmpresa}", ${empresa.industria || 'negocio'} en ${empresa.ciudad || 'Colombia'}.
-Fecha y hora actual en Colombia: ${diaActual} ${fechaActual} ${horaActual}.
-
-SALUDO INICIAL (solo en el primer mensaje del cliente):
-"Bienvenido/a a ${nombreEmpresa}. Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?"
-
-${horarioTexto ? `HORARIO DE ATENCION: ${horarioTexto}` : ''}
-
-REGLAS DE AGENDAMIENTO:
-${horarioTexto
-  ? `- SOLO agenda citas dentro del horario: ${horarioTexto}.
-- Si el cliente pide cita FUERA del horario o en dia no laborable, NO la agendes.
-- Si el cliente dice "lo antes posible" ofrece el proximo horario dentro del rango de atencion.`
-  : '- Agenda citas segun la disponibilidad del negocio.'}
-
-REGLAS GENERALES:
-1. NOMBRE OBLIGATORIO: Si el cliente no ha dado su nombre pidelo amablemente.
-2. Responde concisamente (max 3 parrafos), amigable y profesional.
-3. Usa emojis moderadamente (max 2 por mensaje).
-4. Al confirmar una cita agrega al final: CITA_DETECTADA: {"nombre":"NOMBRE","servicio":"SERVICIO","fecha":"DD/MM/YYYY","hora":"HH:MM"}
-5. Si piden hablar con persona agrega: SOPORTE_SOLICITADO: {"nombre":"NOMBRE","motivo":"MOTIVO"}
-6. Idioma: espanol colombiano.
-${tieneImagenes ? `7. IMPORTANTE: cuando el cliente pida ver el menu, catalogo o fotos, responde describiendo brevemente los productos y di que a continuacion enviamos las fotos. NO digas que no puedes enviar fotos — SI podemos enviarlas automaticamente.` : ''}`;
-
-    if (nombreCliente) systemPrompt += `\n\nNOMBRE DEL CLIENTE: ${nombreCliente} — NO vuelvas a pedirlo.`;
-    else systemPrompt += `\n\nEL CLIENTE NO HA DADO SU NOMBRE AUN.`;
-
-    if (conocimiento) {
-      if (serviciosConFoto.length > 0) {
-        const svcs = serviciosConFoto
-          .map(s => `- ${s.nombre}: $${s.precio || 'consultar'} COP${s.descripcion ? ` — ${s.descripcion}` : ''}`)
-          .join('\n');
-        systemPrompt += `\n\nCATALOGO/MENU:\n${svcs}`;
-      }
-      if (conocimiento.info?.descripcionNegocio) systemPrompt += `\n\nDESCRIPCION: ${conocimiento.info.descripcionNegocio}`;
-      if (conocimiento.info?.direccion) systemPrompt += `\nDIRECCION: ${conocimiento.info.direccion}`;
-      if (conocimiento.info?.formasPago?.length) systemPrompt += `\nFORMAS DE PAGO: ${conocimiento.info.formasPago.join(', ')}`;
-      if (conocimiento.info?.preguntasFrecuentes?.length > 0) {
-        const faqs = conocimiento.info.preguntasFrecuentes.filter(f => f.pregunta)
-          .map(f => `P: ${f.pregunta}\nR: ${f.respuesta}`).join('\n');
-        systemPrompt += `\n\nFAQS:\n${faqs}`;
-      }
+    // ── 8. System Prompt ─────────────────────────────────────
+    // Construir lista del menú/catalogo REAL del panel
+    let menuTexto = '';
+    if (hayMenu) {
+      menuTexto = todosLosItems
+        .map(s => {
+          let linea = `• ${s.nombre}`;
+          if (s.precio) linea += ` — $${s.precio} COP`;
+          if (s.descripcion) linea += ` — ${s.descripcion}`;
+          if (s.foto) linea += ` [tiene foto]`;
+          return linea;
+        }).join('\n');
     }
 
-    // 9. GPT
+    let systemPrompt = `Eres el asistente virtual de WhatsApp de "${nombreEmpresa}", ${empresa.industria||'negocio'} en ${empresa.ciudad||'Colombia'}.
+Fecha y hora en Colombia: ${diaActual} ${fechaStr} ${horaStr}.
+
+INSTRUCCION CRITICA — MENU/CATALOGO:
+${hayMenu
+  ? `El negocio tiene registrado el siguiente menu/catalogo REAL. SOLO menciona estos items, NUNCA inventes otros:
+${menuTexto}
+${hayFotos ? `Cuando el cliente pida el menu o fotos, di que le vas a enviar las fotos de los platos. NO digas que no puedes enviar fotos — el sistema las enviara automaticamente.` : `Si piden fotos di que aun no hay fotos disponibles pero ofrece el listado.`}`
+  : `El negocio aun no ha registrado su catalogo/menu. Si preguntan por productos o menu, di amablemente que el catalogo esta siendo actualizado y que pronto estara disponible.`}
+
+SALUDO INICIAL (solo si es el primer mensaje):
+"Bienvenido/a a ${nombreEmpresa}. Soy tu asistente virtual 🤖 ¿En qué te puedo ayudar?"
+
+${horarioTexto ? `HORARIO: ${horarioTexto}` : ''}
+
+REGLAS:
+1. NUNCA inventes productos, precios ni informacion que no este en el catalogo.
+2. Si el cliente no ha dado su nombre, pidelo amablemente.
+3. Responde en maximo 3 parrafos, tono amigable y profesional.
+4. Usa emojis con moderacion (max 2 por mensaje).
+5. Al confirmar cita escribe al final: CITA_DETECTADA: {"nombre":"X","servicio":"X","fecha":"DD/MM/YYYY","hora":"HH:MM"}
+6. Si piden asesor humano escribe al final: SOPORTE_SOLICITADO: {"nombre":"X","motivo":"X"}
+7. Idioma: espanol colombiano.`;
+
+    if (nombreCliente) systemPrompt += `\n\nNOMBRE DEL CLIENTE: ${nombreCliente} (no vuelvas a pedirlo).`;
+
+    if (conocimiento?.info?.preguntasFrecuentes?.length) {
+      const faqs = conocimiento.info.preguntasFrecuentes.filter(f=>f.pregunta)
+        .map(f=>`P: ${f.pregunta}\nR: ${f.respuesta}`).join('\n');
+      systemPrompt += `\n\nFAQS:\n${faqs}`;
+    }
+    if (conocimiento?.info?.direccion) systemPrompt += `\nDIRECCION: ${conocimiento.info.direccion}`;
+    if (conocimiento?.info?.formasPago?.length) systemPrompt += `\nFORMAS DE PAGO: ${conocimiento.info.formasPago.join(', ')}`;
+
+    // ── 9. GPT ───────────────────────────────────────────────
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini', max_tokens: 500,
-      messages: [{ role: 'system', content: systemPrompt }, ...historial],
+      messages: [{ role:'system', content:systemPrompt }, ...historial],
     });
-    let respuesta = completion.choices[0]?.message?.content || '';
-    historial.push({ role: 'assistant', content: respuesta });
+    const respuesta = completion.choices[0]?.message?.content || '';
+    historial.push({ role:'assistant', content:respuesta });
 
-    // 10. Tokens
+    // ── 10. Tokens ───────────────────────────────────────────
     const tokensUsados = completion.usage?.total_tokens || 0;
     if (tokensUsados > 0) {
-      const now    = new Date();
-      const mesKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const mesKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
       await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`)
-        .set({ usado: FieldValue.increment(tokensUsados), empresaId, mes: mesKey }, { merge: true }).catch(() => {});
+        .set({ usado:FieldValue.increment(tokensUsados), empresaId, mes:mesKey }, { merge:true }).catch(()=>{});
     }
 
-    // Limite mensual
-    const PLAN_TOKENS = { basico:50000, estandar:150000, pro:400000, wasapbot:15000 };
-    const planId    = empresa.planWasapbot || empresa.plan || 'wasapbot';
-    const tokLimit  = PLAN_TOKENS[planId] || 15000;
-    const now2      = new Date();
-    const mesKey2   = `${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}`;
-    const tokSnap   = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(() => null);
-    const tokActual = tokSnap?.exists ? (tokSnap.data().usado || 0) : 0;
-    if (tokActual > tokLimit)
-      return res.json({ respuesta: `El servicio de respuestas automáticas de ${nombreEmpresa} ha alcanzado su límite mensual.` });
+    // Límite mensual
+    const PLAN_TOKENS  = { basico:50000, estandar:150000, pro:400000, wasapbot:15000 };
+    const tokLimit     = PLAN_TOKENS[empresa.planWasapbot||empresa.plan||'wasapbot'] || 15000;
+    const mesKey2      = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+    const tokSnap      = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(()=>null);
+    if (tokSnap?.exists && (tokSnap.data().usado||0) > tokLimit)
+      return res.json({ respuesta:`El servicio de ${nombreEmpresa} ha alcanzado su límite mensual.`, imagenes:[] });
 
-    // 11. Capturar nombre
-    const nombreEnMensaje = extraerNombre(texto);
-    if (nombreEnMensaje && (!nombreCliente || nombreCliente.startsWith('WhatsApp '))) {
-      await contactosRef.doc(contactoId).update({ nombre: nombreEnMensaje });
-      nombreCliente = nombreEnMensaje;
+    // ── 11. Capturar nombre ──────────────────────────────────
+    const nombreDetectado = extraerNombre(texto);
+    if (nombreDetectado && (!nombreCliente || nombreCliente.startsWith('WhatsApp '))) {
+      await contactosRef.doc(contactoId).update({ nombre:nombreDetectado }).catch(()=>{});
     }
 
     try {
@@ -207,97 +189,74 @@ ${tieneImagenes ? `7. IMPORTANTE: cuando el cliente pida ver el menu, catalogo o
       });
     } catch {}
 
-    // 12. Limpiar etiquetas del texto
+    // ── 12. Limpiar respuesta ────────────────────────────────
     let respuestaLimpia = respuesta
       .replace(/\n?CITA_DETECTADA:.*$/m, '')
       .replace(/\n?SOPORTE_SOLICITADO:.*$/m, '')
       .trim();
     if (req._trialAviso) respuestaLimpia += req._trialAviso;
 
-    // 13. Soporte humano → email
-    const soporteMatch = respuesta.match(/SOPORTE_SOLICITADO:\s*(\{[^}]+\})/);
-    if (soporteMatch || pideSoporte) {
+    // ── 13. Soporte solicitado ───────────────────────────────
+    if (/SOPORTE_SOLICITADO/.test(respuesta) || /soporte|asesor|humano|persona real/i.test(texto)) {
       try {
         await adminDb.collection('empresas').doc(empresaId).collection('soportes').add({
-          nombreCliente: nombreCliente || `WhatsApp ${numeroCliente}`,
-          telefono: numeroCliente, mensaje: texto, estado: 'pendiente',
-          creadoEn: FieldValue.serverTimestamp(),
+          nombreCliente: nombreCliente||`WhatsApp ${numeroCliente}`,
+          telefono:numeroCliente, mensaje:texto, estado:'pendiente',
+          creadoEn:FieldValue.serverTimestamp(),
         });
-        await enviarEmailSoporte({
-          emailNegocio, nombreNegocio: nombreEmpresa,
-          nombreCliente: nombreCliente || `+${numeroCliente}`,
-          telefono: numeroCliente, mensaje: texto, empresaId,
-        });
+        await enviarEmailSoporte({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nombreCliente||`+${numeroCliente}`, telefono:numeroCliente, mensaje:texto, empresaId });
       } catch {}
     }
 
-    // 14. Cita detectada → Firestore + email
+    // ── 14. Cita detectada ───────────────────────────────────
     const citaMatch = respuesta.match(/CITA_DETECTADA:\s*(\{[^}]+\})/);
     if (citaMatch) {
       try {
-        const citaData   = JSON.parse(citaMatch[1]);
-        const nombreCita = citaData.nombre || nombreCliente || `WhatsApp ${numeroCliente}`;
-        if (citaData.nombre && (!nombreCliente || nombreCliente.startsWith('WhatsApp ')))
-          await contactosRef.doc(contactoId).update({ nombre: citaData.nombre });
+        const c = JSON.parse(citaMatch[1]);
+        const nomCita = c.nombre || nombreCliente || `WhatsApp ${numeroCliente}`;
         await adminDb.collection('empresas').doc(empresaId).collection('citas').add({
-          nombreCliente: nombreCita, telefono: numeroCliente,
-          servicio: citaData.servicio || 'Consulta',
-          fechaHora: parsearFechaHora(citaData.fecha, citaData.hora),
-          fecha: citaData.fecha || '', hora: citaData.hora || '',
-          estado: 'pendiente', canal: 'whatsapp', fuente: 'whatsapp-bot',
-          notas: 'Agendado por WasapBot', contactoId,
-          creadoEn: FieldValue.serverTimestamp(),
+          nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta',
+          fechaHora:parsearFechaHora(c.fecha,c.hora), fecha:c.fecha||'', hora:c.hora||'',
+          estado:'pendiente', canal:'whatsapp', fuente:'whatsapp-bot', notas:'Agendado por WasapBot',
+          contactoId, creadoEn:FieldValue.serverTimestamp(),
         });
-        await enviarEmailCita({
-          emailNegocio, nombreNegocio: nombreEmpresa,
-          nombreCliente: nombreCita, telefono: numeroCliente,
-          servicio: citaData.servicio || 'Consulta',
-          fecha: citaData.fecha || '?', hora: citaData.hora || '?', empresaId,
-        });
-      } catch (eCita) { console.error('Error guardando cita:', eCita.message); }
+        await enviarEmailCita({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fecha:c.fecha||'?', hora:c.hora||'?', empresaId });
+      } catch (e) { console.error('cita error:', e.message); }
     }
 
-    // 15. Conversacion
+    // ── 15. Guardar conversacion ─────────────────────────────
     const convRef = adminDb.collection('empresas').doc(empresaId).collection('conversaciones');
     const convKey = `wa_${numeroCliente}`;
-    await convRef.doc(convKey).set({
-      nombreCliente: nombreCliente || `WhatsApp ${numeroCliente}`,
-      telefono: numeroCliente, canal: 'whatsapp',
-      ultimoTexto: texto, ultimoMensaje: FieldValue.serverTimestamp(), contactoId,
-    }, { merge: true });
-    await convRef.doc(convKey).collection('mensajes').add({ rol:'cliente', texto, creadoEn: FieldValue.serverTimestamp() });
-    await convRef.doc(convKey).collection('mensajes').add({ rol:'agente', texto: respuestaLimpia, creadoEn: FieldValue.serverTimestamp() });
+    await convRef.doc(convKey).set({ nombreCliente:nombreCliente||`WhatsApp ${numeroCliente}`, telefono:numeroCliente, canal:'whatsapp', ultimoTexto:texto, ultimoMensaje:FieldValue.serverTimestamp(), contactoId }, { merge:true });
+    await convRef.doc(convKey).collection('mensajes').add({ rol:'cliente', texto, creadoEn:FieldValue.serverTimestamp() });
+    await convRef.doc(convKey).collection('mensajes').add({ rol:'agente', texto:respuestaLimpia, creadoEn:FieldValue.serverTimestamp() });
 
-    // ── 16. IMAGENES: si el cliente pide ver fotos/menu/catalogo ──────────────
-    // Buscar servicios que tengan foto cargada en Cloudinary
+    // ── 16. Imagenes del catalogo ────────────────────────────
+    // Solo enviar fotos si el cliente pidio explicitamente el catalogo/menu/fotos
+    // Y si hay items con foto guardados en el panel
     let imagenes = [];
-    const quiereFotos = pideFotos(texto);
-
-    if (quiereFotos && serviciosConFoto.length > 0) {
-      // Tomar máximo 6 items con foto para no saturar el chat
-      imagenes = serviciosConFoto
-        .filter(s => s.foto && s.foto.startsWith('http'))
-        .slice(0, 6)
-        .map(s => ({
-          url:     s.foto,
-          caption: `*${s.nombre}*${s.precio ? `\n💰 $${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')} COP` : ''}${s.descripcion ? `\n${s.descripcion}` : ''}`,
-        }));
+    if (pideCatalogo(texto) && hayFotos) {
+      imagenes = itemsConFoto.slice(0, 6).map(s => ({
+        url:     s.foto,
+        caption: `*${s.nombre}*${s.precio ? `\n💰 $${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')} COP` : ''}${s.descripcion ? `\n${s.descripcion}` : ''}`,
+      }));
+      console.log(`[${empresaId}] Enviando ${imagenes.length} fotos del catalogo a ${numeroCliente}`);
     }
 
-    return res.json({ respuesta: respuestaLimpia, imagenes });
+    return res.json({ respuesta:respuestaLimpia, imagenes });
 
   } catch (err) {
-    console.error('Error whatsapp-baileys:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('whatsapp-baileys error:', err);
+    return res.status(500).json({ error:err.message });
   }
 }
 
 function extraerNombre(texto) {
-  const patrones = [
+  const pats = [
     /(?:me llamo|soy|mi nombre es|habla|te escribe)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?)/i,
-    /^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?)(?:,| aqui| acá| aca| buenos| buen)/i,
+    /^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?)(?:,| aqui| acá)/i,
   ];
-  for (const p of patrones) {
+  for (const p of pats) {
     const m = texto.match(p);
     if (m?.[1]?.length > 2 && m[1].length < 40) return m[1].trim();
   }
@@ -306,17 +265,10 @@ function extraerNombre(texto) {
 
 function parsearFechaHora(fecha, hora) {
   try {
-    if (!fecha) return new Date();
-    const ahora  = new Date();
-    const partes = fecha.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
-    if (partes) {
-      const dia  = parseInt(partes[1]);
-      const mes  = parseInt(partes[2]) - 1;
-      const anio = partes[3] ? parseInt(partes[3]) : ahora.getFullYear();
-      const hp   = hora?.match(/(\d{1,2}):?(\d{2})?/);
-      return new Date(anio < 100 ? 2000+anio : anio, mes, dia,
-        hp ? parseInt(hp[1]) : 9, hp?.[2] ? parseInt(hp[2]) : 0);
-    }
-  } catch {}
-  return new Date();
+    const partes = (fecha||'').match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+    if (!partes) return new Date();
+    const anio = partes[3] ? parseInt(partes[3]) : new Date().getFullYear();
+    const hp   = (hora||'').match(/(\d{1,2}):?(\d{2})?/);
+    return new Date(anio < 100 ? 2000+anio : anio, parseInt(partes[2])-1, parseInt(partes[1]), hp?parseInt(hp[1]):9, hp?.[2]?parseInt(hp[2]):0);
+  } catch { return new Date(); }
 }
