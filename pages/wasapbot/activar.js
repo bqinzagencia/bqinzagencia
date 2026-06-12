@@ -1,4 +1,4 @@
-// pages/wasapbot/activar.js — v8: color directo al SVG, sin currentColor
+// pages/wasapbot/activar.js — v9: color SIEMPRE visible en iconos
 import { useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -13,7 +13,6 @@ const CATS   = ['Todos','Gastronomia','Belleza','Salud','Comercio','Logistica',
                 'Tecnologia','Educacion','Finanzas','Deporte','Bienestar',
                 'Creativo','Automotriz','Mascotas','Inmuebles','Otro'];
 
-/* ── Color + metadata por industria (sin SVG inline) ── */
 const IND = {
   restaurante:  { color:'#F59E0B', r:'245,158,11',  cat:'Gastronomia', desc:'Menu digital, pedidos y reservas automaticas' },
   taller:       { color:'#EF4444', r:'239,68,68',   cat:'Automotriz',  desc:'Presupuestos, citas y seguimiento de servicios' },
@@ -35,29 +34,29 @@ const IND = {
   otro:         { color:'#94A3B8', r:'148,163,184', cat:'Otro',        desc:'Cualquier tipo de negocio o servicio' },
 };
 
-/* ── SVG con color pasado DIRECTAMENTE como prop (no currentColor) ── */
-function IndIcon({ id, color }) {
+/* SVG con color pasado como atributo directo — NO currentColor */
+function IndIcon({ id, color, size = 22 }) {
   const p = { fill:'none', stroke:color, strokeWidth:1.8, strokeLinecap:'round', strokeLinejoin:'round' };
-  const S = { display:'block' };
+  const w = size, h = size;
   const icons = {
-    restaurante:  <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><line x1="7" y1="2" x2="7" y2="22"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Z"/><line x1="21" y1="15" x2="21" y2="22"/></svg>,
-    taller:       <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>,
-    peluqueria:   <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>,
-    barbero:      <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>,
-    veterinaria:  <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5"/><path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z"/></svg>,
-    reposteria:   <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2 1 2 1"/><line x1="2" y1="21" x2="22" y2="21"/><line x1="7" y1="11" x2="7" y2="6"/><line x1="12" y1="11" x2="12" y2="4"/><line x1="17" y1="11" x2="17" y2="6"/></svg>,
-    tienda:       <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><line x1="2" y1="7" x2="22" y2="7"/></svg>,
-    farmacia:     <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>,
-    psicologo:    <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.04Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.04Z"/></svg>,
-    fotografia:   <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/></svg>,
-    contador:     <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
-    acarreos:     <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>,
-    gimnasio:     <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>,
-    salud:        <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-    educacion:    <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
-    tecnico:      <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
-    inmobiliaria: <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-    otro:         <svg width="22" height="22" viewBox="0 0 24 24" style={S} {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill={color}/></svg>,
+    restaurante:  <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><line x1="7" y1="2" x2="7" y2="22"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Z"/><line x1="21" y1="15" x2="21" y2="22"/></svg>,
+    taller:       <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>,
+    peluqueria:   <svg width={w} height={h} viewBox="0 0 24 24" {...p}><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>,
+    barbero:      <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>,
+    veterinaria:  <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5"/><path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z"/></svg>,
+    reposteria:   <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2 1 2 1"/><line x1="2" y1="21" x2="22" y2="21"/><line x1="7" y1="11" x2="7" y2="6"/><line x1="12" y1="11" x2="12" y2="4"/><line x1="17" y1="11" x2="17" y2="6"/></svg>,
+    tienda:       <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><line x1="2" y1="7" x2="22" y2="7"/></svg>,
+    farmacia:     <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>,
+    psicologo:    <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.04Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.04Z"/></svg>,
+    fotografia:   <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/></svg>,
+    contador:     <svg width={w} height={h} viewBox="0 0 24 24" {...p}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+    acarreos:     <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>,
+    gimnasio:     <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>,
+    salud:        <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+    educacion:    <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+    tecnico:      <svg width={w} height={h} viewBox="0 0 24 24" {...p}><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
+    inmobiliaria: <svg width={w} height={h} viewBox="0 0 24 24" {...p}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+    otro:         <svg width={w} height={h} viewBox="0 0 24 24" {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill={color}/></svg>,
   };
   return icons[id] || icons.otro;
 }
@@ -201,8 +200,8 @@ export default function WasapBotActivar() {
         a{text-decoration:none;color:inherit}
         .wi:focus{border-color:rgba(37,211,102,.55)!important;background:rgba(37,211,102,.04)!important;box-shadow:0 0 0 4px rgba(37,211,102,.07)!important}
         .wi::placeholder{color:rgba(255,255,255,.2)}
-        .icard{background:rgba(255,255,255,.025);border:1.5px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 16px;cursor:pointer;outline:none;display:flex;align-items:center;gap:13px;transition:all .2s cubic-bezier(.4,0,.2,1);text-align:left;width:100%}
-        .icard:hover{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.15);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+        .icard{border-radius:16px;padding:14px 16px;cursor:pointer;outline:none;display:flex;align-items:center;gap:13px;transition:all .2s cubic-bezier(.4,0,.2,1);text-align:left;width:100%}
+        .icard:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4)!important}
         .bmain{width:100%;border:none;border-radius:14px;padding:16px 24px;font-family:${F};font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#25D366,#1aad4e);color:#fff;box-shadow:0 4px 24px rgba(37,211,102,.3);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px}
         .bmain:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 36px rgba(37,211,102,.42)}
         .bmain:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
@@ -239,7 +238,7 @@ export default function WasapBotActivar() {
         </Link>
       </nav>
 
-      {/* PROGRESS */}
+      {/* PROGRESS BAR */}
       <div style={{background:'rgba(255,255,255,.015)',borderBottom:'1px solid rgba(255,255,255,.05)'}}>
         <div style={{height:3,background:'rgba(255,255,255,.05)',position:'relative'}}>
           <div style={{position:'absolute',top:0,left:0,height:'100%',width:pct+'%',background:'linear-gradient(90deg,#25D366,#B8FF6C)',transition:'width .6s cubic-bezier(.4,0,.2,1)',boxShadow:'0 0 12px rgba(37,211,102,.5)'}}/>
@@ -250,7 +249,7 @@ export default function WasapBotActivar() {
             return(
               <div key={i} style={{flex:1,display:'flex',alignItems:'center'}}>
                 <div style={{display:'flex',alignItems:'center',gap:7,opacity:done||cur?1:.3,transition:'opacity .4s'}}>
-                  <div style={{width:26,height:26,borderRadius:8,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:done?'#25D366':cur?'rgba(37,211,102,.15)':'rgba(255,255,255,.05)',border:'1px solid '+(done?'#1aad4e':cur?'rgba(37,211,102,.45)':'rgba(255,255,255,.08)'),transition:'all .35s',fontSize:11,fontWeight:700,color:done?'#fff':cur?'#25D366':'rgba(255,255,255,.3)'}}>
+                  <div style={{width:26,height:26,borderRadius:8,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:done?'#25D366':cur?'rgba(37,211,102,.15)':'rgba(255,255,255,.05)',border:'1px solid '+(done?'#1aad4e':cur?'rgba(37,211,102,.45)':'rgba(255,255,255,.08)'),fontSize:11,fontWeight:700,color:done?'#fff':cur?'#25D366':'rgba(255,255,255,.3)'}}>
                     {done?<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>:i+1}
                   </div>
                   <span style={{fontFamily:F,fontSize:12,fontWeight:cur?600:400,color:cur?'#EFF4FF':'rgba(255,255,255,.3)',display:cur?'block':'none'}}>{s}</span>
@@ -272,7 +271,7 @@ export default function WasapBotActivar() {
           </div>
         )}
 
-        {/* ═══════ PASO 1 ═══════ */}
+        {/* ═══ PASO 1 ═══ */}
         {step===1&&(
           <div className="aup">
             <div style={{marginBottom:40}}>
@@ -283,14 +282,12 @@ export default function WasapBotActivar() {
               </p>
             </div>
 
-            {/* Nombre */}
             <div style={CARD}>
               <label style={LBL}>Nombre del negocio *</label>
               <input className="wi" style={INP} value={nombre} onChange={e=>setNombre(e.target.value)}
                 placeholder={ph.nombre||'Ej: Restaurante El Buen Sabor, Salon Mia, Taller Don Jorge...'}/>
             </div>
 
-            {/* Tipo de negocio */}
             <div style={CARD}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
                 <label style={{...LBL,marginBottom:0}}>Tipo de negocio *</label>
@@ -299,23 +296,21 @@ export default function WasapBotActivar() {
                 </button>}
               </div>
 
-              {/* Badge seleccionado */}
               {indCfg&&(
-                <div style={{display:'flex',alignItems:'center',gap:14,background:'rgba('+indCfg.r+',.07)',border:'1.5px solid rgba('+indCfg.r+',.3)',borderRadius:14,padding:'12px 16px',marginBottom:18,boxShadow:'0 4px 24px rgba('+indCfg.r+',.15)'}}>
-                  <div style={{width:42,height:42,borderRadius:12,background:'rgba('+indCfg.r+',.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    <IndIcon id={industria} color={indCfg.color}/>
+                <div style={{display:'flex',alignItems:'center',gap:14,background:'rgba('+indCfg.r+',.08)',border:'1.5px solid rgba('+indCfg.r+',.35)',borderRadius:14,padding:'13px 16px',marginBottom:18,boxShadow:'0 4px 24px rgba('+indCfg.r+',.18)'}}>
+                  <div style={{width:44,height:44,borderRadius:13,background:'rgba('+indCfg.r+',.18)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <IndIcon id={industria} color={indCfg.color} size={24}/>
                   </div>
                   <div>
                     <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#F0F4FF',marginBottom:2}}>{INDUSTRIAS_WB.find(x=>x.value===industria)?.label}</div>
-                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.38)',fontWeight:300}}>{indCfg.desc}</div>
+                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.4)',fontWeight:300}}>{indCfg.desc}</div>
                   </div>
-                  <div style={{marginLeft:'auto',width:22,height:22,borderRadius:7,background:indCfg.color,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <div style={{marginLeft:'auto',width:24,height:24,borderRadius:8,background:indCfg.color,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                 </div>
               )}
 
-              {/* Buscador */}
               <div style={{position:'relative',marginBottom:12}}>
                 <svg style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2.5" strokeLinecap="round">
                   <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -323,14 +318,12 @@ export default function WasapBotActivar() {
                 <input className="bsearch" value={busq} onChange={e=>setBusq(e.target.value)} placeholder="Buscar tipo de negocio..."/>
               </div>
 
-              {/* Categorias */}
               <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:16}}>
                 {CATS.map(cat=>(
                   <button key={cat} className={'cpill'+(catFiltro===cat?' on':'')} onClick={()=>setCatFiltro(cat)}>{cat}</button>
                 ))}
               </div>
 
-              {/* Grid de industrias */}
               {indsFiltradas.length===0?(
                 <div style={{textAlign:'center',padding:'32px 0',fontFamily:F,fontSize:13,color:'rgba(255,255,255,.25)'}}>Sin resultados para "{busq}"</div>
               ):(
@@ -338,28 +331,58 @@ export default function WasapBotActivar() {
                   {indsFiltradas.map(ind=>{
                     const c   = IND[ind.value] || IND.otro;
                     const sel = industria===ind.value;
-                    /* color del icono: si esta seleccionado -> color de industria, sino -> gris claro */
-                    const iconColor = sel ? c.color : 'rgba(255,255,255,0.55)';
                     return(
-                      <button key={ind.value} className="icard"
+                      <button
+                        key={ind.value}
+                        className="icard"
                         onClick={()=>setIndustria(ind.value)}
                         style={{
-                          background: sel?'rgba('+c.r+',.1)':'rgba(255,255,255,.025)',
-                          border:'1.5px solid '+(sel?'rgba('+c.r+',.5)':'rgba(255,255,255,.07)'),
-                          boxShadow: sel?'0 6px 28px rgba('+c.r+',.2)':'none',
-                          transform: sel?'translateY(-2px)':'',
+                          /* fondo: seleccionado = color de industria / no seleccionado = muy sutil */
+                          background: sel
+                            ? 'rgba('+c.r+',.12)'
+                            : 'rgba(255,255,255,.03)',
+                          /* borde: seleccionado = color, no seleccionado = muy sutil */
+                          border:'1.5px solid '+(sel
+                            ? 'rgba('+c.r+',.5)'
+                            : 'rgba(255,255,255,.08)'),
+                          boxShadow: sel
+                            ? '0 6px 28px rgba('+c.r+',.25)'
+                            : 'none',
+                          transform: sel ? 'translateY(-2px)' : 'none',
                         }}>
-                        {/* Caja icono */}
-                        <div style={{width:44,height:44,borderRadius:13,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:sel?'rgba('+c.r+',.18)':'rgba(255,255,255,.06)',transition:'all .2s'}}>
-                          <IndIcon id={ind.value} color={iconColor}/>
+
+                        {/* Caja icono — siempre con el color de industria */}
+                        <div style={{
+                          width:44, height:44, borderRadius:13, flexShrink:0,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          /* fondo de la caja: seleccionado = más saturado */
+                          background: sel
+                            ? 'rgba('+c.r+',.22)'
+                            : 'rgba('+c.r+',.1)',
+                          transition:'background .2s',
+                        }}>
+                          {/* EL ICONO SIEMPRE EN SU COLOR — nunca gris */}
+                          <IndIcon id={ind.value} color={c.color} size={22}/>
                         </div>
+
                         {/* Texto */}
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:sel?'#F0F4FF':'rgba(255,255,255,.65)',marginBottom:2}}>{ind.label}</div>
-                          <div style={{fontFamily:F,fontSize:11,fontWeight:300,color:sel?'rgba(255,255,255,.4)':'rgba(255,255,255,.25)',lineHeight:1.4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{c.desc}</div>
+                          <div style={{fontFamily:F,fontSize:13,fontWeight:700,
+                            color:sel?'#F0F4FF':'rgba(255,255,255,.7)',
+                            marginBottom:2,transition:'color .2s'}}>{ind.label}</div>
+                          <div style={{fontFamily:F,fontSize:11,fontWeight:300,
+                            color:'rgba(255,255,255,.3)',
+                            lineHeight:1.4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{c.desc}</div>
                         </div>
-                        {/* Check */}
-                        <div style={{width:20,height:20,borderRadius:6,flexShrink:0,background:sel?c.color:'transparent',border:'1.5px solid '+(sel?c.color:'rgba(255,255,255,.12)'),display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}>
+
+                        {/* Checkmark */}
+                        <div style={{
+                          width:20, height:20, borderRadius:6, flexShrink:0,
+                          background: sel ? c.color : 'transparent',
+                          border:'1.5px solid '+(sel ? c.color : 'rgba(255,255,255,.15)'),
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          transition:'all .2s',
+                        }}>
                           {sel&&<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="4" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
                         </div>
                       </button>
@@ -369,7 +392,6 @@ export default function WasapBotActivar() {
               )}
             </div>
 
-            {/* Descripcion + Ciudad + Horario */}
             <div style={CARD}>
               <label style={LBL}>Descripcion del negocio</label>
               <textarea className="wi" style={{...INP,resize:'vertical',minHeight:90,lineHeight:1.7}} value={descripcion} onChange={e=>setDescripcion(e.target.value)}
@@ -386,7 +408,6 @@ export default function WasapBotActivar() {
               </div>
             </div>
 
-            {/* Email */}
             <div style={CARD}>
               <label style={LBL}>Correo electronico *</label>
               <div style={{position:'relative'}}>
@@ -408,7 +429,7 @@ export default function WasapBotActivar() {
           </div>
         )}
 
-        {/* ═══════ PASO 2 ═══════ */}
+        {/* ═══ PASO 2 ═══ */}
         {step===2&&cfg&&(
           <div className="aup">
             <div style={{marginBottom:36}}>
@@ -419,7 +440,6 @@ export default function WasapBotActivar() {
                 {cfg.permitePedidos&&<span style={{color:'rgba(37,211,102,.85)',fontWeight:500}}> Los clientes podran hacer pedidos por WhatsApp.</span>}
               </p>
             </div>
-
             {items.map((item,idx)=>(
               <div key={idx} style={CARD}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
@@ -487,12 +507,10 @@ export default function WasapBotActivar() {
                 </div>
               </div>
             ))}
-
             <button className="bdash" style={{marginBottom:20}}
               onClick={()=>setItems(p=>[...p,{nombre:'',precio:'',descripcion:'',categoria:'',foto:'',subiendo:false}])}>
               + Agregar {cfg.labelItem.toLowerCase()}
             </button>
-
             <div style={CARD}>
               <label style={LBL}>Preguntas frecuentes que responde el bot</label>
               <p style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.22)',margin:'0 0 16px',fontWeight:300,lineHeight:1.6}}>El bot las respondera automaticamente. Ahorra hasta 80% de tu tiempo.</p>
@@ -502,7 +520,6 @@ export default function WasapBotActivar() {
                   placeholder={ph['pregunta'+(i+1)]||'Ej: Cuanto demoran? Tienen parqueadero? Aceptan tarjeta?'}/>
               ))}
             </div>
-
             <div style={{display:'flex',gap:12}}>
               <button className="bsec" onClick={()=>setStep(1)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
@@ -517,7 +534,7 @@ export default function WasapBotActivar() {
           </div>
         )}
 
-        {/* ═══════ PASO 3: QR ═══════ */}
+        {/* ═══ PASO 3: QR ═══ */}
         {step===3&&(
           <div className="aup" style={{textAlign:'center'}}>
             <p style={{fontFamily:F,fontSize:12,fontWeight:700,color:'rgba(37,211,102,.8)',letterSpacing:2,textTransform:'uppercase',marginBottom:18}}>PASO 3 DE 4</p>
@@ -554,7 +571,7 @@ export default function WasapBotActivar() {
           </div>
         )}
 
-        {/* ═══════ PASO 4: LISTO ═══════ */}
+        {/* ═══ PASO 4 ═══ */}
         {step===4&&(
           <div className="aup" style={{textAlign:'center'}}>
             <div style={{width:96,height:96,borderRadius:'50%',background:'rgba(37,211,102,.08)',border:'2px solid rgba(37,211,102,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 28px',animation:'ok .6s cubic-bezier(0.175,0.885,0.32,1.275) both',boxShadow:'0 0 60px rgba(37,211,102,.15)'}}>
