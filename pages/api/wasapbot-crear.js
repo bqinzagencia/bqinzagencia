@@ -1,20 +1,16 @@
 // pages/api/wasapbot-crear.js
-// Crea empresa + agente para el producto WasapBot independiente
+// Crea empresa para WasapBot — SIN trial gratuito, requiere plan activo
 import { db as adminDb } from '../../lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  const { nombre, industria, descripcion, email, horario, ciudad } = req.body;
+  const { nombre, industria, descripcion, email, horario, ciudad, producto } = req.body;
   if (!nombre || !industria || !email) return res.status(400).json({ error: 'Faltan datos requeridos' });
 
   try {
     const empresaRef = adminDb.collection('empresas').doc();
     const empresaId  = empresaRef.id;
-    const ahora      = new Date();
-
-    // Trial de 1 hora desde el momento de registro
-    const trialHasta = new Date(ahora.getTime() + 1 * 60 * 60 * 1000);
 
     await empresaRef.set({
       nombreEmpresa:  nombre,
@@ -22,9 +18,9 @@ export default async function handler(req, res) {
       email,
       ciudad:         ciudad || '',
       plan:           'wasapbot',
-      planActivo:     false,
-      trialHasta,                         // 1 hora exacta desde registro
-      producto:       'wasapbot',
+      planActivo:     false,        // Requiere activar plan para usar el bot
+      trialHasta:     null,         // Sin trial gratuito para WasapBot
+      producto:       producto || 'wasapbot',
       creadoEn:       FieldValue.serverTimestamp(),
       whatsapp:       { status: 'disconnected' },
       tokensUsados:   0,
@@ -38,9 +34,10 @@ export default async function handler(req, res) {
           descripcionNegocio: descripcion || `${nombre} — ${industria}`,
           email,
         },
-        servicios:  [],
-        horarios:   horario ? { general: horario } : {},
-        creadoEn:   FieldValue.serverTimestamp(),
+        servicios:      [],
+        horarios:       horario ? { general: horario } : {},
+        permitePedidos: false,
+        creadoEn:       FieldValue.serverTimestamp(),
       });
 
     // Agente por defecto
@@ -52,7 +49,7 @@ export default async function handler(req, res) {
         creadoEn: FieldValue.serverTimestamp(),
       });
 
-    return res.json({ ok: true, empresaId, trialHasta: trialHasta.toISOString() });
+    return res.json({ ok: true, empresaId });
   } catch (err) {
     console.error('wasapbot-crear:', err);
     return res.status(500).json({ error: err.message });
