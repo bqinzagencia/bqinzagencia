@@ -1,6 +1,6 @@
 // pages/api/wa-activar.js
-// Llama al servidor Railway para iniciar sesion y obtener QR
 import axios from 'axios';
+import { db as adminDb } from '../../lib/firebaseAdmin';
 
 const WA_SERVER = process.env.WHATSAPP_SERVER_URL || 'https://agenciame-whatsapp-server-production.up.railway.app';
 const SECRET    = process.env.SERVER_SECRET || 'agenciame2026secreto_nexoia';
@@ -17,15 +17,23 @@ export default async function handler(req, res) {
       { headers: { 'x-server-secret': SECRET }, timeout: 10000 }
     );
 
-    // 2. Esperar y obtener QR
+    // 2. Esperar y obtener QR o estado
     await new Promise(r => setTimeout(r, 3000));
-
     const qrResp = await axios.get(`${WA_SERVER}/sesion/${empresaId}/qr`,
       { headers: { 'x-server-secret': SECRET }, timeout: 20000 }
     );
 
     if (qrResp.data.status === 'connected') {
-      return res.json({ ok: true, status: 'connected', numero: qrResp.data.numero });
+      const numero = qrResp.data.numero;
+      // Guardar numero del dueno en Firestore para notificaciones de citas
+      if (numero) {
+        await adminDb.collection('empresas').doc(empresaId).update({
+          whatsappOwner: numero,
+          'whatsapp.status': 'connected',
+          'whatsapp.numero': numero,
+        }).catch(() => {});
+      }
+      return res.json({ ok: true, status: 'connected', numero });
     }
 
     if (qrResp.data.qrBase64) {
