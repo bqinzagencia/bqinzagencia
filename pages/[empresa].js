@@ -24,25 +24,38 @@ const COLORES = {
 };
 
 export async function getServerSideProps({ params }) {
-  const slug = params.empresa?.toLowerCase().replace(/\s/g, '-');
+  const rawSlug = params.empresa || '';
+  const slug = rawSlug.toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
 
   try {
-    // Buscar empresa por slug en Firestore
-    const snap = await adminDb.collection('empresas')
-      .where('slug', '==', slug)
-      .limit(1).get();
-
-    // Si no hay por slug, buscar por nombre
     let empresa = null;
-    if (!snap.empty) {
-      empresa = { id: snap.docs[0].id, ...snap.docs[0].data() };
-    } else {
-      const snap2 = await adminDb.collection('empresas')
-        .where('nombreEmpresa', '==', slug)
-        .limit(1).get();
-      if (!snap2.empty) {
-        empresa = { id: snap2.docs[0].id, ...snap2.docs[0].data() };
+
+    // 1. Buscar por campo slug exacto
+    const s1 = await adminDb.collection('empresas').where('slug', '==', slug).limit(1).get();
+    if (!s1.empty) empresa = { id: s1.docs[0].id, ...s1.docs[0].data() };
+
+    // 2. Buscar por slug generado del nombre (pelupelo → peluqueria-pelo, pp → pp, etc.)
+    if (!empresa) {
+      const todos = await adminDb.collection('empresas').get();
+      for (const doc of todos.docs) {
+        const d = doc.data();
+        const nombreSlug = (d.nombreEmpresa || '')
+          .toLowerCase().trim()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        if (nombreSlug === slug || d.slug === slug) {
+          empresa = { id: doc.id, ...d };
+          break;
+        }
       }
+    }
+
+    // 3. Fallback: buscar por UID si el slug tiene formato de UID
+    if (!empresa && rawSlug.length > 15) {
+      const s3 = await adminDb.collection('empresas').doc(rawSlug).get();
+      if (s3.exists) empresa = { id: s3.id, ...s3.data() };
     }
 
     if (!empresa) return { notFound: true };
@@ -98,12 +111,14 @@ export default function EmpresaPublica({ empresa }) {
         <meta property="og:image" content={foto} />
         <link rel="icon" href="/logo.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', system-ui, sans-serif; background: #fff; color: #111; }
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
         .btn-main { background: ${color}; color: #fff; border: none; border-radius: 100px; padding: 13px 28px; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
         .btn-main:hover { opacity: 0.9; }
         .btn-wa { background: #25D366; color: #fff; border: none; border-radius: 100px; padding: 13px 28px; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }

@@ -1,7 +1,7 @@
 // pages/api/wa-status.js
 // Polling: consulta estado y QR actual de la sesion WhatsApp
 
-const WA_SERVER = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001';
+const WA_SERVER = process.env.WHATSAPP_SERVER_URL || 'https://bqinzagencia-whatsapp-server-production.up.railway.app';
 const SECRET    = process.env.WHATSAPP_SERVER_SECRET || 'bqinzagencia2026.';
 
 export default async function handler(req, res) {
