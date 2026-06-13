@@ -72,15 +72,34 @@ export default function PlanesWasapbot() {
   const router   = useRouter();
   const { id: empresaId, nombre: nombreEmpresa } = router.query;
 
-  const [planSel,    setPlanSel]    = useState(null);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState('');
-  const [email,      setEmail]      = useState('');
-  const [nombre,     setNombre]     = useState(nombreEmpresa || '');
+  const [planSel,      setPlanSel]      = useState(null);
+  const [loading,      setLoading]      = useState(false);
+  const [error,        setError]        = useState('');
+  const [email,        setEmail]        = useState('');
+  const [emailConfirm, setEmailConfirm] = useState('');
+  const [emailEditable,setEmailEditable]= useState(false);
+  const [nombre,       setNombre]       = useState(nombreEmpresa || '');
+  const [empresaData,  setEmpresaData]  = useState(null);
+  const [cargando,     setCargando]     = useState(true);
 
+  // Cargar datos de la empresa para obtener el correo real
   useEffect(() => {
-    if (nombreEmpresa) setNombre(decodeURIComponent(nombreEmpresa));
-  }, [nombreEmpresa]);
+    if (!empresaId) { setCargando(false); return; }
+    fetch('/api/wasapbot-panel?id=' + empresaId)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && d.empresa) {
+          setEmpresaData(d.empresa);
+          setNombre(d.empresa.nombreEmpresa || decodeURIComponent(nombreEmpresa || ''));
+          setEmail(d.empresa.email || '');
+          setEmailConfirm(d.empresa.email || '');
+        } else {
+          setNombre(decodeURIComponent(nombreEmpresa || ''));
+        }
+        setCargando(false);
+      })
+      .catch(() => { setCargando(false); });
+  }, [empresaId]);
 
   const iniciarPago = async (plan) => {
     if (!empresaId) {
@@ -88,8 +107,21 @@ export default function PlanesWasapbot() {
       return;
     }
     if (!email.trim()) {
-      setError('Ingresa tu correo electrónico para continuar.');
+      setError('El correo es requerido para continuar.');
       return;
+    }
+    // Si el usuario editó el correo, verificar que coincida con la confirmación
+    if (emailEditable && email !== emailConfirm) {
+      setError('Los correos no coinciden. Verifica e intenta de nuevo.');
+      return;
+    }
+    if (emailEditable && email !== (empresaData?.email || '')) {
+      // Actualizar el correo en Firestore si fue editado
+      fetch('/api/wasapbot-panel', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ accion: 'guardarConfig', empresaId, campos: { email } })
+      }).catch(() => {});
     }
     setLoading(true);
     setError('');
@@ -202,20 +234,60 @@ export default function PlanesWasapbot() {
           </p>
         </div>
 
-        {/* Email input */}
-        <div style={{maxWidth:400,margin:'0 auto 36px',background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:'20px 22px'}}>
-          <label style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#4B6080',display:'block',marginBottom:8,textTransform:'uppercase',letterSpacing:1}}>
-            Tu correo para la confirmación
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={e=>setEmail(e.target.value)}
-            placeholder="tucorreo@gmail.com"
-            style={{width:'100%',background:'#06090D',border:'1px solid rgba(255,255,255,.1)',borderRadius:8,padding:'10px 14px',color:'#EFF4FF',fontFamily:F,fontSize:14,outline:'none'}}
-          />
-          {error && (
-            <div style={{fontFamily:F,fontSize:12,color:'#EF4444',marginTop:8}}>{error}</div>
+        {/* Email — tomado de la empresa, con opción de editar */}
+        <div style={{maxWidth:440,margin:'0 auto 36px',background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:'20px 22px'}}>
+          {cargando ? (
+            <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.3)',textAlign:'center',padding:'10px 0'}}>Cargando datos...</div>
+          ) : (
+            <>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                <label style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#4B6080',textTransform:'uppercase',letterSpacing:1}}>
+                  Correo de confirmación
+                </label>
+                {!emailEditable && (
+                  <button onClick={()=>setEmailEditable(true)}
+                    style={{background:'none',border:'none',fontFamily:F,fontSize:11,color:'#25D366',cursor:'pointer',fontWeight:600}}>
+                    ✏️ Cambiar correo
+                  </button>
+                )}
+              </div>
+
+              {!emailEditable ? (
+                // Correo de la empresa — solo lectura
+                <div style={{display:'flex',alignItems:'center',gap:10,background:'rgba(37,211,102,.05)',border:'1px solid rgba(37,211,102,.2)',borderRadius:8,padding:'11px 14px'}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  <span style={{fontFamily:F,fontSize:14,color:'#EFF4FF',flex:1}}>{email}</span>
+                  <span style={{fontFamily:F,fontSize:10,color:'#25D366',fontWeight:700,background:'rgba(37,211,102,.1)',borderRadius:99,padding:'2px 8px'}}>✓ Verificado</span>
+                </div>
+              ) : (
+                // Edición con confirmación doble
+                <div>
+                  <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.3)',marginBottom:10,lineHeight:1.6}}>
+                    ⚠️ El correo de confirmación debe ser exactamente el mismo en ambos campos.
+                  </div>
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+                    placeholder="nuevo@correo.com"
+                    style={{width:'100%',background:'#06090D',border:'1px solid rgba(255,255,255,.15)',borderRadius:8,padding:'10px 14px',color:'#EFF4FF',fontFamily:F,fontSize:14,outline:'none',marginBottom:8,boxSizing:'border-box'}}/>
+                  <input type="email" value={emailConfirm} onChange={e=>setEmailConfirm(e.target.value)}
+                    placeholder="Confirma tu correo"
+                    style={{width:'100%',background:'#06090D',border:`1px solid ${emailConfirm&&email!==emailConfirm?'rgba(239,68,68,.5)':'rgba(255,255,255,.15)'}`,borderRadius:8,padding:'10px 14px',color:'#EFF4FF',fontFamily:F,fontSize:14,outline:'none',marginBottom:4,boxSizing:'border-box'}}/>
+                  {emailConfirm && email !== emailConfirm && (
+                    <div style={{fontFamily:F,fontSize:11,color:'#EF4444',marginBottom:4}}>⚠️ Los correos no coinciden</div>
+                  )}
+                  {emailConfirm && email === emailConfirm && (
+                    <div style={{fontFamily:F,fontSize:11,color:'#25D366',marginBottom:4}}>✓ Los correos coinciden</div>
+                  )}
+                  <button onClick={()=>{setEmailEditable(false);setEmailConfirm(email);}}
+                    style={{background:'none',border:'none',fontFamily:F,fontSize:11,color:'rgba(255,255,255,.3)',cursor:'pointer',marginTop:4}}>
+                    Cancelar cambio
+                  </button>
+                </div>
+              )}
+
+              {error && (
+                <div style={{fontFamily:F,fontSize:12,color:'#EF4444',marginTop:10,background:'rgba(239,68,68,.06)',borderRadius:6,padding:'8px 10px'}}>{error}</div>
+              )}
+            </>
           )}
         </div>
 
