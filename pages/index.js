@@ -290,6 +290,15 @@ export default function Landing() {
               <a href="#industrias"><button className="btn-ghost" style={{ fontSize: 16, padding: '16px 44px' }}>Ver industrias</button></a>
             </div>
 
+            {/* Texto "Activa tu plan ahora" en azul */}
+            <div className="slide-up d3" style={{ marginTop: 22 }}>
+              <Link href="/auth/register">
+                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 15, fontWeight: 700, color: '#2563EB', cursor: 'pointer', borderBottom: '1px solid #2563EB55', paddingBottom: 2, letterSpacing: 0.2 }}>
+                  Activa tu plan ahora →
+                </span>
+              </Link>
+            </div>
+
             {/* Social proof */}
             <div className="slide-up d4 lnd-hero-proof" style={{ marginTop: 60, display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ display: 'flex' }}>
@@ -317,13 +326,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── MARQUEE — dentro del hero en la parte inferior ── */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10, borderTop: '1px solid rgba(255,255,255,0.06)', padding: '14px 0', overflow: 'hidden', background: 'rgba(8,8,8,0.7)', backdropFilter: 'blur(8px)' }}>
+      {/* ── MARQUEE ── */}
+      <div style={{ borderTop: '1px solid #141414', borderBottom: '1px solid #141414', padding: '14px 0', overflow: 'hidden', background: '#0C0C0C' }}>
         <div style={{ display: 'flex', gap: 80, animation: 'marquee 32s linear infinite', whiteSpace: 'nowrap' }}>
           {['Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads',
             'Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads'].map((t, i) => (
-              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#333', fontSize: 11, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
-                <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.5 }} />{t}
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#252525', fontSize: 12, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
+                <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.6 }} />{t}
               </span>
             ))}
         </div>
