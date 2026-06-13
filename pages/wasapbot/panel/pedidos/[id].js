@@ -49,12 +49,17 @@ export default function PedidosPanel() {
   const [editNequi,   setEditNequi]   = useState(false);
   const [savingNequi, setSavingNequi] = useState(false);
 
+  const [sinPlan, setSinPlan] = useState(false);
   const cargarEmpresa = useCallback(async () => {
     if (!id) return;
     try {
       const r = await fetch(`/api/wasapbot-panel?id=${id}`);
       const d = await r.json();
-      if (d.ok) { setEmpresa(d.empresa); setNequi(d.empresa?.nequi || ''); }
+      if (d.ok) {
+        setEmpresa(d.empresa);
+        setNequi(d.empresa?.nequi || '');
+        if (!d.empresa?.planActivo) setSinPlan(true);
+      }
     } catch {}
   }, [id]);
 
@@ -241,6 +246,21 @@ export default function PedidosPanel() {
           Este número aparece en el mensaje de confirmación del pedido al cliente.
         </div>
       </div>
+
+      {/* Candado si no hay plan */}
+      {sinPlan&&(
+        <div style={{background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)',borderRadius:16,padding:'32px 24px',marginBottom:16,textAlign:'center'}}>
+          <div style={{fontSize:48,marginBottom:12}}>🔒</div>
+          <div style={{fontFamily:"'Abril Fatface',serif",fontSize:22,color:'#EFF4FF',marginBottom:8,fontWeight:400}}>Función premium</div>
+          <div style={{fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:'rgba(255,255,255,.4)',lineHeight:1.7,marginBottom:20,maxWidth:360,margin:'0 auto 20px'}}>
+            Los pedidos de tus clientes por WhatsApp aparecerán aquí cuando actives tu plan. El bot puede recibir mensajes pero necesita el plan para procesarlos.
+          </div>
+          <a href={'/wasapbot/planes?id='+id}
+            style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'12px 28px',fontFamily:"'Inter',system-ui,sans-serif",fontSize:14,fontWeight:700,textDecoration:'none'}}>
+            ⚡ Activar mi plan →
+          </a>
+        </div>
+      )}
 
       {/* Filtros */}
       <div style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>

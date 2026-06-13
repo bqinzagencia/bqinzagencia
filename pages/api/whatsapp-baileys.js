@@ -130,13 +130,22 @@ export default async function handler(req, res) {
     const emailNegocio  = empresa.email || null;
     const nequi         = empresa.nequi || null;
 
-    // ── 2. Verificar plan activo (sin trial gratuito) ─────────
+    // ── 2. Verificar plan activo ──────────────────────────────
     const planActivo = empresa.planActivo === true;
     if (!planActivo) {
-      return res.json({
-        respuesta: `Hola 👋 El servicio de *${nombreEmpresa}* está en proceso de configuración.\n\nPronto estaremos disponibles para atenderte. ¡Gracias por tu paciencia! 🙏`,
-        imagenes: [],
-      });
+      // Modo configuración — responde sin IA para no consumir tokens
+      // El cliente sabe que el negocio existe pero está en configuración
+      const respConfig = empresa.mensajeConfiguracion ||
+        `Hola, gracias por escribirnos 👋\n\n*${nombreEmpresa}* está en proceso de configuración de su asistente virtual.\n\nEn breve podremos atenderte mejor. Si necesitas algo urgente, comunícate directamente con nosotros.\n\n¡Gracias por tu paciencia! 🙏`;
+      // Registrar el contacto en Firestore aunque no haya plan
+      try {
+        const contactosRef = adminDb.collection('empresas').doc(empresaId).collection('contactos');
+        const cQuery = await contactosRef.where('telefono','==',numeroCliente).limit(1).get();
+        if (cQuery.empty) {
+          await contactosRef.add({ telefono:numeroCliente, nombre:`WhatsApp ${numeroCliente}`, canal:'whatsapp', fuente:'whatsapp-bot', estado:'nuevo', creadoEn:FieldValue.serverTimestamp() });
+        }
+      } catch {}
+      return res.json({ respuesta: respConfig, imagenes: [] });
     }
 
     // ── 3. Menú disponible ───────────────────────────────────

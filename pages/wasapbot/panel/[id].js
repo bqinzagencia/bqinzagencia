@@ -140,6 +140,108 @@ function ModalBienvenidaWasapbot({ nombre, cfg, onCerrar }) {
   );
 }
 
+
+// ── Overlay de función premium ────────────────────────────────
+function CandadoPremium({ empresaId, nombreEmpresa, mensaje }) {
+  return (
+    <div style={{
+      position:'relative', borderRadius:16, overflow:'hidden',
+      minHeight:280, display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center',
+      background:'rgba(12,15,20,0.95)',
+      border:'1px solid rgba(245,158,11,0.2)',
+      padding:'40px 28px', textAlign:'center',
+    }}>
+      {/* Fondo blur */}
+      <div style={{position:'absolute',inset:0,background:'rgba(6,9,13,0.7)',backdropFilter:'blur(4px)',zIndex:0}}/>
+      <div style={{position:'relative',zIndex:1}}>
+        <div style={{fontSize:44,marginBottom:16}}>🔒</div>
+        <div style={{fontFamily:"'Abril Fatface',serif",fontSize:22,color:'#EFF4FF',marginBottom:8,fontWeight:400}}>
+          Función premium
+        </div>
+        <div style={{fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:24,maxWidth:320}}>
+          {mensaje || 'Activa tu plan para desbloquear esta función y empezar a crecer con tu bot.'}
+        </div>
+        <a href={'/wasapbot/planes?id='+empresaId+'&nombre='+encodeURIComponent(nombreEmpresa||'')}
+          style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'12px 28px',fontFamily:"'Inter',system-ui,sans-serif",fontSize:14,fontWeight:700,textDecoration:'none',boxShadow:'0 6px 24px rgba(245,158,11,0.35)'}}>
+          ⚡ Activar mi plan →
+        </a>
+        <div style={{fontFamily:"'Inter',system-ui,sans-serif",fontSize:11,color:'rgba(255,255,255,0.2)',marginTop:10}}>
+          Desde $189.000/mes · Sin contratos · Cancela cuando quieras
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ── Overlay de función premium ────────────────────────────────
+function CandadoPremium({ empresaId, nombreEmpresa, mensaje }) {
+  return (
+    <div style={{
+      position:'relative', borderRadius:16, overflow:'hidden',
+      minHeight:280, display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center',
+      background:'rgba(12,15,20,0.95)',
+      border:'1px solid rgba(245,158,11,0.2)',
+      padding:'40px 28px', textAlign:'center',
+    }}>
+      {/* Fondo blur */}
+      <div style={{position:'absolute',inset:0,background:'rgba(6,9,13,0.7)',backdropFilter:'blur(4px)',zIndex:0}}/>
+      <div style={{position:'relative',zIndex:1}}>
+        <div style={{fontSize:44,marginBottom:16}}>🔒</div>
+        <div style={{fontFamily:"'Abril Fatface',serif",fontSize:22,color:'#EFF4FF',marginBottom:8,fontWeight:400}}>
+          Función premium
+        </div>
+        <div style={{fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:24,maxWidth:320}}>
+          {mensaje || 'Activa tu plan para desbloquear esta función y empezar a crecer con tu bot.'}
+        </div>
+        <a href={'/wasapbot/planes?id='+empresaId+'&nombre='+encodeURIComponent(nombreEmpresa||'')}
+          style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'12px 28px',fontFamily:"'Inter',system-ui,sans-serif",fontSize:14,fontWeight:700,textDecoration:'none',boxShadow:'0 6px 24px rgba(245,158,11,0.35)'}}>
+          ⚡ Activar mi plan →
+        </a>
+        <div style={{fontFamily:"'Inter',system-ui,sans-serif",fontSize:11,color:'rgba(255,255,255,0.2)',marginTop:10}}>
+          Desde $189.000/mes · Sin contratos · Cancela cuando quieras
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ── Overlay de función premium ────────────────────────────────
+function CandadoPremium({ empresaId, nombreEmpresa, mensaje }) {
+  return (
+    <div style={{
+      position:'relative', borderRadius:16, overflow:'hidden',
+      minHeight:280, display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center',
+      background:'rgba(12,15,20,0.95)',
+      border:'1px solid rgba(245,158,11,0.2)',
+      padding:'40px 28px', textAlign:'center',
+    }}>
+      {/* Fondo blur */}
+      <div style={{position:'absolute',inset:0,background:'rgba(6,9,13,0.7)',backdropFilter:'blur(4px)',zIndex:0}}/>
+      <div style={{position:'relative',zIndex:1}}>
+        <div style={{fontSize:44,marginBottom:16}}>🔒</div>
+        <div style={{fontFamily:"'Abril Fatface',serif",fontSize:22,color:'#EFF4FF',marginBottom:8,fontWeight:400}}>
+          Función premium
+        </div>
+        <div style={{fontFamily:"'Inter',system-ui,sans-serif",fontSize:13,color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:24,maxWidth:320}}>
+          {mensaje || 'Activa tu plan para desbloquear esta función y empezar a crecer con tu bot.'}
+        </div>
+        <a href={'/wasapbot/planes?id='+empresaId+'&nombre='+encodeURIComponent(nombreEmpresa||'')}
+          style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'12px 28px',fontFamily:"'Inter',system-ui,sans-serif",fontSize:14,fontWeight:700,textDecoration:'none',boxShadow:'0 6px 24px rgba(245,158,11,0.35)'}}>
+          ⚡ Activar mi plan →
+        </a>
+        <div style={{fontFamily:"'Inter',system-ui,sans-serif",fontSize:11,color:'rgba(255,255,255,0.2)',marginTop:10}}>
+          Desde $189.000/mes · Sin contratos · Cancela cuando quieras
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WasapBotPanel() {
   const router = useRouter();
   const { id } = router.query;
@@ -603,6 +705,10 @@ export default function WasapBotPanel() {
           {/* ══ CITAS / TURNOS (dinámico) ══ */}
           {tab==='citas'&&d.tabCitas&&(
             <div>
+              {!empresa?.planActivo ? (
+                <CandadoPremium empresaId={id} nombreEmpresa={empresa?.nombreEmpresa}
+                  mensaje={'Las '+d.tabCitas.toLowerCase()+' que agende el bot aparecerán aquí. Activa tu plan para que el bot empiece a agendar automáticamente.'} />
+              ) : (
               <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
                 <div>
                   <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:4}}>{d.tabCitas}</h2>
@@ -678,6 +784,18 @@ export default function WasapBotPanel() {
           {tab==='convs'&&(
             <div>
               <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:20}}>Conversaciones de WhatsApp</h2>
+              {!empresa?.planActivo ? (
+                <CandadoPremium empresaId={id} nombreEmpresa={empresa?.nombreEmpresa}
+                  mensaje="Las conversaciones de tus clientes aparecerán aquí cuando actives tu plan. El bot ya puede recibir mensajes — solo necesita el plan activo para responder con IA." />
+              ) : (
+              {!empresa?.planActivo ? (
+                <CandadoPremium empresaId={id} nombreEmpresa={empresa?.nombreEmpresa}
+                  mensaje="Las conversaciones de tus clientes aparecerán aquí cuando actives tu plan. El bot ya puede recibir mensajes — solo necesita el plan activo para responder con IA." />
+              ) : (
+              {!empresa?.planActivo ? (
+                <CandadoPremium empresaId={id} nombreEmpresa={empresa?.nombreEmpresa}
+                  mensaje="Las conversaciones de tus clientes aparecerán aquí cuando actives tu plan. El bot ya puede recibir mensajes — solo necesita el plan activo para responder con IA." />
+              ) : (
               <Guia
                 visible={convs.length===0 && !guiasVistas['convs_vacio']}
                 texto={d.guias.convs_vacio}
@@ -704,9 +822,13 @@ export default function WasapBotPanel() {
                   </div>
                 )}
               </div>
+              )}
             </div>
           )}
 
+          )}
+          )}
+          )}
           {/* ══ CATÁLOGO / MENÚ / SERVICIOS (dinámico) ══ */}
           {tab==='catalogo'&&(
             <div>
