@@ -1,13 +1,18 @@
 const fs = require('fs');
-fs.copyFileSync('whatsapp-baileys.js', 'whatsapp-baileys.backup.js');
-const codigo = fs.readFileSync('whatsapp-baileys.js', 'utf8');
-const nuevo = codigo
-  .replace('const historiales = new Map();', 'const historiales = new Map();\nconst msgsProcesados = new Set();')
-  .replace(
-    'const { empresaId, numeroCliente, texto, msgId } = req.body;',
-    `const { empresaId, numeroCliente, texto, msgId } = req.body;
-  if (msgId && msgsProcesados.has(msgId)) return res.json({ respuesta: null });
-  if (msgId) { msgsProcesados.add(msgId); if (msgsProcesados.size > 1000) { const first = msgsProcesados.values().next().value; msgsProcesados.delete(first); } }`
-  );
-fs.writeFileSync('whatsapp-baileys.js', nuevo);
+let c = fs.readFileSync('pages/index.js', 'utf8');
+
+// Quitar boton "Simular llamada en vivo"
+c = c.replace(/\s*<button[^>]*>[^<]*Simular llamada en vivo[^<]*<\/button>/g, '');
+
+// Quitar bloque entero de "Pruébalo ahora" / demo llamada
+c = c.replace(/\{\/\*[^*]*DEMO[^*]*\*\/\}/g, '');
+
+// Quitar textos de demo
+c = c.replace(/Llamar al demo ahora/g, '');
+c = c.replace(/Demo por WhatsApp/g, '');
+c = c.replace(/Simula una llamada en vivo/g, '');
+c = c.replace(/PRUÉBALO AHORA/g, '');
+c = c.replace(/Sin tarjeta · Activo en 24h/g, '');
+
+fs.writeFileSync('pages/index.js', c);
 console.log('Hecho');

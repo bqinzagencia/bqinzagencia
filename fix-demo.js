@@ -1,0 +1,1 @@
+const fs=require('fs');let c=fs.readFileSync('pages/index.js','utf8');c=c.replace(/Simular llamada en vivo/g,'Comenzar ahora');c=c.replace(/Llamar al demo ahora/g,'');c=c.replace(/Demo por WhatsApp/g,'');c=c.replace(/PRUEBALO AHORA/g,'');c=c.replace(/Simula una llamada en vivo/g,'');c=c.replace(/Sin tarjeta/g,'');fs.writeFileSync('pages/index.js',c);console.log('Hecho');
