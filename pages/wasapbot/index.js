@@ -212,7 +212,7 @@ export default function WasapBotLanding() {
           <Link href="/chatbot" style={{color:'rgba(255,255,255,0.45)',fontSize:13}}>ChatBot Web</Link>
         </div>
         <div style={{display:'flex',gap:10,alignItems:'center'}}>
-          <button onClick={()=>router.push('/auth/login')} style={{background:'transparent',color:'rgba(255,255,255,0.45)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:8,padding:'8px 18px',fontFamily:"'Inter', system-ui, sans-serif",fontSize:13,cursor:'pointer',transition:'all 0.15s'}}
+          <button onClick={()=>router.push('/wasapbot/login')} style={{background:'transparent',color:'rgba(255,255,255,0.45)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:8,padding:'8px 18px',fontFamily:"'Inter', system-ui, sans-serif",fontSize:13,cursor:'pointer',transition:'all 0.15s'}}
             onMouseEnter={e=>{e.currentTarget.style.color='#EFF4FF';e.currentTarget.style.borderColor='rgba(255,255,255,0.3)';}}
             onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,255,255,0.45)';e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';}}>
             Ingresar
