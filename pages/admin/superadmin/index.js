@@ -289,3 +289,77 @@ export default function Superadmin() {
                 {label:'Teléfono',value:detalle.telefono},
                 {label:'Plan',value:detalle.plan},
                 {label:'Estado',value:detalle.estado},
+                {label:'Ciudad',value:detalle.ciudad},
+                {label:'Industria',value:detalle.industria},
+                {label:'Agentes activos',value:detalle.agentesActivos||0},
+                {label:'Conversaciones',value:detalle.conversacionesTotales||0},
+                {label:'Leads total',value:detalle.leadsTotal||0},
+                {label:'WhatsApp',value:detalle.whatsapp?.status||'desconectado'},
+                {label:'Registro',value:detalle.creadoEn?.toDate?detalle.creadoEn.toDate().toLocaleDateString('es-ES'):'—'},
+                {label:'UID',value:detalle.id?.slice(0,14)+'...'},
+              ].map(item=>(
+                <div key={item.label} style={{background:'#0d0f12',borderRadius:8,padding:'10px 14px'}}>
+                  <div style={{color:'#6b7280',fontSize:11,marginBottom:3}}>{item.label}</div>
+                  <div style={{color:'#d1d5db',fontSize:14,fontWeight:500}}>{item.value||'—'}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {detalle.estado!=='activo'&&<button onClick={()=>{cambiarEstado(detalle.id,'activo');setDetalle({...detalle,estado:'activo'});}} style={{...s.btn,background:'#14532d',padding:'8px 16px',fontSize:13}}>✅ Activar</button>}
+              {detalle.estado!=='bloqueado'&&<button onClick={()=>{cambiarEstado(detalle.id,'bloqueado');setDetalle({...detalle,estado:'bloqueado'});}} style={{...s.btn,background:'#92400e',padding:'8px 16px',fontSize:13}}>🚫 Bloquear</button>}
+              <button onClick={()=>{setConfirmar(detalle.id);setDetalle(null);}} style={{...s.btn,background:'#7f1d1d',padding:'8px 16px',fontSize:13}}>🗑 Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmar && (
+        <div style={s.overlay}>
+          <div style={{...s.modal,maxWidth:360}}>
+            <h3 style={{color:'white',marginBottom:8}}>¿Eliminar esta empresa?</h3>
+            <p style={{color:'#9ca3af',marginBottom:24,fontSize:14}}>Acción irreversible. Se borrarán todos sus datos.</p>
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={()=>eliminarEmpresa(confirmar)} style={{...s.btn,background:'#7f1d1d',padding:'10px 24px',fontSize:14}}>Sí, eliminar</button>
+              <button onClick={()=>setConfirmar(null)} style={{...s.btn,background:'#374151',padding:'10px 24px',fontSize:14}}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const s = {
+  page:{minHeight:'100vh',background:'#0d0f12',fontFamily:'Inter, sans-serif'},
+  header:{background:'#111318',borderBottom:'1px solid #1f2937',padding:'14px 32px',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:100},
+  logo:{color:'white',fontWeight:700,fontSize:18},
+  badge:{background:'#FF6B00',color:'white',fontSize:10,padding:'3px 10px',borderRadius:4,fontWeight:700,letterSpacing:1},
+  logout:{background:'transparent',border:'1px solid #374151',color:'#9ca3af',padding:'6px 16px',borderRadius:6,cursor:'pointer',fontSize:13},
+  refreshBtn:{background:'transparent',border:'1px solid #374151',color:'#9ca3af',padding:'6px 14px',borderRadius:6,cursor:'pointer',fontSize:13},
+  container:{maxWidth:1400,margin:'0 auto',padding:'28px 24px'},
+  title:{color:'white',fontSize:26,fontWeight:700,margin:0},
+  statsGrid:{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))',gap:12,marginBottom:28},
+  statCard:{background:'#111318',border:'1px solid #1f2937',borderRadius:12,padding:'18px 20px'},
+  statNum:{fontSize:28,fontWeight:700,lineHeight:1},
+  statLabel:{color:'#6b7280',fontSize:12,marginTop:6},
+  tabs:{display:'flex',gap:6,marginBottom:20},
+  tab:{background:'transparent',border:'1px solid #1f2937',color:'#6b7280',padding:'8px 20px',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:500},
+  tabActive:{background:'#FF6B00',border:'1px solid #FF6B00',color:'white'},
+  filtrosRow:{display:'flex',gap:10,marginBottom:12,flexWrap:'wrap'},
+  search:{flex:2,minWidth:200,background:'#111318',border:'1px solid #1f2937',borderRadius:8,padding:'9px 14px',color:'white',fontSize:13},
+  filterSelect:{background:'#111318',border:'1px solid #1f2937',borderRadius:8,padding:'9px 12px',color:'#d1d5db',fontSize:13,cursor:'pointer'},
+  tableWrap:{overflowX:'auto',borderRadius:12,border:'1px solid #1f2937'},
+  table:{width:'100%',borderCollapse:'collapse'},
+  th:{background:'#0d0f12',color:'#6b7280',fontSize:11,fontWeight:600,padding:'12px 14px',textAlign:'left',borderBottom:'1px solid #1f2937',textTransform:'uppercase',letterSpacing:0.5},
+  tr:{borderBottom:'1px solid #1f2937'},
+  td:{padding:'12px 14px',color:'#d1d5db',fontSize:13},
+  pill:{display:'inline-block',padding:'3px 10px',borderRadius:20,fontSize:11,color:'white',fontWeight:500},
+  select:{border:'1px solid #374151',color:'white',borderRadius:6,padding:'4px 8px',fontSize:12,cursor:'pointer'},
+  actions:{display:'flex',gap:4},
+  btn:{border:'none',color:'white',padding:'5px 10px',borderRadius:6,cursor:'pointer',fontSize:13},
+  linkBtn:{background:'none',border:'none',color:'#FF6B00',cursor:'pointer',fontSize:13,fontWeight:500,textDecoration:'underline',padding:0},
+  empty:{color:'#6b7280',textAlign:'center',padding:'48px 0'},
+  overlay:{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000},
+  modal:{background:'#111318',border:'1px solid #1f2937',borderRadius:16,padding:'28px',maxWidth:600,width:'90%',maxHeight:'85vh',overflowY:'auto'},
+  toast:{position:'fixed',bottom:24,right:24,color:'white',padding:'12px 20px',borderRadius:10,fontSize:14,fontWeight:500,zIndex:9999,boxShadow:'0 4px 20px rgba(0,0,0,0.4)'},
+};
