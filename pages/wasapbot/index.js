@@ -211,9 +211,16 @@ export default function WasapBotLanding() {
           ))}
           <Link href="/chatbot" style={{color:'rgba(255,255,255,0.45)',fontSize:13}}>ChatBot Web</Link>
         </div>
-        <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{padding:'9px 22px',fontSize:13,borderRadius:8}}>
-          Activar mi bot →
-        </button>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <button onClick={()=>router.push('/auth/login')} style={{background:'transparent',color:'rgba(255,255,255,0.45)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:8,padding:'8px 18px',fontFamily:"'Inter', system-ui, sans-serif",fontSize:13,cursor:'pointer',transition:'all 0.15s'}}
+            onMouseEnter={e=>{e.currentTarget.style.color='#EFF4FF';e.currentTarget.style.borderColor='rgba(255,255,255,0.3)';}}
+            onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,255,255,0.45)';e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';}}>
+            Ingresar
+          </button>
+          <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{padding:'9px 22px',fontSize:13,borderRadius:8}}>
+            Activar mi bot →
+          </button>
+        </div>
       </nav>
 
       {/* ── HERO ── */}
@@ -437,7 +444,7 @@ export default function WasapBotLanding() {
           </div>
           <div>
             <div style={{fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>Garantía de satisfacción</div>
-            <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300}}>Si en los primeros 14 días no estás satisfecho, te devolvemos el dinero. Sin preguntas.</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300}}>Activa tu plan hoy. Si no estás satisfecho, te devolvemos el dinero. Sin preguntas.</div>
           </div>
         </div>
       </section>
