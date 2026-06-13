@@ -390,7 +390,9 @@ export default function WasapBotPanel() {
 
   // Links del sidebar — solo inventario/pedidos si la industria lo tiene
   const LINKS = [
-    ...(cfg.tieneInventario ? [{ href:`/wasapbot/panel/inventario/${id}`, label:'Inventario / Stock', icon:'📦', color:'#60A5FA', bg:'rgba(96,165,250,0.08)', border:'rgba(96,165,250,0.2)' }] : []),
+    // Stock general — siempre disponible para todas las industrias
+    { href:`/wasapbot/panel/stock/${id}`, label:'Inventario y ventas', icon:'📊', color:'#A78BFA', bg:'rgba(167,139,250,0.07)', border:'rgba(167,139,250,0.18)' },
+    ...(cfg.tieneInventario ? [{ href:`/wasapbot/panel/inventario/${id}`, label:'Menú del día', icon:'📦', color:'#60A5FA', bg:'rgba(96,165,250,0.08)', border:'rgba(96,165,250,0.2)' }] : []),
     ...(cfg.tienePedidos    ? [{ href:`/wasapbot/panel/pedidos/${id}`,    label:'Pedidos del día',   icon:'🛒', color:'#25D366', bg:'rgba(37,211,102,0.06)', border:'rgba(37,211,102,0.15)' }] : []),
   ];
 
@@ -516,6 +518,16 @@ export default function WasapBotPanel() {
                   </button>
                 </div>
               )}
+
+              {/* Acceso rápido stock general — siempre visible */}
+              <Link href={`/wasapbot/panel/stock/${id}`}
+                style={{background:'rgba(167,139,250,0.06)',border:'1px solid rgba(167,139,250,0.2)',borderRadius:14,padding:'16px 20px',display:'flex',alignItems:'center',gap:14,textDecoration:'none',marginBottom:12}}>
+                <span style={{fontSize:26}}>📊</span>
+                <div>
+                  <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#A78BFA',marginBottom:3}}>Inventario y ventas</div>
+                  <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.3)'}}>Compras, ventas, stock y reportes diarios</div>
+                </div>
+              </Link>
 
               {/* Accesos rápidos dinámicos — solo los de la industria */}
               {d.accesosRapidos.length > 0 && (
