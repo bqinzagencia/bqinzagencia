@@ -487,9 +487,9 @@ export default function WasapBotPanel() {
             <div style={{fontFamily:F,fontSize:10,color:'#4B6080',marginBottom:4}}>Plan actual</div>
             <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:plan.color,marginBottom:2}}>{plan.nombre}</div>
             <div style={{fontFamily:F,fontSize:11,color:'#4B6080',marginBottom:10}}>{plan.precio}/mes</div>
-            <a href="https://wa.me/573105056616?text=Quiero mejorar mi plan WasapBot" target="_blank" rel="noreferrer"
+            <a href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}`}
               style={{display:'block',background:'#25D366',color:'#fff',borderRadius:8,padding:'7px',fontFamily:F,fontSize:11,fontWeight:700,textAlign:'center'}}>
-              Mejorar plan
+              {empresa?.planActivo ? 'Cambiar plan' : '⚡ Activar plan'}
             </a>
           </div>
         </div>
@@ -504,6 +504,22 @@ export default function WasapBotPanel() {
               <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24,fontWeight:300}}>
                 Panel de control · {cfg.labelCatalogo} · {empresa.industria}
               </p>
+
+              {/* Banner de activación si el plan no está activo */}
+              {empresa&&!empresa.planActivo&&(
+                <div style={{background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)',borderRadius:12,padding:'16px 20px',marginBottom:16,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+                  <div>
+                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#F59E0B',marginBottom:3}}>⚡ Plan no activado</div>
+                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)'}}>
+                      Tu bot no responderá hasta que actives un plan. El proceso toma menos de 2 minutos.
+                    </div>
+                  </div>
+                  <a href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}`}
+                    style={{background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:9,padding:'10px 20px',fontFamily:F,fontSize:13,fontWeight:700,textDecoration:'none',flexShrink:0}}>
+                    Activar mi plan →
+                  </a>
+                </div>
+              )}
 
               {!connected&&(
                 <div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:12,padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
