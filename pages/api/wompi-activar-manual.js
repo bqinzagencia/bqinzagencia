@@ -7,14 +7,14 @@ const ADMIN_SECRET = process.env.ADMIN_SECRET || 'nexoti2026admin';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { secret, empresaId, planId, referencia } = req.body;
+  const { secret, empresaId, planId, referencia, email } = req.body;
 
   if (secret !== ADMIN_SECRET) {
     return res.status(403).json({ error: 'No autorizado' });
   }
 
   try {
-    // Si empresaId es 'LISTAR' — listar todas las empresas
+    // LISTAR todas las empresas
     if (empresaId === 'LISTAR' || empresaId === 'TODAS' || empresaId === 'buscar') {
       const snap = await adminDb.collection('empresas').get();
       const todas = snap.docs.map(d => ({
@@ -23,13 +23,54 @@ export default async function handler(req, res) {
         email:      d.data().email,
         producto:   d.data().producto,
         planActivo: d.data().planActivo,
-        ownerUid:   d.data().ownerUid,
       }));
       return res.json({ totalEmpresas: todas.length, empresas: todas });
     }
 
+    // ACTIVAR POR EMAIL — más confiable que por ID
+    if (email) {
+      const snap = await adminDb.collection('empresas')
+        .where('email', '==', email)
+        .limit(1)
+        .get();
+
+      if (snap.empty) {
+        return res.status(404).json({ error: `No hay empresa con email: ${email}` });
+      }
+
+      const empDoc  = snap.docs[0];
+      const empId   = empDoc.id;
+      const ahora   = new Date();
+      const planHasta = new Date(ahora.getTime() + 30 * 86400000);
+
+      await empDoc.ref.update({
+        plan:          planId || 'estandar',
+        planActivo:    true,
+        planHasta:     planHasta,
+        ultimoPago:    FieldValue.serverTimestamp(),
+        ultimoPagoRef: referencia || 'manual',
+      });
+
+      if (referencia) {
+        await adminDb.collection('pagos').doc(referencia).set({
+          estado: 'APPROVED', empresaId: empId, planId,
+          activadoManualmente: true,
+          actualizadoEn: FieldValue.serverTimestamp(),
+        }, { merge: true });
+      }
+
+      return res.json({
+        ok:        true,
+        mensaje:   `Plan ${planId} activado`,
+        empresaId: empId,
+        empresa:   empDoc.data().nombreEmpresa,
+        planActivo: true,
+      });
+    }
+
+    // ACTIVAR POR ID
     if (!empresaId || !planId) {
-      return res.status(400).json({ error: 'empresaId y planId requeridos' });
+      return res.status(400).json({ error: 'Envía email o empresaId + planId' });
     }
 
     const empRef  = adminDb.collection('empresas').doc(empresaId);
@@ -38,7 +79,7 @@ export default async function handler(req, res) {
     if (!empSnap.exists) {
       return res.status(404).json({
         error: `Empresa no encontrada: ${empresaId}`,
-        tip: 'Usa empresaId: "LISTAR" para ver todas las empresas',
+        tip:   'Usa el campo "email" en lugar de empresaId para buscar por correo',
       });
     }
 
@@ -46,30 +87,12 @@ export default async function handler(req, res) {
     const planHasta = new Date(ahora.getTime() + 30 * 86400000);
 
     await empRef.update({
-      plan:          planId,
-      planActivo:    true,
-      planHasta:     planHasta,
-      ultimoPago:    FieldValue.serverTimestamp(),
+      plan: planId, planActivo: true, planHasta,
+      ultimoPago: FieldValue.serverTimestamp(),
       ultimoPagoRef: referencia || 'manual',
     });
 
-    if (referencia) {
-      await adminDb.collection('pagos').doc(referencia).set({
-        estado:              'APPROVED',
-        empresaId,
-        planId,
-        activadoManualmente: true,
-        actualizadoEn:       FieldValue.serverTimestamp(),
-      }, { merge: true });
-    }
-
-    const empActualizada = await empRef.get();
-    return res.json({
-      ok:         true,
-      mensaje:    `Plan ${planId} activado`,
-      empresa:    empActualizada.data()?.nombreEmpresa,
-      planActivo: empActualizada.data()?.planActivo,
-    });
+    return res.json({ ok: true, mensaje: `Plan ${planId} activado`, planActivo: true });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
