@@ -1,4 +1,4 @@
-// pages/index.js — NEXOIA Landing v4 — Tipografía única, carácter latino-digital
+// pages/index.js — NEXOIA Landing v4 — WasapBot como producto principal
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../lib/AuthContext';
@@ -29,18 +29,140 @@ const INDUSTRIES = [
 ];
 
 const PLANES = [
-  { name: 'Emprendedor', price: '189.000', features: ['1 Agente IA activo', '500 conversaciones/mes', 'Chat web + WhatsApp', 'CRM hasta 200 contactos', 'Agendamiento básico', 'Soporte por email'], cta: 'Activar mi plan', popular: false },
-  { name: 'Profesional', price: '490.000', features: ['3 Agentes IA activos', 'Conversaciones ilimitadas', 'WhatsApp + Instagram + Web', 'Llamadas IA (100/mes)', 'CRM ilimitado + pipeline', 'Página web con IA', 'Reportes avanzados', 'Soporte 24/7'], cta: 'Activar mi plan', popular: true },
-  { name: 'Agencia', price: '1.190.000', features: ['Agentes IA ilimitados', 'Multisede y multiempresa', 'Llamadas IA ilimitadas', 'White-label / marca propia', 'API completa', 'Gestor dedicado', 'Capacitación incluida', 'SLA 99.9%'], cta: 'Hablar con ventas', popular: false },
+  { name: 'Básico', price: '189.000', features: ['Bot WhatsApp 24/7', 'Catálogo de productos', 'Agendamiento de citas', 'Inventario básico', 'Notificaciones email'], cta: 'Activar WasapBot', popular: false },
+  { name: 'Estándar', price: '390.000', features: ['Todo lo del Básico', 'Panel de pedidos', 'Inventario avanzado', 'Reportes de ventas', 'Broadcasts masivos', 'Soporte prioritario'], cta: 'Activar WasapBot', popular: true },
+  { name: 'Pro', price: '690.000', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado', 'Múltiples agentes IA', 'Gestor dedicado'], cta: 'Hablar con ventas', popular: false },
 ];
 
-// ─── Paleta única NEXOIA ──────────────────────────────────────────────────────
-// Lima eléctrico #B8FF6C · Coral #FF4D6D · Negro obsidiana #080808
-// Tipografía: Abril Fatface (display) · Fraunces (editorial) · Plus Jakarta Sans (cuerpo)
+// ── Popup de bienvenida ──────────────────────────────────────────────────────
+const POPUP_ITEMS = [
+  { icon: '🤖', t: 'Bot WhatsApp que responde 24/7 con IA' },
+  { icon: '📅', t: 'Agenda citas automáticamente' },
+  { icon: '📋', t: 'Catálogo con fotos, precios y descripciones' },
+  { icon: '📦', t: 'Inventario y control de stock en tiempo real' },
+  { icon: '🛒', t: 'Pedidos por WhatsApp con confirmación automática' },
+  { icon: '📊', t: 'Reportes diarios de ventas y actividad' },
+  { icon: '🔔', t: 'Alertas de stock mínimo por email' },
+  { icon: '📣', t: 'Broadcasts masivos a todos tus clientes' },
+];
+
+function PopupBienvenida({ onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(18px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '16px',
+    }}>
+      <style>{`
+        @keyframes popIn { from { opacity:0; transform:scale(0.92) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .popup-box { animation: popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+        .popup-item { animation: fadeUp 0.3s ease both; }
+      `}</style>
+
+      <div className="popup-box" style={{
+        background: '#0A0D12',
+        border: '1px solid rgba(37,211,102,0.2)',
+        borderRadius: 24,
+        width: '100%', maxWidth: 440,
+        maxHeight: '92vh',
+        overflowY: 'auto',
+        boxShadow: '0 40px 80px rgba(0,0,0,0.7), 0 0 60px rgba(37,211,102,0.08)',
+      }}>
+        {/* Video pequeño arriba */}
+        <div style={{ position: 'relative', borderRadius: '24px 24px 0 0', overflow: 'hidden', height: 180, background: '#000', flexShrink: 0 }}>
+          <video
+            autoPlay muted loop playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+          >
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"/>
+          </video>
+          {/* Overlay gradiente */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(10,13,18,0.9) 100%)' }}/>
+          {/* Badge WasapBot sobre el video */}
+          <div style={{ position: 'absolute', bottom: 14, left: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🤖</div>
+            <div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: '#25D366' }}>WasapBot · agencIAme</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, color: 'rgba(255,255,255,0.4)', marginTop: 1 }}>● En línea · Responde al instante</div>
+            </div>
+          </div>
+          {/* Botón cerrar */}
+          <button onClick={onClose} style={{
+            position: 'absolute', top: 12, right: 12,
+            background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '50%', width: 32, height: 32,
+            color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, fontWeight: 700,
+          }}>✕</button>
+        </div>
+
+        {/* Texto "tu negocio en piloto automático" */}
+        <div style={{ padding: '20px 22px 0' }}>
+          <h2 style={{
+            fontFamily: "'Abril Fatface',serif",
+            fontSize: 'clamp(24px,6vw,32px)',
+            fontWeight: 400, letterSpacing: '-1px',
+            color: '#F0F0F0', lineHeight: 1.1, marginBottom: 6,
+          }}>
+            Tu negocio en<br />
+            <span style={{ color: '#25D366' }}>piloto automático.</span>
+          </h2>
+          <p style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 18, fontWeight: 300 }}>
+            Un solo bot en WhatsApp reemplaza horas de trabajo manual. Desde $189.000/mes.
+          </p>
+        </div>
+
+        {/* Items — lo que incluye */}
+        <div style={{ padding: '0 22px 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {POPUP_ITEMS.map((item, i) => (
+            <div key={i} className="popup-item" style={{
+              animationDelay: `${0.05 + i * 0.04}s`,
+              display: 'flex', alignItems: 'flex-start', gap: 8,
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: 10, padding: '9px 10px',
+            }}>
+              <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.45, fontWeight: 400 }}>{item.t}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTAs */}
+        <div style={{ padding: '0 22px 22px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <Link href="/wasapbot/activar" onClick={onClose}>
+            <div style={{
+              background: 'linear-gradient(135deg,#25D366,#1aad4e)',
+              color: '#fff', borderRadius: 12, padding: '14px',
+              fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 700,
+              textAlign: 'center', cursor: 'pointer',
+              boxShadow: '0 6px 24px rgba(37,211,102,0.35)',
+            }}>
+              Activar mi WasapBot →
+            </div>
+          </Link>
+          <button onClick={onClose} style={{
+            background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 12, padding: '11px',
+            fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13,
+            color: 'rgba(255,255,255,0.3)', cursor: 'pointer',
+          }}>
+            Ver más información
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Landing() {
   const { user, loading } = useAuth();
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled,    setScrolled]    = useState(false);
+  const [showPopup,   setShowPopup]   = useState(false);
+  const [popupClosed, setPopupClosed] = useState(false);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
@@ -48,10 +170,35 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  const G = '#2563EB';   // azul safiro
-  const G2 = '#06B6D4';  // cyan vivo
-  const R = '#F97316';   // naranja fuego
-  const BG = '#0F1623';  // azul medianoche
+  // Mostrar popup solo en móvil, solo una vez por sesión
+  useEffect(() => {
+    const isMobile = window.innerWidth <= 768;
+    const yaVisto  = sessionStorage.getItem('popup_wasapbot_visto');
+    if (isMobile && !yaVisto) {
+      const t = setTimeout(() => {
+        setShowPopup(true);
+        sessionStorage.setItem('popup_wasapbot_visto', '1');
+      }, 800);
+      return () => clearTimeout(t);
+    } else if (isMobile && yaVisto) {
+      // Si ya lo vio antes, mostrar WasapBot directamente
+      setPopupClosed(true);
+    }
+  }, []);
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    setPopupClosed(true);
+    // Scroll suave a la sección WasapBot tras cerrar el popup
+    setTimeout(() => {
+      const el = document.getElementById('wasapbot');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+  };
+
+  const G  = '#25D366';  // verde WasapBot
+  const G2 = '#1aad4e';
+  const BG = '#0F1623';
 
   return (
     <>
@@ -60,26 +207,28 @@ export default function Landing() {
         <meta name="description" content="agencIAme: La plataforma de IA que atiende, agenda y vende por tu negocio. Automatiza ventas y atención al cliente 24/7." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* Abril Fatface: display dramático | Fraunces: editorial variable | Plus Jakarta Sans: cuerpo moderno */}
-        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap&text=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%C3%A0%C3%A1%C3%A9%C3%AD%C3%B3%C3%BA%C3%BC%C3%B1%C3%91" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
+      {/* Popup de bienvenida — solo móvil */}
+      {showPopup && <PopupBienvenida onClose={handleClosePopup} />}
+
       <style dangerouslySetInnerHTML={{__html: `
-        body { background: #080808; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; font-feature-settings: kern 1, liga 1; }
+        body { background: #080808; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
         *, *::before, *::after { box-sizing: border-box; }
         a { text-decoration: none; color: inherit; }
-        h1,h2,h3 { font-synthesis: none; -webkit-text-stroke: 0.01px transparent; }
+        h1,h2,h3 { font-synthesis: none; }
         img { display:block; }
-        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         .btn-ghost { background: transparent; color: #aaa; border: 1px solid #333; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
         .btn-ghost:hover { border-color: #666; color: #E8E8E8; }
-        .btn-lima { background: #2563EB; color: #fff; border: none; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .btn-wa { background: linear-gradient(135deg,#25D366,#1aad4e); color: #fff; border: none; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; box-shadow: 0 4px 20px rgba(37,211,102,0.3); }
+        .btn-wa:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,211,102,0.45); }
         .btn-coral { background: #F97316; color: #fff; border: none; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .btn-ghost-lima { background: transparent; color: #2563EB; border: 1px solid #2563EB44; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .label { display: inline-block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #2563EB; margin-bottom: 20px; }
+        .btn-ghost-wa { background: transparent; color: #25D366; border: 1px solid rgba(37,211,102,0.35); border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .label { display: inline-block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #25D366; margin-bottom: 20px; }
         .ind-wrap { position: relative; overflow: hidden; cursor: pointer; }
         .ind-img { object-fit: cover; position: absolute; inset: 0; width: 100%; height: 100%; transition: transform 0.6s ease; }
-        .ind-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.4) 50%, rgba(8,8,8,0.1) 100%); transition: opacity 0.4s; }
+        .ind-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.4) 50%, rgba(8,8,8,0.1) 100%); }
         .ind-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; transform: scaleX(0); transition: transform 0.4s; }
         .ind-wrap:hover .ind-img { transform: scale(1.05); }
         .ind-wrap:hover .ind-bar { transform: scaleX(1); }
@@ -87,118 +236,66 @@ export default function Landing() {
         .d1 { animation-delay: 0.1s; } .d2 { animation-delay: 0.25s; } .d3 { animation-delay: 0.4s; } .d4 { animation-delay: 0.55s; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes pulseWA { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)} 70%{box-shadow:0 0 0 10px rgba(37,211,102,0)} }
 
         /* ─── MOBILE ─────────────────────────────────────────────────── */
         @media (max-width: 768px) {
-          /* NAV */
           .lnd-nav { padding: 0 20px !important; height: 58px !important; }
           .lnd-nav-links { display: none !important; }
-
-          /* AVATAR BIENVENIDA — solo visible en movil */
-          .lnd-hero-avatar-wrap { display: block !important; }
-
-          /* HERO — visible desde arriba en movil */
-          .lnd-hero {
-            height: 100dvh !important;
-            min-height: 580px !important;
-          }
-          .lnd-hero-img {
-            object-position: 50% 30% !important;
-          }
-          .lnd-hero-content {
-            padding: 80px 22px 40px !important;
-            align-items: flex-start !important;
-            justify-content: flex-start !important;
-          }
+          .lnd-hero { height: 100dvh !important; min-height: 580px !important; }
+          .lnd-hero-img { object-position: 50% 30% !important; }
+          .lnd-hero-content { padding: 80px 22px 40px !important; align-items: flex-start !important; justify-content: flex-start !important; }
           .lnd-hero-inner { max-width: 100% !important; padding-top: 20px !important; }
-          .lnd-hero-h1 {
-            font-size: clamp(42px, 12vw, 72px) !important;
-            letter-spacing: -1px !important;
-            margin-bottom: 20px !important;
-          }
-          .lnd-hero-sub {
-            font-size: 15px !important;
-            margin-bottom: 28px !important;
-          }
-          .lnd-hero-ctas {
-            flex-direction: column !important;
-            gap: 10px !important;
-            width: 100% !important;
-          }
-          .lnd-hero-ctas a, .lnd-hero-ctas button {
-            width: 100% !important;
-            text-align: center !important;
-            justify-content: center !important;
-            display: block !important;
-          }
+          .lnd-hero-h1 { font-size: clamp(40px, 11vw, 68px) !important; letter-spacing: -1px !important; margin-bottom: 16px !important; }
+          .lnd-hero-sub { font-size: 14px !important; margin-bottom: 24px !important; }
+          .lnd-hero-ctas { flex-direction: column !important; gap: 10px !important; width: 100% !important; }
+          .lnd-hero-ctas a, .lnd-hero-ctas button { width: 100% !important; text-align: center !important; display: block !important; }
           .lnd-hero-proof { margin-top: 28px !important; flex-wrap: wrap !important; gap: 10px !important; }
           .lnd-hero-stats { display: none !important; }
-
-          /* BADGE HERO */
-          .lnd-hero-badge { padding: 6px 12px !important; margin-bottom: 24px !important; }
-          .lnd-hero-badge span:last-child { font-size: 9px !important; letter-spacing: 1.5px !important; }
-
-          /* INDUSTRIAS */
+          .lnd-hero-badge { padding: 6px 12px !important; margin-bottom: 20px !important; }
           .lnd-ind-header { padding: 60px 22px 40px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .lnd-ind-grid { grid-template-columns: 1fr 1fr !important; }
           .lnd-ind-grid .ind-wrap { height: 180px !important; }
           .lnd-ind-grid .ind-wrap h3 { font-size: 16px !important; }
           .lnd-ind-grid .ind-wrap p { display: none !important; }
-
-          /* FUNCIONES SPLIT */
           .lnd-split { grid-template-columns: 1fr !important; }
           .lnd-split-img { min-height: 220px !important; }
           .lnd-split-text { padding: 40px 22px !important; border-left: none !important; border-top: 1px solid #141414 !important; }
-          .lnd-feat-grid  { grid-template-columns: 1fr !important; }
+          .lnd-feat-grid { grid-template-columns: 1fr !important; }
           .feat-cell { border-right: none !important; padding: 36px 22px !important; }
-
-          /* GRIDS GENERALES SIN CLASE — override por selector */
-          section > div[style*="grid-template-columns: repeat(3"] {
-            grid-template-columns: 1fr !important;
-          }
-          section > div[style*="grid-template-columns: repeat(4"] {
-            grid-template-columns: 1fr 1fr !important;
-          }
-          section > div > div[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-          }
-
-          /* PASOS */
+          section > div[style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
+          section > div[style*="grid-template-columns: repeat(4"] { grid-template-columns: 1fr 1fr !important; }
           .lnd-steps-inner { padding: 60px 22px !important; }
           .lnd-steps-header { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
           .lnd-steps-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
           .lnd-steps-grid > div { border-right: none !important; border-bottom: 1px solid #141414 !important; padding: 36px 22px !important; }
-
-          /* PLANES */
           .lnd-planes-header { padding: 60px 22px 40px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .lnd-planes-grid { padding: 0 22px 80px !important; grid-template-columns: 1fr !important; gap: 16px !important; }
           .plan-card { padding: 36px 24px !important; }
-
-          /* TESTIMONIOS */
           .lnd-test-inner { padding: 60px 22px !important; }
           .lnd-test-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .lnd-test-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
           .lnd-test-grid > div { padding: 36px 22px !important; border-bottom: 1px solid #141414 !important; }
-
-          /* CTA FINAL */
           .lnd-cta-inner { padding: 80px 22px !important; }
           .lnd-cta-h2 { font-size: clamp(38px, 11vw, 72px) !important; letter-spacing: -1px !important; }
           .lnd-cta-btns { flex-direction: column !important; gap: 10px !important; }
           .lnd-cta-btns a, .lnd-cta-btns button { width: 100% !important; display: block !important; text-align: center !important; }
-
-          /* FOOTER */
           .lnd-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 36px !important; }
           .lnd-footer-grid > div:first-child { grid-column: 1 / -1 !important; }
           .lnd-footer-inner { padding: 56px 22px 32px !important; }
           .lnd-footer-copy { flex-direction: column !important; gap: 8px !important; text-align: center !important; }
+
+          /* WASAPBOT SECTION — visible en móvil sin scroll cuando cierra popup */
+          .wasapbot-hero-mobile { display: flex !important; }
         }
         @media (max-width: 420px) {
           .lnd-ind-grid { grid-template-columns: 1fr !important; }
           .lnd-ind-grid .ind-wrap { height: 200px !important; border-right: none !important; }
           .lnd-ind-grid .ind-wrap p { display: block !important; }
-        }`}} />
+        }
+      `}} />
 
-      {/* ── NAV ────────────────────────────────────────────────────────────────── */}
+      {/* ── NAV ── */}
       <nav className="lnd-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
         padding: '0 64px', height: 68,
@@ -208,65 +305,57 @@ export default function Landing() {
         borderBottom: scrolled ? '1px solid #1A1A1A' : 'none',
         transition: 'all 0.5s ease',
       }}>
-        {/* Logo */}
         <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 20, letterSpacing: '-0.5px', color: '#E8E8E8' }}>
           agenc<span style={{ color: '#FF6B00', fontSize: 23, fontWeight: 900 }}>IA</span>me
         </div>
-
         <div className="lnd-nav-links" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
-          {['Empresas', 'Funciones', 'Precios', 'Blog', 'WasapBot', 'ChatBot'].map(item => (
-            <a key={item} href={item==='Blog'?'/blog':item==='WasapBot'?'/wasapbot':item==='ChatBot'?'/chatbot':'#'+item.toLowerCase()}
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#555', fontSize: 13, fontWeight: 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
+          {['Empresas', 'Funciones', 'Precios', 'WasapBot'].map(item => (
+            <a key={item}
+              href={item === 'WasapBot' ? '/wasapbot' : '#' + item.toLowerCase()}
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: item === 'WasapBot' ? '#25D366' : '#555', fontSize: 13, fontWeight: item === 'WasapBot' ? 600 : 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
               onMouseEnter={e => e.target.style.color = '#E8E8E8'}
-              onMouseLeave={e => e.target.style.color = '#555'}>
+              onMouseLeave={e => e.target.style.color = item === 'WasapBot' ? '#25D366' : '#555'}>
               {item}
             </a>
           ))}
         </div>
-
         <div className="lnd-nav-cta">
           {!loading && (user ? (
-            <Link href="/dashboard"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Panel →</button></Link>
+            <Link href="/wasapbot"><button className="btn-wa" style={{ padding: '9px 22px', fontSize: 13 }}>Mi WasapBot →</button></Link>
           ) : (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <Link href="/auth/login"><span style={{ color: '#555', fontSize: 13, cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#555'}>Ingresar</span></Link>
-              <Link href="/auth/register"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Crear cuenta</button></Link>
+              <Link href="/wasapbot/login"><span style={{ color: '#555', fontSize: 13, cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#555'}>Ingresar</span></Link>
+              <Link href="/wasapbot/activar"><button className="btn-wa" style={{ padding: '9px 22px', fontSize: 13 }}>Crear mi bot →</button></Link>
             </div>
           ))}
         </div>
       </nav>
 
-      {/* ── HERO ────────────────────────────────────────────────────────────────────── */}
-      <section className="lnd-hero" style={{ position: 'relative', height: '100svh', minHeight: 580, overflow: 'hidden' }}>
-        {/* Imagen — centrada y visible desde el primer frame en móvil */}
+      {/* ── HERO ── */}
+      <section className={`lnd-hero${popupClosed ? ' hero-popup-closed' : ''}`} style={{ position: 'relative', height: '100svh', minHeight: 580, overflow: 'hidden' }}>
+        {/* En móvil con popup cerrado: hero más compacto para que WasapBot sea la primera sección visible */}
+        <style>{`@media(max-width:768px){
+          .hero-popup-closed{height:56dvh!important;min-height:300px!important;transition:height 0.4s ease}
+          .hero-popup-closed .lnd-hero-content{padding:68px 22px 20px!important}
+          .hero-popup-closed .lnd-hero-sub{display:none!important}
+          .hero-popup-closed .lnd-hero-proof{display:none!important}
+          .hero-popup-closed .lnd-hero-badge{margin-bottom:12px!important}
+          .hero-popup-closed .lnd-hero-h1{font-size:clamp(30px,8vw,48px)!important;margin-bottom:10px!important;line-height:1!important}
+          .hero-popup-closed .lnd-hero-ctas button{padding:11px!important;font-size:13px!important}
+          .hero-popup-closed .slide-up.d3{margin-top:10px!important}
+        }`}</style>
         <img className="lnd-hero-img"
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=90" alt="Oficina"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }} />
-        {/* Gradiente — más oscuro y homogéneo para que el texto sea legible en móvil */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.85) 50%, rgba(8,8,8,0.65) 100%)' }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, background: 'linear-gradient(to top, #080808, transparent)' }} />
 
-        {/* Contenido — se apila en móvil gracias a .lnd-hero-content */}
         <div className="lnd-hero-content" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', padding: '68px 80px 0' }}>
           <div className="lnd-hero-inner" style={{ maxWidth: 740 }}>
 
-            {/* Avatar bienvenida — visible en movil arriba del texto */}
-            <div className="lnd-hero-avatar-wrap" style={{ display: 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(15,22,35,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(43,106,255,0.25)', borderRadius: 16, padding: '12px 16px', marginBottom: 24 }}>
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #2563EB, #06B6D4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🤖</div>
-                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRadius: '50%', background: '#10B981', border: '2px solid #0A0F1E' }} />
-                </div>
-                <div>
-                  <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 700, color: '#EFF4FF' }}>Agente IA — agencIAme</div>
-                  <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#6DA4FF', marginTop: 2 }}>● En línea · Responde al instante</div>
-                </div>
-              </div>
-            </div>
-
             {/* Badge */}
-            <div className="slide-up" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: `1px solid ${G}30`, borderRadius: 1, padding: '7px 16px', marginBottom: 44 }}>
-              <span style={{ width: 5, height: 5, background: G, borderRadius: '50%', flexShrink: 0 }} />
+            <div className="slide-up lnd-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: `1px solid rgba(37,211,102,0.3)`, borderRadius: 1, padding: '7px 16px', marginBottom: 44 }}>
+              <span style={{ width: 5, height: 5, background: G, borderRadius: '50%', flexShrink: 0, animation: 'pulseWA 2s infinite' }} />
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: G, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase' }}>
                 Tu negocio atendido por Inteligencia Artificial
               </span>
@@ -275,7 +364,7 @@ export default function Landing() {
             {/* Título */}
             <h1 className="slide-up d1 lnd-hero-h1" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(60px, 8.5vw, 120px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '-2px', color: '#FAFAFA', marginBottom: 36 }}>
               agenc<span style={{ color: '#FF6B00' }}>IA</span>me<br />
-              <span style={{ fontSize: '55%', color: 'rgba(240,240,240,0.7)', fontStyle: 'normal' }}>tu negocio en<br /></span>
+              <span style={{ fontSize: '55%', color: 'rgba(240,240,240,0.7)' }}>tu negocio en<br /></span>
               <span style={{ color: G }}>piloto automático.</span>
             </h1>
 
@@ -284,17 +373,20 @@ export default function Landing() {
               La IA que atiende tus clientes, agenda citas y vende por ti — las 24 horas, los 7 días de la semana.
             </p>
 
-            {/* CTAs */}
+            {/* CTAs — todos apuntan a WasapBot */}
             <div className="slide-up d3 lnd-hero-ctas" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              <Link href="/auth/register"><button className="btn-lima" style={{ fontSize: 16, padding: '16px 44px' }}>Activar mi plan →</button></Link>
-              <a href="#industrias"><button className="btn-ghost" style={{ fontSize: 16, padding: '16px 44px' }}>Ver industrias</button></a>
+              <Link href="/wasapbot/activar">
+                <button className="btn-wa" style={{ fontSize: 16, padding: '16px 44px' }}>Activar mi WasapBot →</button>
+              </Link>
+              <a href="#wasapbot">
+                <button className="btn-ghost" style={{ fontSize: 16, padding: '16px 44px' }}>Ver cómo funciona</button>
+              </a>
             </div>
 
-            {/* Texto "Activa tu plan ahora" en azul */}
             <div className="slide-up d3" style={{ marginTop: 22 }}>
-              <Link href="/auth/register">
-                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 15, fontWeight: 700, color: '#2563EB', cursor: 'pointer', borderBottom: '1px solid #2563EB55', paddingBottom: 2, letterSpacing: 0.2 }}>
-                  Activa tu plan ahora →
+              <Link href="/wasapbot/activar">
+                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 700, color: G, cursor: 'pointer', borderBottom: `1px solid rgba(37,211,102,0.4)`, paddingBottom: 2 }}>
+                  Desde $189.000/mes · Sin contratos →
                 </span>
               </Link>
             </div>
@@ -302,7 +394,7 @@ export default function Landing() {
             {/* Social proof */}
             <div className="slide-up d4 lnd-hero-proof" style={{ marginTop: 60, display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ display: 'flex' }}>
-                {['#FF6B35','#FF4D8B','#4D94FF','#FFB830','#B8FF6C'].map((c, i) => (
+                {['#FF6B35','#FF4D8B','#4D94FF','#FFB830','#25D366'].map((c, i) => (
                   <div key={i} style={{ width: 34, height: 34, borderRadius: '50%', background: c + '33', border: `2px solid ${c}66`, marginLeft: i === 0 ? 0 : -10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600, color: c, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     {['RM','PG','AL','JV','DG'][i]}
                   </div>
@@ -315,7 +407,6 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Stats — ocultas en móvil via .lnd-hero-stats */}
         <div className="lnd-hero-stats" style={{ position: 'absolute', right: 80, bottom: 80, display: 'flex', gap: 48 }}>
           {[{ v: '24/7', l: 'Disponible' }, { v: '<2s', l: 'Respuesta' }, { v: '94%', l: 'Satisfacción' }].map((s, i) => (
             <div key={i} style={{ textAlign: 'right' }}>
@@ -326,11 +417,57 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── WASAPBOT SECTION — visible en móvil al cerrar popup ── */}
+      <section id="wasapbot" style={{ background: '#06090D', borderTop: '1px solid rgba(37,211,102,0.15)', padding: '64px 80px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(37,211,102,0.1)', border: '2px solid rgba(37,211,102,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, animation: 'pulseWA 2s infinite' }}>🤖</div>
+            <div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: G, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 4 }}>Producto principal</div>
+              <div style={{ fontFamily: "'Abril Fatface',serif", fontSize: 'clamp(28px,5vw,48px)', color: '#F0F0F0', letterSpacing: '-1px', lineHeight: 1 }}>WasapBot</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 16, overflow: 'hidden', marginBottom: 32 }}>
+            {[
+              { plan: 'Básico', precio: '$189K/mes', color: '#25D366', items: ['Bot WhatsApp IA 24/7', 'Catálogo con fotos', 'Agendamiento automático', 'Inventario básico'] },
+              { plan: 'Estándar', precio: '$390K/mes', color: '#2563EB', popular: true, items: ['Todo lo del Básico', 'Panel de pedidos', 'Reportes de ventas', 'Broadcasts masivos'] },
+              { plan: 'Pro', precio: '$690K/mes', color: '#A78BFA', items: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado'] },
+            ].map((p, i) => (
+              <Link key={i} href="/wasapbot/activar">
+                <div style={{ background: '#0A0D12', padding: '24px 20px', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = `rgba(${p.color === '#25D366' ? '37,211,102' : p.color === '#2563EB' ? '37,99,235' : '167,139,250'},0.06)`}
+                  onMouseLeave={e => e.currentTarget.style.background = '#0A0D12'}>
+                  {p.popular && <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', background: p.color, color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 12px', borderRadius: '0 0 8px 8px', whiteSpace: 'nowrap' }}>★ MÁS POPULAR</div>}
+                  <div style={{ fontFamily: "'Abril Fatface',serif", fontSize: 22, color: p.color, letterSpacing: '-0.5px', marginBottom: 2 }}>{p.precio}</div>
+                  <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1 }}>{p.plan}</div>
+                  {p.items.map((item, j) => (
+                    <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginBottom: 7 }}>
+                      <span style={{ color: p.color, fontSize: 10, flexShrink: 0, marginTop: 2 }}>✓</span>
+                      <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            <Link href="/wasapbot/activar">
+              <button className="btn-wa" style={{ fontSize: 15, padding: '14px 36px' }}>Activar mi WasapBot →</button>
+            </Link>
+            <Link href="/wasapbot">
+              <button className="btn-ghost-wa" style={{ fontSize: 15, padding: '14px 36px' }}>Ver más detalles</button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── MARQUEE ── */}
       <div style={{ borderTop: '1px solid #141414', borderBottom: '1px solid #141414', padding: '14px 0', overflow: 'hidden', background: '#0C0C0C' }}>
         <div style={{ display: 'flex', gap: 80, animation: 'marquee 32s linear infinite', whiteSpace: 'nowrap' }}>
-          {['Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads',
-            'Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads'].map((t, i) => (
+          {['Bot WhatsApp 24/7', 'Inventario en tiempo real', 'Pedidos automáticos', 'Reportes diarios', 'Agendamiento IA', 'Broadcasts masivos', 'Stock con alertas', 'Página web incluida',
+            'Bot WhatsApp 24/7', 'Inventario en tiempo real', 'Pedidos automáticos', 'Reportes diarios', 'Agendamiento IA', 'Broadcasts masivos', 'Stock con alertas', 'Página web incluida'].map((t, i) => (
               <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#252525', fontSize: 12, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
                 <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.6 }} />{t}
               </span>
@@ -338,9 +475,8 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* ── INDUSTRIAS ──────────────────────────────────────────────────────────── */}
+      {/* ── INDUSTRIAS ── */}
       <section id="empresas">
-        {/* Header */}
         <div style={{ position: 'relative', padding: '100px 80px 72px', overflow: 'hidden' }} className="lnd-ind-header">
           <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600&q=80" alt=""
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.08) saturate(0.3)' }} />
@@ -352,35 +488,20 @@ export default function Landing() {
               </h2>
             </div>
             <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontSize: 18, maxWidth: 380, lineHeight: 1.8, fontWeight: 300 }}>
-              Cada empresa tiene su propio agente IA, sitio web y flujos preconfigurados listos desde el primer día.
+              Cada industria tiene su bot preconfigurado con el vocabulario, flujos y catálogo listo desde el primer día.
             </p>
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }} className="lnd-ind-grid">
           {INDUSTRIES.map((ind, i) => (
-            <Link key={i} href={'/industrias/' + ind.slug}>
-              <div className="ind-wrap" style={{ height: 280, borderRight: i % 4 !== 3 ? '1px solid #141414' : 'none', borderBottom: i < 8 ? '1px solid #141414' : 'none' }}>
+            <Link key={i} href={'/wasapbot/activar'}>
+              <div className="ind-wrap" style={{ height: 280, borderRight: i % 4 !== 3 ? '1px solid #141414' : 'none', borderBottom: i < INDUSTRIES.length - 4 ? '1px solid #141414' : 'none' }}>
                 <img className="ind-img" src={ind.img} alt={ind.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
                 <div className="ind-overlay" />
                 <div className="ind-bar" style={{ background: ind.color }} />
-                {/* Contenido */}
                 <div style={{ position: 'absolute', inset: 0, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                  {/* Icono SVG profesional segun industria */}
-                  <div style={{ marginBottom: 10, opacity: 0.9 }}>
-                    {ind.slug === 'taller' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
-                    {ind.slug === 'peluqueria' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>}
-                    {ind.slug === 'inmobiliaria' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
-                    {ind.slug === 'restaurante' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>}
-                    {ind.slug === 'restaurante_barrio' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>}
-                    {ind.slug === 'tienda' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>}
-                    {ind.slug === 'gimnasio' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h-5"/><path d="M6 8h5"/><line x1="8" y1="4" x2="8" y2="20"/><line x1="16" y1="4" x2="16" y2="20"/><path d="M21 12h-3"/><path d="M3 12h3"/></svg>}
-                    {ind.slug === 'salud' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>}
-                    {ind.slug === 'ajedrez' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M8 6v2c0 1.1-.9 2-2 2H5l1 10h12l1-10h-1c-1.1 0-2-.9-2-2V6"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
-                    {ind.slug === 'arquitectura' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>}
-                    {ind.slug === 'papeleria' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>}
-                    {(ind.slug !== 'taller' && ind.slug !== 'peluqueria' && ind.slug !== 'inmobiliaria' && ind.slug !== 'restaurante' && ind.slug !== 'restaurante_barrio' && ind.slug !== 'tienda' && ind.slug !== 'gimnasio' && ind.slug !== 'salud' && ind.slug !== 'ajedrez' && ind.slug !== 'arquitectura' && ind.slug !== 'papeleria') && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ind.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>}
-                  </div>
+                  <div style={{ fontSize: 24, marginBottom: 8 }}>{ind.icon}</div>
                   <h3 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 22, fontWeight: 400, color: '#fff', marginBottom: 6, lineHeight: 1.1 }}>{ind.title}</h3>
                   <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, fontWeight: 300 }}>{ind.desc}</p>
                 </div>
@@ -391,66 +512,39 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── FUNCIONES — SPLIT ───────────────────────────────────────────────────── */}
+      {/* ── FUNCIONES ── */}
       <section id="funciones" style={{ background: BG }}>
-        {/* Split foto + texto */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-          <div style={{ position: 'relative', minHeight: 560, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }} className="lnd-split">
+          <div className="lnd-split-img" style={{ position: 'relative', minHeight: 560, overflow: 'hidden' }}>
             <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=900&q=85" alt="Equipo"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 55%, #080808 100%)' }} />
           </div>
-          <div style={{ padding: '80px 72px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderLeft: '1px solid #141414' }}>
+          <div className="lnd-split-text" style={{ padding: '80px 72px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderLeft: '1px solid #141414' }}>
             <span className="label">Funcionalidades</span>
             <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(36px, 4vw, 60px)', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-1px', marginBottom: 28, color: '#F0F0F0' }}>
               Todo en una<br />sola plataforma
             </h2>
             <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.4)', fontSize: 17, lineHeight: 1.8, marginBottom: 44, fontWeight: 300 }}>
-              Desde el primer mensaje hasta la cita agendada y el cliente guardado en tu CRM — todo automático mientras tú te enfocas en lo que importa.
+              Desde el primer mensaje hasta la cita agendada, el pedido confirmado y el reporte del día — todo automático.
             </p>
-            <Link href="/auth/register">
-              <button className="btn-lima" style={{ alignSelf: 'flex-start' }}>Empezar ahora →</button>
+            <Link href="/wasapbot/activar">
+              <button className="btn-wa" style={{ alignSelf: 'flex-start' }}>Activar mi WasapBot →</button>
             </Link>
           </div>
         </div>
 
-        {/* Grid 3x2 de funciones — iconos SVG profesionales */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderTop: '1px solid #141414' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderTop: '1px solid #141414' }} className="lnd-feat-grid">
           {[
-            {
-              n: '01', title: 'Agentes IA personalizados',
-              desc: 'Entrenados con tu información. Responden, capturan leads y cierran ventas 24/7 sin intervención humana.',
-              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/><path d="M8 16h.01M16 16h.01"/></svg>)
-            },
-            {
-              n: '02', title: 'Chat multicanal',
-              desc: 'WhatsApp, Instagram, web y más. Todos tus canales unificados con respuestas automáticas e inteligentes.',
-              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="#B8FF6C"/><circle cx="12" cy="10" r="1" fill="#B8FF6C"/><circle cx="15" cy="10" r="1" fill="#B8FF6C"/></svg>)
-            },
-            {
-              n: '03', title: 'Voz IA',
-              desc: 'Agente que contesta llamadas, confirma citas y hace seguimiento telefónico de forma completamente automática.',
-              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.4 2 2 0 0 1 3.62 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/><path d="M15 5.5a4 4 0 0 1 4 4" opacity="0.5"/><path d="M15 1.5a8 8 0 0 1 8 8" opacity="0.3"/></svg>)
-            },
-            {
-              n: '04', title: 'CRM inteligente',
-              desc: 'Gestiona clientes y pipeline. Los leads se capturan solos desde cada conversación y llamada.',
-              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>)
-            },
-            {
-              n: '05', title: 'Página web IA',
-              desc: 'Sitio web elegante generado automáticamente con tus servicios, precios y chat de IA integrado.',
-              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>)
-            },
-            {
-              n: '06', title: 'Agendamiento automático',
-              desc: 'Calendario conectado al agente. Tus clientes reservan citas solos — sin mensajes ni llamadas manuales.',
-              svg: (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8FF6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>)
-            },
+            { n:'01', title:'Bot WhatsApp IA 24/7',     desc:'Responde, agenda y vende por WhatsApp sin que estés pendiente. Aprende tu negocio y habla como tú.' },
+            { n:'02', title:'Inventario y stock',        desc:'Control de entradas, salidas y stock mínimo. Alertas automáticas cuando un producto se está agotando.' },
+            { n:'03', title:'Pedidos por WhatsApp',     desc:'El cliente pide por chat, el bot confirma, descuenta el inventario y te notifica al instante.' },
+            { n:'04', title:'Reportes diarios',          desc:'Cada noche un resumen: ventas del día, citas agendadas, productos más pedidos y clientes nuevos.' },
+            { n:'05', title:'Agendamiento automático',  desc:'El bot agenda citas, confirma por WhatsApp y te avisa cuando alguien cancela o no aparece.' },
+            { n:'06', title:'Broadcasts masivos',       desc:'Envía promos, recordatorios o novedades a todos tus clientes con un solo clic desde el panel.' },
           ].map((f, i) => (
-            <div key={i} className="feat-cell" style={{ padding: '48px 40px', borderRight: i % 3 !== 2 ? '1px solid #141414' : 'none', borderBottom: i < 3 ? '1px solid #141414' : 'none', position: 'relative', background: 'transparent' }}>
+            <div key={i} className="feat-cell" style={{ padding: '48px 40px', borderRight: i % 3 !== 2 ? '1px solid #141414' : 'none', borderBottom: i < 3 ? '1px solid #141414' : 'none', position: 'relative' }}>
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 88, color: G, opacity: 0.06, position: 'absolute', top: -8, right: 24, lineHeight: 1 }}>{f.n}</div>
-              <div style={{ marginBottom: 24, opacity: 0.85 }}>{f.svg}</div>
               <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, marginBottom: 14, color: '#E8E8E8', lineHeight: 1.2 }}>{f.title}</h3>
               <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{f.desc}</p>
             </div>
@@ -458,31 +552,29 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── PASOS — FOTO FULL ───────────────────────────────────────────────────── */}
+      {/* ── PASOS ── */}
       <section style={{ position: 'relative', overflow: 'hidden' }}>
         <img src="https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1800&q=85" alt=""
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.1) saturate(0.5)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #080808 0%, rgba(8,8,8,0.5) 30%, rgba(8,8,8,0.5) 70%, #080808 100%)' }} />
-
         <div style={{ position: 'relative', padding: '100px 80px' }} className="lnd-steps-inner">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 80, flexWrap: 'wrap', gap: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 80, flexWrap: 'wrap', gap: 24 }} className="lnd-steps-header">
             <div>
               <span className="label">Proceso</span>
               <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(40px, 5vw, 72px)', fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.0 }}>
-                Activa tu agencia<br />de IA en 4 pasos
+                Tu bot activo<br />en 10 minutos
               </h2>
             </div>
-            <Link href="/auth/register">
-              <button className="btn-coral" style={{ fontSize: 15, padding: '14px 36px' }}>Comenzar ahora →</button>
+            <Link href="/wasapbot/activar">
+              <button className="btn-wa" style={{ fontSize: 15, padding: '14px 36px' }}>Comenzar ahora →</button>
             </Link>
           </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, background: '#141414' }} className="lnd-steps-grid">
             {[
-              { n: '01', title: 'Regístrate', desc: 'Crea tu cuenta en segundos. Sin tarjeta de crédito. Sin contratos ni permanencia.' },
-              { n: '02', title: 'Configura', desc: 'Ingresa servicios, precios y horarios. La IA aprende todo sobre tu negocio automáticamente.' },
-              { n: '03', title: 'Activa', desc: 'Conecta WhatsApp, tu sitio web o teléfono. Tu agente empieza a trabajar en minutos.' },
-              { n: '04', title: 'Crece', desc: 'Revisa reportes y conversaciones en tiempo real. Escala cuando quieras, sin límites.' },
+              { n: '01', title: 'Regístrate', desc: 'Crea tu negocio en 2 minutos. Solo nombre, industria y correo. Sin tarjeta de crédito.' },
+              { n: '02', title: 'Configura', desc: 'Agrega tus servicios, precios y horarios. El bot aprende todo sobre tu negocio automáticamente.' },
+              { n: '03', title: 'Conecta', desc: 'Vincula tu WhatsApp con QR o código. El bot empieza a responder en menos de 5 minutos.' },
+              { n: '04', title: 'Crece', desc: 'Activa tu plan y desbloquea pedidos, inventario, reportes y broadcasts. Crece sin límites.' },
             ].map((step, i) => (
               <div key={i} style={{ background: '#080808', padding: '52px 40px' }}>
                 <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 64, color: G, opacity: 0.2, lineHeight: 1, marginBottom: 28 }}>{step.n}</div>
@@ -494,9 +586,9 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── PLANES ──────────────────────────────────────────────────────────────── */}
+      {/* ── PLANES ── */}
       <section id="precios" style={{ background: BG }}>
-        <div style={{ position: 'relative', padding: '100px 80px 72px', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', padding: '100px 80px 72px', overflow: 'hidden' }} className="lnd-planes-header">
           <img src="https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=1600&q=80" alt=""
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.08)' }} />
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 32 }}>
@@ -507,29 +599,23 @@ export default function Landing() {
               </h2>
             </div>
             <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.3)', fontSize: 18, maxWidth: 320, lineHeight: 1.8, fontWeight: 300 }}>
-              Sin contratos. Sin sorpresas. Cancela cuando quieras.
+              Sin contratos · Sin sorpresas · Cancela cuando quieras
             </p>
           </div>
         </div>
-
         <div style={{ padding: '0 80px 120px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }} className="lnd-planes-grid">
           {PLANES.map((plan, i) => (
             <div key={i} className="plan-card" style={{
-              border: '1px solid ' + (plan.popular ? G + '55' : '#1A1A1A'),
+              border: '1px solid ' + (plan.popular ? `rgba(37,211,102,0.4)` : '#1A1A1A'),
               borderTop: plan.popular ? `3px solid ${G}` : '1px solid #1A1A1A',
-              padding: '48px 40px',
-              background: plan.popular ? '#0E0E0E' : '#0A0A0A',
+              padding: '48px 40px', background: plan.popular ? '#0E0E0E' : '#0A0A0A',
             }}>
-              {plan.popular && (
-                <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: G, marginBottom: 20 }}>★ Más popular</div>
-              )}
+              {plan.popular && <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: G, marginBottom: 20 }}>★ Más popular</div>}
               <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 24 }}>{plan.name}</div>
-
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 72, fontWeight: 400, color: plan.popular ? G : '#E8E8E8', lineHeight: 1, marginBottom: 4, letterSpacing: -2 }}>
                 <sup style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 20, verticalAlign: 'top', marginTop: 18, fontWeight: 300, opacity: 0.6 }}>$</sup>{plan.price}
               </div>
               <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 44, letterSpacing: 0.3 }}>COP / mes · IVA incluido</div>
-
               <ul style={{ listStyle: 'none', marginBottom: 48 }}>
                 {plan.features.map((f, j) => (
                   <li key={j} style={{ padding: '11px 0', borderBottom: '1px solid #1A1A1A', fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 12, fontWeight: 300 }}>
@@ -537,9 +623,8 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-
-              <Link href="/auth/register">
-                <button className={plan.popular ? 'btn-lima' : 'btn-ghost-lima'} style={{ width: '100%', textAlign: 'center', fontSize: 14, padding: '14px' }}>
+              <Link href="/wasapbot/activar">
+                <button className={plan.popular ? 'btn-wa' : 'btn-ghost-wa'} style={{ width: '100%', textAlign: 'center', fontSize: 14, padding: '14px' }}>
                   {plan.cta}
                 </button>
               </Link>
@@ -548,14 +633,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── TESTIMONIOS ─────────────────────────────────────────────────────────── */}
+      {/* ── TESTIMONIOS ── */}
       <section style={{ position: 'relative', overflow: 'hidden' }}>
         <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1800&q=80" alt=""
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.08)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #080808 0%, rgba(8,8,8,0.5) 20%, rgba(8,8,8,0.5) 80%, #080808 100%)' }} />
-
-        <div style={{ position: 'relative', padding: '100px 80px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 72, flexWrap: 'wrap', gap: 24 }}>
+        <div style={{ position: 'relative', padding: '100px 80px' }} className="lnd-test-inner">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 72, flexWrap: 'wrap', gap: 24 }} className="lnd-test-header">
             <div>
               <span className="label">Testimonios</span>
               <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(40px, 5vw, 72px)', fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.0 }}>
@@ -563,12 +647,11 @@ export default function Landing() {
               </h2>
             </div>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#141414' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#141414' }} className="lnd-test-grid">
             {[
-              { quote: 'Antes perdíamos clientes por no contestar a tiempo. Ahora el agente responde en segundos y agenda citas solo. Increíble cambio para mi negocio.', name: 'Ricardo Montoya', role: 'Taller AutoCenter — Medellín', initials: 'RM', color: '#FF6B35' },
-              { quote: 'Las reservas de mi peluquería se manejan solas. El bot ya sabe mis horarios y precios. Ahorro 3 horas diarias que antes gastaba en mensajes.', name: 'Patricia Guerrero', role: 'Estudio Elegance — Cali', initials: 'PG', color: '#FF4D8B' },
-              { quote: 'El agente filtra prospectos serios y agenda visitas. Mis vendedores solo atienden gente lista para comprar. Las ventas subieron un 40%.', name: 'Andrés López', role: 'Inversión Finca Raíz — Bogotá', initials: 'AL', color: '#4D94FF' },
+              { quote: 'Antes perdíamos clientes por no contestar a tiempo. Ahora el bot responde en segundos, agenda citas solo y me manda el reporte del día. Increíble.', name: 'Ricardo Montoya', role: 'Taller AutoCenter — Medellín', initials: 'RM', color: '#FF6B35' },
+              { quote: 'Las reservas de mi peluquería se manejan solas. El bot sabe mis horarios y precios. Ahorro 3 horas diarias que antes gastaba en mensajes de WhatsApp.', name: 'Patricia Guerrero', role: 'Estudio Elegance — Cali', initials: 'PG', color: '#FF4D8B' },
+              { quote: 'Mis clientes piden el menú por WhatsApp y el bot toma el pedido, descuenta el inventario y me avisa. Ya no pierdo ningún pedido por estar ocupado.', name: 'Andrés López', role: 'Restaurante El Sabor — Bogotá', initials: 'AL', color: '#25D366' },
             ].map((t, i) => (
               <div key={i} style={{ background: '#080808', padding: '52px 44px' }}>
                 <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 72, color: t.color, opacity: 0.25, lineHeight: 0.8, marginBottom: 28 }}>"</div>
@@ -586,42 +669,39 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CTA FINAL ───────────────────────────────────────────────────────────── */}
+      {/* ── CTA FINAL ── */}
       <section style={{ position: 'relative', minHeight: 620, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
         <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=90" alt="Ciudad"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 65%' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(108deg, rgba(8,8,8,0.98) 0%, rgba(8,8,8,0.82) 55%, rgba(8,8,8,0.55) 100%)' }} />
-        {/* Luz lima sutil */}
-        <div style={{ position: 'absolute', top: '30%', left: '35%', width: 500, height: 300, background: `radial-gradient(ellipse, ${G}06 0%, transparent 70%)` }} />
-
         <div style={{ position: 'relative', padding: '120px 80px' }} className="lnd-cta-inner">
           <span className="label">Comienza hoy</span>
-          <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(52px, 7vw, 100px)', fontWeight: 400, lineHeight: 0.95, letterSpacing: '-2.5px', marginBottom: 28, maxWidth: 800, color: '#F0F0F0' }}>
+          <h2 className="lnd-cta-h2" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(52px, 7vw, 100px)', fontWeight: 400, lineHeight: 0.95, letterSpacing: '-2.5px', marginBottom: 28, maxWidth: 800, color: '#F0F0F0' }}>
             ¿Listo para poner<br />tu negocio en<br /><span style={{ color: G }}>modo automático?</span>
           </h2>
           <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontSize: 20, marginBottom: 60, fontWeight: 300, lineHeight: 1.6, maxWidth: 460 }}>
-            Sin contratos · Cancela cuando quieras · Configuración en minutos
+            Sin contratos · Cancela cuando quieras · Activo en 10 minutos
           </p>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <Link href="/auth/register">
-              <button className="btn-lima" style={{ fontSize: 17, padding: '18px 52px' }}>Crear mi cuenta →</button>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }} className="lnd-cta-btns">
+            <Link href="/wasapbot/activar">
+              <button className="btn-wa" style={{ fontSize: 17, padding: '18px 52px' }}>Activar mi WasapBot →</button>
             </Link>
-            <a href="mailto:soportesistemas@soporteia.net">
-              <button className="btn-ghost" style={{ fontSize: 17, padding: '18px 52px' }}>Agendar una demo</button>
+            <a href="https://wa.me/573105056616?text=Quiero%20información%20sobre%20WasapBot" target="_blank" rel="noreferrer">
+              <button className="btn-ghost" style={{ fontSize: 17, padding: '18px 52px' }}>Hablar con un asesor</button>
             </a>
           </div>
         </div>
       </section>
 
-      {/* ── FOOTER ──────────────────────────────────────────────────────────────── */}
+      {/* ── FOOTER ── */}
       <footer style={{ background: '#040404', padding: '80px 80px 40px', borderTop: '1px solid #111' }} className="lnd-footer-inner">
         <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: 64, marginBottom: 64 }} className="lnd-footer-grid">
           <div>
             <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 26, color: '#E8E8E8', marginBottom: 20 }}>
-            agenc<span style={{ color: '#FF6B00', fontSize: 30 }}>IA</span>me
+              agenc<span style={{ color: '#FF6B00', fontSize: 30 }}>IA</span>me
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 13, lineHeight: 1.8, maxWidth: 300, fontWeight: 300 }}>
-            La IA que atiende, agenda y vende por tu negocio. Plataforma colombiana de automatización con inteligencia artificial.
+              La IA que atiende, agenda y vende por tu negocio. Plataforma colombiana de automatización con inteligencia artificial.
             </p>
             <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>Cali, Colombia</span>
@@ -629,16 +709,16 @@ export default function Landing() {
             </div>
           </div>
           {[
-            { title: 'Producto', links: ['Funciones', 'Precios', 'Integraciones', 'API'] },
-            { title: 'Industrias', links: ['Talleres', 'Peluquerías', 'Inmobiliarias', 'Restaurantes'] },
-            { title: 'Empresa', links: ['Sobre nosotros', 'Blog', 'Términos', 'Privacidad'] },
+            { title: 'WasapBot', links: ['Plan Básico', 'Plan Estándar', 'Plan Pro', 'Ver demo'] },
+            { title: 'Industrias', links: ['Restaurantes', 'Peluquerías', 'Talleres', 'Veterinarias'] },
+            { title: 'Empresa', links: ['Sobre nosotros', 'Soporte', 'Términos', 'Privacidad'] },
           ].map((col, i) => (
             <div key={i}>
               <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 3, color: '#1C1C1C', marginBottom: 28 }}>{col.title}</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {col.links.map((link, j) => (
                   <li key={j}>
-                    <a href="#" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 13, fontWeight: 300, transition: 'color 0.2s' }}
+                    <a href="/wasapbot/activar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 13, fontWeight: 300, transition: 'color 0.2s' }}
                       onMouseEnter={e => e.target.style.color = '#555'}
                       onMouseLeave={e => e.target.style.color = '#1C1C1C'}>
                       {link}
@@ -649,9 +729,9 @@ export default function Landing() {
             </div>
           ))}
         </div>
-        <div style={{ borderTop: '1px solid #0E0E0E', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#141414', fontSize: 12 }}>
-        <span>© 2026 agenc<span style={{ color: '#FF6B00' }}>IA</span>me by NexoTI · Todos los derechos reservados</span>
-        <span>Hecho con amor en Cali, Colombia</span>
+        <div style={{ borderTop: '1px solid #0E0E0E', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#141414', fontSize: 12 }} className="lnd-footer-copy">
+          <span>© 2026 agenc<span style={{ color: '#FF6B00' }}>IA</span>me by NexoTI · Todos los derechos reservados</span>
+          <span>Hecho con amor en Cali, Colombia 🇨🇴</span>
         </div>
       </footer>
     </>

@@ -679,6 +679,34 @@ export default function WasapBotPanel() {
                           onChange={e=>{setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,descripcion:e.target.value}:it));if(e.target.value)marcarGuia(`desc_${idx}`);}}/>
                         <Guia visible={!item.descripcion&&!guiasVistas[`desc_${idx}`]} texto={d.guias.catalogo_desc} icono="📝"/>
                       </div>
+                      {/* ── Campo URL foto — visible solo para industrias con foto (restaurantes, etc.) ── */}
+                      {cfg.tieneFoto&&(
+                        <div style={{marginTop:10}}>
+                          <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#25D366',display:'block',marginBottom:4}}>📷 URL de foto (se envía por WhatsApp)</label>
+                          <input
+                            className="cat-inp"
+                            style={{...INP,borderColor:item.foto&&item.foto.startsWith('http')?'rgba(37,211,102,0.5)':'rgba(255,255,255,0.06)'}}
+                            value={item.foto||''}
+                            placeholder="https://... enlace directo a la imagen del plato o producto"
+                            onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,foto:e.target.value.trim()}:it))}
+                          />
+                          {item.foto&&item.foto.startsWith('http')&&(
+                            <div style={{marginTop:8,display:'flex',alignItems:'center',gap:10}}>
+                              <img
+                                src={item.foto} alt="preview"
+                                style={{width:64,height:64,objectFit:'cover',borderRadius:9,border:'2px solid rgba(37,211,102,0.4)',flexShrink:0}}
+                                onError={e=>{e.target.style.opacity='0.15';}}
+                              />
+                              <span style={{fontFamily:F,fontSize:11,color:'#25D366',lineHeight:1.6}}>✓ Esta foto se enviará automáticamente<br/>cuando el cliente pida el menú por WhatsApp</span>
+                            </div>
+                          )}
+                          {!item.foto&&(
+                            <div style={{marginTop:5,fontFamily:F,fontSize:10,color:'rgba(255,165,0,0.75)'}}>
+                              ⚠️ Sin foto — el bot solo mostrará texto. Pega la URL de la imagen para que se envíe por WhatsApp.
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {cfg.tieneCategoria&&(
                         <div style={{marginTop:10}}>
                           <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>Categoría</label>
