@@ -45,7 +45,9 @@ export default async function handler(req, res) {
 
       await empDoc.ref.update({
         plan:          planId || 'estandar',
+        planWasapbot:  planId || 'estandar',
         planActivo:    true,
+        producto:      'wasapbot',
         planHasta:     planHasta,
         ultimoPago:    FieldValue.serverTimestamp(),
         ultimoPagoRef: referencia || 'manual',

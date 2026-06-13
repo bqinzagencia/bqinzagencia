@@ -315,7 +315,7 @@ ${conocimiento?.info?.direccion?`DIRECCIÓN: ${conocimiento.info.direccion}`:''}
       await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`).set({ usado:FieldValue.increment(tokensUsados), empresaId, mes:mesKey },{merge:true}).catch(()=>{});
     }
 
-    const PLAN_TOKENS = { basico:50000, estandar:150000, pro:400000, wasapbot:50000 };
+    const PLAN_TOKENS = { basico:50000, estandar:150000, pro:400000, wasapbot:0, emprendedor:50000, profesional:150000 };
     const tokLimit    = PLAN_TOKENS[empresa.planWasapbot||empresa.plan||'wasapbot'] || 50000;
     const mesKey2     = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
     const tokSnap     = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey2}`).get().catch(()=>null);

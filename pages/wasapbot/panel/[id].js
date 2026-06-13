@@ -16,10 +16,10 @@ const WA     = 'https://agenciame-whatsapp-server-production.up.railway.app';
 const SECRET = 'agenciame2026secreto_nexoia';
 
 const PLANES = {
-  basico:   { nombre:'Básico',   tokens:50000,  convs:500,  color:'#6B7280', precio:'$189.000' },
+  basico:   { nombre:'Básico',   tokens:50000,  convs:500,  color:'#25D366', precio:'$189.000' },
   estandar: { nombre:'Estándar', tokens:150000, convs:1500, color:'#2563EB', precio:'$390.000' },
   pro:      { nombre:'Pro',      tokens:400000, convs:4000, color:'#A78BFA', precio:'$690.000' },
-  wasapbot: { nombre:'Trial',    tokens:15000,  convs:150,  color:'#F59E0B', precio:'Gratis'   },
+  wasapbot: { nombre:'Sin plan', tokens:0,      convs:0,    color:'#6B7280', precio:'Gratis'   },
 };
 
 const ESTADO_CITA = {
@@ -386,9 +386,9 @@ export default function WasapBotPanel() {
             <div style={{fontFamily:F,fontSize:10,color:'#4B6080',marginBottom:4}}>Plan actual</div>
             <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:plan.color,marginBottom:2}}>{plan.nombre}</div>
             <div style={{fontFamily:F,fontSize:11,color:'#4B6080',marginBottom:10}}>{plan.precio}/mes</div>
-            <a href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}`}
-              style={{display:'block',background:'#25D366',color:'#fff',borderRadius:8,padding:'7px',fontFamily:F,fontSize:11,fontWeight:700,textAlign:'center'}}>
-              {planActivo?'Cambiar plan':'⚡ Activar plan'}
+            <a href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}&upgrade=${planActivo?'1':'0'}&planActual=${empresa?.planWasapbot||empresa?.plan||'basico'}`}
+              style={{display:'block',background:planActivo?'rgba(37,211,102,.15)':'#25D366',color:planActivo?'#25D366':'#fff',border:planActivo?'1px solid rgba(37,211,102,.3)':'none',borderRadius:8,padding:'7px',fontFamily:F,fontSize:11,fontWeight:700,textAlign:'center'}}>
+              {planActivo?'⬆️ Mejorar plan':'⚡ Activar plan'}
             </a>
           </div>
         </div>
@@ -404,15 +404,33 @@ export default function WasapBotPanel() {
 
               {/* Banner plan no activo */}
               {!planActivo&&(
-                <div style={{background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)',borderRadius:12,padding:'16px 20px',marginBottom:14,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
-                  <div>
-                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#F59E0B',marginBottom:3}}>⚡ Plan no activado</div>
-                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)'}}>Tu bot no responderá con IA hasta que actives un plan. El proceso toma menos de 2 minutos.</div>
+                <div style={{background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)',borderRadius:12,padding:'18px 20px',marginBottom:14}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12,marginBottom:14}}>
+                    <div>
+                      <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#F59E0B',marginBottom:3}}>⚡ Bot en modo configuración</div>
+                      <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)'}}>Activa un plan para que tu bot responda con IA a tus clientes.</div>
+                    </div>
+                    <a href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}`}
+                      style={{background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:9,padding:'10px 20px',fontFamily:F,fontSize:13,fontWeight:700,textDecoration:'none',flexShrink:0,boxShadow:'0 4px 16px rgba(245,158,11,.3)'}}>
+                      Ver planes →
+                    </a>
                   </div>
-                  <a href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}`}
-                    style={{background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:9,padding:'10px 20px',fontFamily:F,fontSize:13,fontWeight:700,textDecoration:'none',flexShrink:0}}>
-                    Activar mi plan →
-                  </a>
+                  {/* Mini cards de planes */}
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                    {[
+                      {id:'basico',   nombre:'Básico',   precio:'$189K', color:'#25D366', desc:'Bot + catálogo + citas'},
+                      {id:'estandar', nombre:'Estándar', precio:'$390K', color:'#2563EB', desc:'+ Pedidos + reportes', popular:true},
+                      {id:'pro',      nombre:'Pro',       precio:'$690K', color:'#A78BFA', desc:'+ Web + voz + CRM'},
+                    ].map(p=>(
+                      <a key={p.id} href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}`}
+                        style={{background:`rgba(0,0,0,.3)`,border:`1px solid ${p.color}33`,borderRadius:10,padding:'10px 12px',textDecoration:'none',display:'block',position:'relative'}}>
+                        {p.popular&&<div style={{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',background:p.color,color:'#fff',fontSize:8,fontWeight:800,padding:'2px 8px',borderRadius:99,whiteSpace:'nowrap'}}>★ POPULAR</div>}
+                        <div style={{fontFamily:"'Abril Fatface',serif",fontSize:16,color:p.color,letterSpacing:'-0.5px',marginBottom:2}}>{p.precio}</div>
+                        <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.6)',marginBottom:2}}>{p.nombre}</div>
+                        <div style={{fontFamily:F,fontSize:10,color:'rgba(255,255,255,.3)'}}>{p.desc}</div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
 

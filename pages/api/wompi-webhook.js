@@ -12,8 +12,8 @@ const SERVER_SECRET       = process.env.SERVER_SECRET       || 'agenciame2026sec
 const SOPORTE_EMPRESA_ID  = process.env.SOPORTE_EMPRESA_ID  || '';
 const SOPORTE_NUMERO      = process.env.SOPORTE_WHATSAPP    || '573105056616';
 
-// Cuántos días activa cada plan
-const DIAS_PLAN = { emprendedor: 30, profesional: 30, agencia: 30 };
+// Cuántos días activa cada plan WasapBot
+const DIAS_PLAN = { basico: 30, estandar: 30, pro: 30, emprendedor: 30, profesional: 30, agencia: 30 };
 
 export const config = { api: { bodyParser: false } };
 
@@ -97,10 +97,12 @@ export default async function handler(req, res) {
     const planHasta  = new Date(ahora.getTime() + dias * 86400000);
 
     await adminDb.collection('empresas').doc(empresaId).update({
-      plan:        planId,
-      planActivo:  true,
-      planHasta:   planHasta,
-      ultimoPago:  FieldValue.serverTimestamp(),
+      plan:          planId,
+      planWasapbot:  planId,   // campo específico para WasapBot
+      planActivo:    true,
+      producto:      'wasapbot', // asegurar que es producto wasapbot
+      planHasta:     planHasta,
+      ultimoPago:    FieldValue.serverTimestamp(),
       ultimoPagoRef: reference,
     });
 
