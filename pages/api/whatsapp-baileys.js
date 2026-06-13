@@ -130,8 +130,13 @@ export default async function handler(req, res) {
     const emailNegocio  = empresa.email || null;
     const nequi         = empresa.nequi || null;
 
-    // ── 2. Verificar plan activo ──────────────────────────────
-    const planActivo = empresa.planActivo === true;
+    // ── 2. Verificar plan WasapBot pago ──────────────────────
+    // Solo responde con IA si tiene plan WASAPBOT activo (no el trial del dashboard)
+    // El trial del dashboard (emprendedor/profesional) NO activa el bot de WhatsApp
+    const esPlanWasapbot = empresa.producto === 'wasapbot' || empresa.planWasapbot;
+    const planActivo = empresa.planActivo === true && esPlanWasapbot;
+
+    // Si es empresa del dashboard agencIAme sin plan wasapbot específico → no responder
     if (!planActivo) {
       // Modo configuración — responde sin IA para no consumir tokens
       // El cliente sabe que el negocio existe pero está en configuración
