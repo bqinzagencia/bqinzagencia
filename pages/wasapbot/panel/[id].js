@@ -138,7 +138,17 @@ export default function WasapBotPanel() {
   const cargarDatos = async () => {
     try {
       const r = await fetch(`/api/wasapbot-panel?id=${id}`);
-      if (!r.ok) { const e=await r.json().catch(()=>({})); setLoadError(e.error||`Error ${r.status}`); return; }
+      if (!r.ok) {
+        const e = await r.json().catch(()=>({}));
+        // Si es 404, limpiar localStorage y redirigir al login para que busque de nuevo
+        if (r.status === 404 || r.status === 403) {
+          localStorage.removeItem('wasapbot_empresa_id');
+          router.replace('/wasapbot/login');
+          return;
+        }
+        setLoadError(e.error||`Error ${r.status}`);
+        return;
+      }
       const d = await r.json();
       if (!d.ok) { setLoadError(d.error||'Error cargando datos'); return; }
       setEmpresa({ id, ...d.empresa });

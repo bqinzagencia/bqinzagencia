@@ -11,12 +11,16 @@ export default async function handler(req, res) {
 
     try {
       const empSnap = await adminDb.collection('empresas').doc(id).get();
-      if (!empSnap.exists) return res.status(404).json({ error: 'Empresa no encontrada' });
+
+      // Si el documento no existe, buscar por cualquier campo que coincida
+      if (!empSnap.exists) {
+        return res.status(404).json({ error: 'Empresa no encontrada', id });
+      }
+
       const empData = empSnap.data();
-      // Tolerar empresas antiguas sin campo "producto" (fueron creadas antes de implementar el campo)
-      const productoValido = empData.producto === 'wasapbot' || !empData.producto || empData.producto === '';
-      if (!productoValido)
-        return res.status(403).json({ error: 'Acceso no permitido' });
+
+      // ── Sin restricción de producto — cualquier empresa puede usar el panel WasapBot ──
+      // (el acceso ya está controlado por el login que verifica ownerUid o email)
 
       // Subcollección de citas
       if (subcol === 'citas') {
@@ -61,29 +65,31 @@ export default async function handler(req, res) {
     if (!empresaId) return res.status(400).json({ error: 'empresaId requerido' });
 
     try {
-      // Verificar que la empresa existe y es wasapbot
-      const empSnap = await adminDb.collection('empresas').doc(empresaId).get();
-      if (!empSnap.exists) return res.status(404).json({ error: 'Empresa no encontrada' });
-      if (empSnap.data().producto !== 'wasapbot')
-        return res.status(403).json({ error: 'Acceso no permitido' });
-
-      // Actualizar estado de una cita
       if (accion === 'actualizarCita') {
-        if (!citaId || !estado)
-          return res.status(400).json({ error: 'citaId y estado requeridos' });
+        if (!citaId || !estado) return res.status(400).json({ error: 'citaId y estado requeridos' });
 
-        const estadosValidos = ['pendiente', 'confirmada', 'cancelada', 'completada'];
-        if (!estadosValidos.includes(estado))
-          return res.status(400).json({ error: 'Estado no válido' });
+        const estados = ['pendiente', 'confirmada', 'cancelada', 'completada'];
+        if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
 
         await adminDb.collection('empresas').doc(empresaId)
           .collection('citas').doc(citaId)
           .update({ estado, actualizadoEn: FieldValue.serverTimestamp() });
 
-        return res.json({ ok: true, citaId, estado });
+        return res.json({ ok: true });
       }
 
-      return res.status(400).json({ error: 'Acción no reconocida' });
+      // Guardar configuración general (nequi, etc.)
+      if (accion === 'guardarConfig') {
+        const { campos } = req.body;
+        if (!campos) return res.status(400).json({ error: 'campos requerido' });
+        await adminDb.collection('empresas').doc(empresaId).update({
+          ...campos,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return res.json({ ok: true });
+      }
+
+      return res.status(400).json({ error: 'Acción no reconocida: ' + accion });
 
     } catch (err) {
       console.error('wasapbot-panel POST:', err);
