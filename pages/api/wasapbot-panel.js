@@ -71,9 +71,35 @@ export default async function handler(req, res) {
         const estados = ['pendiente', 'confirmada', 'cancelada', 'completada'];
         if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
 
+        const update = { estado, actualizadoEn: FieldValue.serverTimestamp() };
+
+        // Al marcar como completada, registrar momento exacto y habilitar
+        // el seguimiento automático post-servicio (planes Estandar/Pro)
+        if (estado === 'completada') {
+          update.completadoEn       = FieldValue.serverTimestamp();
+          update.seguimientoEnviado = false;
+        }
+
+        // Si se reabre o cancela una cita, evitar que se dispare un
+        // seguimiento fuera de lugar y limpiar el timestamp
+        if (estado !== 'completada') {
+          update.completadoEn       = null;
+          update.seguimientoEnviado = false;
+        }
+
+        // Si se cancela, no tiene sentido recordar una cita que no va a pasar
+        if (estado === 'cancelada') {
+          update.recordatorioEnviado = true;
+        }
+        // Si se reabre a pendiente/confirmada, permitir que el recordatorio
+        // se evalúe de nuevo (por si se reprogramó)
+        if (estado === 'pendiente' || estado === 'confirmada') {
+          update.recordatorioEnviado = false;
+        }
+
         await adminDb.collection('empresas').doc(empresaId)
           .collection('citas').doc(citaId)
-          .update({ estado, actualizadoEn: FieldValue.serverTimestamp() });
+          .update(update);
 
         return res.json({ ok: true });
       }

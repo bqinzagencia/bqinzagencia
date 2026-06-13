@@ -86,7 +86,8 @@ export const PLAN_PERMISOS = {
     reportes:      false,
     broadcasts:    false,
     paginaWeb:     false,
-    recordatorios: false,
+    recordatorios: false, // recordatorio 24h antes de cita — solo Pro
+    seguimiento:   false, // seguimiento post-servicio — Estandar y Pro
     crm:           false,
     conversaciones: true,
     citas:         true,
@@ -99,6 +100,7 @@ export const PLAN_PERMISOS = {
     broadcasts:    true,
     paginaWeb:     false,
     recordatorios: false,
+    seguimiento:   true,
     crm:           false,
     conversaciones: true,
     citas:         true,
@@ -111,6 +113,7 @@ export const PLAN_PERMISOS = {
     broadcasts:    true,
     paginaWeb:     true,
     recordatorios: true,
+    seguimiento:   true,
     crm:           true,
     conversaciones: true,
     citas:         true,
@@ -120,7 +123,7 @@ export const PLAN_PERMISOS = {
 export function getPlanPermisos(planId) {
   return PLAN_PERMISOS[planId] || {
     botIA: false, inventario: false, pedidos: false, reportes: false,
-    broadcasts: false, paginaWeb: false, recordatorios: false, crm: false,
+    broadcasts: false, paginaWeb: false, recordatorios: false, seguimiento: false, crm: false,
     conversaciones: false, citas: false,
   };
 }

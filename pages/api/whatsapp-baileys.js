@@ -344,7 +344,14 @@ ${conocimiento?.info?.direccion?`DIRECCIÓN: ${conocimiento.info.direccion}`:''}
       try {
         const c = JSON.parse(citaMatch[1]);
         const nomCita = c.nombre||nombreCliente||`WhatsApp ${numeroCliente}`;
-        await adminDb.collection('empresas').doc(empresaId).collection('citas').add({ nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fechaHora:parsearFechaHora(c.fecha,c.hora), fecha:c.fecha||'', hora:c.hora||'', estado:'pendiente', canal:'whatsapp', fuente:'whatsapp-bot', notas:'Agendado por WasapBot', contactoId, creadoEn:FieldValue.serverTimestamp() });
+        await adminDb.collection('empresas').doc(empresaId).collection('citas').add({
+          nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta',
+          fechaHora:parsearFechaHora(c.fecha,c.hora), fecha:c.fecha||'', hora:c.hora||'',
+          estado:'pendiente', canal:'whatsapp', fuente:'whatsapp-bot', notas:'Agendado por WasapBot',
+          contactoId, creadoEn:FieldValue.serverTimestamp(),
+          // Flags para recordatorios (Plan Pro) y seguimiento post-servicio (Estandar/Pro)
+          recordatorioEnviado:false, seguimientoEnviado:false, completadoEn:null,
+        });
         await enviarEmailCita({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fecha:c.fecha||'?', hora:c.hora||'?', empresaId });
       } catch (e) { console.error('cita error:', e.message); }
     }
