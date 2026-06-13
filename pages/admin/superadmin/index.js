@@ -5,8 +5,8 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from '
 import { onAuthStateChanged } from 'firebase/auth';
 
 const SUPERADMIN_UID = 'hs8aIu8mt6TLOlhda6DMR2s9Ir72';
-
 const PLANES = ['starter', 'basico', 'pro', 'emprendedor'];
+const PLAN_COLOR = { starter: '#374151', basico: '#1e3a5f', pro: '#4c1d95', emprendedor: '#7c2d12' };
 
 export default function Superadmin() {
   const router = useRouter();
@@ -14,241 +14,278 @@ export default function Superadmin() {
   const [cargando, setCargando] = useState(true);
   const [empresas, setEmpresas] = useState([]);
   const [tab, setTab] = useState('usuarios');
-  const [stats, setStats] = useState({ total: 0, activos: 0, bloqueados: 0, conversaciones: 0 });
   const [busqueda, setBusqueda] = useState('');
   const [confirmar, setConfirmar] = useState(null);
+  const [detalle, setDetalle] = useState(null);
+  const [filtroEstado, setFiltroEstado] = useState('todos');
+  const [filtroPlan, setFiltroPlan] = useState('todos');
+  const [ordenar, setOrdenar] = useState('reciente');
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user || user.uid !== SUPERADMIN_UID) {
-        router.replace('/');
-        return;
-      }
+      if (!user || user.uid !== SUPERADMIN_UID) { router.replace('/'); return; }
       setAutorizado(true);
       cargarEmpresas();
     });
     return () => unsub();
   }, []);
 
+  function showToast(msg, type = 'success') {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  }
+
   async function cargarEmpresas() {
     setCargando(true);
     try {
       const snap = await getDocs(query(collection(db, 'empresas'), orderBy('creadoEn', 'desc')));
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setEmpresas(data);
-      setStats({
-        total: data.length,
-        activos: data.filter(e => e.estado === 'activo').length,
-        bloqueados: data.filter(e => e.estado === 'bloqueado').length,
-        conversaciones: data.reduce((a, e) => a + (e.conversacionesTotales || 0), 0),
-      });
-    } catch (e) {
-      console.error(e);
-    }
+      setEmpresas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (e) { showToast('Error cargando datos', 'error'); }
     setCargando(false);
   }
 
   async function cambiarEstado(id, estado) {
-    await updateDoc(doc(db, 'empresas', id), { estado });
-    setEmpresas(prev => prev.map(e => e.id === id ? { ...e, estado } : e));
-    setStats(s => ({
-      ...s,
-      activos: estado === 'activo' ? s.activos + 1 : s.activos - 1,
-      bloqueados: estado === 'bloqueado' ? s.bloqueados + 1 : s.bloqueados - 1,
-    }));
+    try {
+      await updateDoc(doc(db, 'empresas', id), { estado, updatedAt: new Date() });
+      setEmpresas(prev => prev.map(e => e.id === id ? { ...e, estado } : e));
+      showToast(`Cuenta ${estado === 'activo' ? 'activada' : 'bloqueada'}`);
+    } catch { showToast('Error al cambiar estado', 'error'); }
   }
 
   async function cambiarPlan(id, plan) {
-    await updateDoc(doc(db, 'empresas', id), { plan });
-    setEmpresas(prev => prev.map(e => e.id === id ? { ...e, plan } : e));
+    try {
+      await updateDoc(doc(db, 'empresas', id), { plan, updatedAt: new Date() });
+      setEmpresas(prev => prev.map(e => e.id === id ? { ...e, plan } : e));
+      showToast(`Plan cambiado a ${plan}`);
+    } catch { showToast('Error al cambiar plan', 'error'); }
   }
 
   async function eliminarEmpresa(id) {
-    await deleteDoc(doc(db, 'empresas', id));
-    setEmpresas(prev => prev.filter(e => e.id !== id));
-    setConfirmar(null);
+    try {
+      await deleteDoc(doc(db, 'empresas', id));
+      setEmpresas(prev => prev.filter(e => e.id !== id));
+      setConfirmar(null); setDetalle(null);
+      showToast('Empresa eliminada');
+    } catch { showToast('Error al eliminar', 'error'); }
   }
 
-  const filtradas = empresas.filter(e =>
-    (e.email || '').toLowerCase().includes(busqueda.toLowerCase()) ||
-    (e.nombreEmpresa || '').toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const stats = {
+    total: empresas.length,
+    activos: empresas.filter(e => e.estado === 'activo').length,
+    bloqueados: empresas.filter(e => e.estado === 'bloqueado').length,
+    pendientes: empresas.filter(e => !e.estado || e.estado === 'pendiente').length,
+    whatsappActivos: empresas.filter(e => e.whatsapp?.status === 'connected').length,
+    ingresoEstimado: empresas.filter(e => e.estado === 'activo').reduce((a, e) => {
+      return a + ({ starter: 0, basico: 49, pro: 99, emprendedor: 199 }[e.plan] || 0);
+    }, 0),
+  };
+
+  let filtradas = empresas.filter(e => {
+    const q = busqueda.toLowerCase();
+    const matchQ = !q || (e.email||'').toLowerCase().includes(q) || (e.nombreEmpresa||'').toLowerCase().includes(q) || (e.telefono||'').includes(q);
+    const matchEstado = filtroEstado === 'todos' || (filtroEstado === 'pendiente' ? (!e.estado || e.estado === 'pendiente') : e.estado === filtroEstado);
+    const matchPlan = filtroPlan === 'todos' || e.plan === filtroPlan;
+    return matchQ && matchEstado && matchPlan;
+  });
+  if (ordenar === 'nombre') filtradas = [...filtradas].sort((a,b) => (a.nombreEmpresa||'').localeCompare(b.nombreEmpresa||''));
+  if (ordenar === 'plan') filtradas = [...filtradas].sort((a,b) => PLANES.indexOf(b.plan) - PLANES.indexOf(a.plan));
 
   if (!autorizado) return null;
 
   return (
     <div style={s.page}>
+      {toast && <div style={{...s.toast, background: toast.type==='error'?'#7f1d1d':'#14532d'}}>{toast.msg}</div>}
+
       <div style={s.header}>
-        <div style={s.logo}>BQinzAgencIA <span style={s.badge}>SUPERADMIN</span></div>
-        <button onClick={() => auth.signOut().then(() => router.push('/'))} style={s.logout}>Cerrar sesión</button>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div style={s.logo}>BQinzAgencIA</div>
+          <span style={s.badge}>SUPERADMIN</span>
+        </div>
+        <div style={{display:'flex',gap:10}}>
+          <button onClick={cargarEmpresas} style={s.refreshBtn}>↻ Actualizar</button>
+          <button onClick={() => auth.signOut().then(() => router.push('/'))} style={s.logout}>Cerrar sesión</button>
+        </div>
       </div>
 
       <div style={s.container}>
-        <h1 style={s.title}>Panel de Control</h1>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
+          <h1 style={s.title}>Panel de Control</h1>
+          <div style={{color:'#22c55e',fontSize:12,display:'flex',alignItems:'center',gap:6}}>
+            <span style={{width:8,height:8,background:'#22c55e',borderRadius:'50%',display:'inline-block'}}></span> En vivo
+          </div>
+        </div>
 
-        {/* STATS */}
         <div style={s.statsGrid}>
           {[
-            { label: 'Total usuarios', value: stats.total, color: '#FF6B00' },
-            { label: 'Activos', value: stats.activos, color: '#22c55e' },
-            { label: 'Bloqueados', value: stats.bloqueados, color: '#ef4444' },
-            { label: 'Conversaciones', value: stats.conversaciones, color: '#3b82f6' },
+            {label:'Total cuentas', value:stats.total, color:'#FF6B00', icon:'👥'},
+            {label:'Activos', value:stats.activos, color:'#22c55e', icon:'✅'},
+            {label:'Bloqueados', value:stats.bloqueados, color:'#ef4444', icon:'🚫'},
+            {label:'Pendientes', value:stats.pendientes, color:'#f59e0b', icon:'⏳'},
+            {label:'WhatsApp activos', value:stats.whatsappActivos, color:'#25d366', icon:'📱'},
+            {label:'Ingreso estimado', value:`${stats.ingresoEstimado}€/mes`, color:'#a78bfa', icon:'💰'},
           ].map(st => (
             <div key={st.label} style={s.statCard}>
-              <div style={{ ...s.statNum, color: st.color }}>{st.value}</div>
+              <div style={{fontSize:22,marginBottom:6}}>{st.icon}</div>
+              <div style={{...s.statNum,color:st.color}}>{st.value}</div>
               <div style={s.statLabel}>{st.label}</div>
             </div>
           ))}
         </div>
 
-        {/* TABS */}
         <div style={s.tabs}>
-          {['usuarios', 'conversaciones', 'estadisticas'].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ ...s.tab, ...(tab === t ? s.tabActive : {}) }}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
+          {[{key:'usuarios',label:'👤 Usuarios'},{key:'estadisticas',label:'📊 Estadísticas'},{key:'crm',label:'🗂 CRM'}].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{...s.tab,...(tab===t.key?s.tabActive:{})}}>{t.label}</button>
           ))}
         </div>
 
-        {/* BUSQUEDA */}
         {tab === 'usuarios' && (
-          <input
-            placeholder="Buscar por email o empresa..."
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
-            style={s.search}
-          />
-        )}
-
-        {/* TABLA USUARIOS */}
-        {tab === 'usuarios' && (
-          <div style={s.tableWrap}>
-            {cargando ? <div style={s.empty}>Cargando...</div> : filtradas.length === 0 ? (
-              <div style={s.empty}>No hay usuarios</div>
-            ) : (
-              <table style={s.table}>
-                <thead>
-                  <tr>
-                    {['Empresa', 'Email', 'Plan', 'Estado', 'WhatsApp', 'Acciones'].map(h => (
-                      <th key={h} style={s.th}>{h}</th>
+          <>
+            <div style={s.filtrosRow}>
+              <input placeholder="🔍 Buscar por email, empresa o teléfono..." value={busqueda} onChange={e=>setBusqueda(e.target.value)} style={s.search}/>
+              <select value={filtroEstado} onChange={e=>setFiltroEstado(e.target.value)} style={s.filterSelect}>
+                <option value="todos">Todos los estados</option>
+                <option value="activo">Activos</option>
+                <option value="bloqueado">Bloqueados</option>
+                <option value="pendiente">Pendientes</option>
+              </select>
+              <select value={filtroPlan} onChange={e=>setFiltroPlan(e.target.value)} style={s.filterSelect}>
+                <option value="todos">Todos los planes</option>
+                {PLANES.map(p=><option key={p} value={p}>{p}</option>)}
+              </select>
+              <select value={ordenar} onChange={e=>setOrdenar(e.target.value)} style={s.filterSelect}>
+                <option value="reciente">Más recientes</option>
+                <option value="nombre">Por nombre</option>
+                <option value="plan">Por plan</option>
+              </select>
+            </div>
+            <div style={{color:'#6b7280',fontSize:12,marginBottom:12}}>Mostrando {filtradas.length} de {empresas.length} empresas</div>
+            <div style={s.tableWrap}>
+              {cargando ? <div style={s.empty}>⏳ Cargando...</div> : filtradas.length===0 ? <div style={s.empty}>Sin resultados</div> : (
+                <table style={s.table}>
+                  <thead><tr>{['Empresa','Email','Teléfono','Plan','Estado','WhatsApp','Registro','Acciones'].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {filtradas.map(e=>(
+                      <tr key={e.id} style={s.tr}>
+                        <td style={s.td}><button onClick={()=>setDetalle(e)} style={s.linkBtn}>{e.nombreEmpresa||'—'}</button></td>
+                        <td style={s.td}>{e.email||'—'}</td>
+                        <td style={s.td}>{e.telefono||'—'}</td>
+                        <td style={s.td}>
+                          <select value={e.plan||'starter'} onChange={ev=>cambiarPlan(e.id,ev.target.value)} style={{...s.select,background:PLAN_COLOR[e.plan]||'#374151'}}>
+                            {PLANES.map(p=><option key={p} value={p}>{p}</option>)}
+                          </select>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{...s.pill,background:e.estado==='activo'?'#14532d':e.estado==='bloqueado'?'#7f1d1d':'#374151'}}>
+                            {e.estado==='activo'?'✅ Activo':e.estado==='bloqueado'?'🚫 Bloqueado':'⏳ Pendiente'}
+                          </span>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{...s.pill,background:e.whatsapp?.status==='connected'?'#14532d':'#374151'}}>
+                            {e.whatsapp?.status==='connected'?'📱 Conectado':'⭕ No'}
+                          </span>
+                        </td>
+                        <td style={s.td}><span style={{color:'#6b7280',fontSize:12}}>{e.creadoEn?.toDate?e.creadoEn.toDate().toLocaleDateString('es-ES'):'—'}</span></td>
+                        <td style={s.td}>
+                          <div style={s.actions}>
+                            {e.estado!=='activo'&&<button onClick={()=>cambiarEstado(e.id,'activo')} style={{...s.btn,background:'#14532d'}} title="Activar">✅</button>}
+                            {e.estado!=='bloqueado'&&<button onClick={()=>cambiarEstado(e.id,'bloqueado')} style={{...s.btn,background:'#92400e'}} title="Bloquear">🚫</button>}
+                            <button onClick={()=>setDetalle(e)} style={{...s.btn,background:'#1e3a5f'}} title="Ver">👁</button>
+                            <button onClick={()=>setConfirmar(e.id)} style={{...s.btn,background:'#7f1d1d'}} title="Eliminar">🗑</button>
+                          </div>
+                        </td>
+                      </tr>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtradas.map(e => (
-                    <tr key={e.id} style={s.tr}>
-                      <td style={s.td}>{e.nombreEmpresa || '—'}</td>
-                      <td style={s.td}>{e.email || '—'}</td>
-                      <td style={s.td}>
-                        <select
-                          value={e.plan || 'starter'}
-                          onChange={ev => cambiarPlan(e.id, ev.target.value)}
-                          style={s.select}
-                        >
-                          {PLANES.map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                      </td>
-                      <td style={s.td}>
-                        <span style={{ ...s.pill, background: e.estado === 'activo' ? '#166534' : e.estado === 'bloqueado' ? '#7f1d1d' : '#374151' }}>
-                          {e.estado || 'pendiente'}
-                        </span>
-                      </td>
-                      <td style={s.td}>
-                        <span style={{ ...s.pill, background: e.whatsapp?.status === 'connected' ? '#166534' : '#374151' }}>
-                          {e.whatsapp?.status === 'connected' ? '✓ Conectado' : 'Desconectado'}
-                        </span>
-                      </td>
-                      <td style={s.td}>
-                        <div style={s.actions}>
-                          {e.estado !== 'activo' && (
-                            <button onClick={() => cambiarEstado(e.id, 'activo')} style={{ ...s.btn, background: '#166534' }}>Activar</button>
-                          )}
-                          {e.estado !== 'bloqueado' && (
-                            <button onClick={() => cambiarEstado(e.id, 'bloqueado')} style={{ ...s.btn, background: '#92400e' }}>Bloquear</button>
-                          )}
-                          <button onClick={() => setConfirmar(e.id)} style={{ ...s.btn, background: '#7f1d1d' }}>Eliminar</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
         )}
 
         {tab === 'estadisticas' && (
-          <div style={s.statsDetail}>
-            <h2 style={s.subtitle}>Resumen global</h2>
+          <div>
             <div style={s.statsGrid}>
-              {[
-                { label: 'Usuarios starter', value: empresas.filter(e => e.plan === 'starter').length },
-                { label: 'Usuarios básico', value: empresas.filter(e => e.plan === 'basico').length },
-                { label: 'Usuarios pro', value: empresas.filter(e => e.plan === 'pro').length },
-                { label: 'WhatsApp activos', value: empresas.filter(e => e.whatsapp?.status === 'connected').length },
-              ].map(st => (
+              {PLANES.map(p=>({label:`Plan ${p}`,total:empresas.filter(e=>e.plan===p).length,activos:empresas.filter(e=>e.plan===p&&e.estado==='activo').length})).map(st=>(
                 <div key={st.label} style={s.statCard}>
-                  <div style={{ ...s.statNum, color: '#FF6B00' }}>{st.value}</div>
+                  <div style={{...s.statNum,color:'#FF6B00'}}>{st.total}</div>
                   <div style={s.statLabel}>{st.label}</div>
+                  <div style={{color:'#22c55e',fontSize:12,marginTop:4}}>{st.activos} activos</div>
                 </div>
               ))}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginTop:20}}>
+              <div style={s.statCard}>
+                <h3 style={{color:'white',marginBottom:16,fontSize:15}}>Distribución por estado</h3>
+                {[{label:'Activos',value:stats.activos,color:'#22c55e'},{label:'Bloqueados',value:stats.bloqueados,color:'#ef4444'},{label:'Pendientes',value:stats.pendientes,color:'#f59e0b'}].map(item=>(
+                  <div key={item.label} style={{marginBottom:12}}>
+                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                      <span style={{color:'#d1d5db',fontSize:13}}>{item.label}</span>
+                      <span style={{color:item.color,fontSize:13,fontWeight:600}}>{item.value}</span>
+                    </div>
+                    <div style={{background:'#1f2937',borderRadius:4,height:6}}>
+                      <div style={{background:item.color,height:6,borderRadius:4,width:`${stats.total?(item.value/stats.total*100):0}%`}}/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={s.statCard}>
+                <h3 style={{color:'white',marginBottom:16,fontSize:15}}>Resumen financiero</h3>
+                {[
+                  {label:'Ingreso mensual estimado',value:`${stats.ingresoEstimado}€`,color:'#a78bfa'},
+                  {label:'Cuentas de pago',value:empresas.filter(e=>e.plan!=='starter'&&e.estado==='activo').length,color:'#FF6B00'},
+                  {label:'Cuentas gratuitas',value:empresas.filter(e=>e.plan==='starter').length,color:'#6b7280'},
+                  {label:'WhatsApp conectados',value:stats.whatsappActivos,color:'#25d366'},
+                ].map(item=>(
+                  <div key={item.label} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid #1f2937'}}>
+                    <span style={{color:'#9ca3af',fontSize:13}}>{item.label}</span>
+                    <span style={{color:item.color,fontWeight:600}}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {tab === 'conversaciones' && (
-          <div style={s.empty}>
-            Las conversaciones se ven en el panel de cada empresa.<br />
-            Selecciona un usuario arriba para acceder a su cuenta.
+        {tab === 'crm' && (
+          <div style={s.tableWrap}>
+            <table style={s.table}>
+              <thead><tr>{['Empresa','Email','Plan','Conversaciones','Leads','Agentes','WhatsApp','Estado','Acciones'].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead>
+              <tbody>
+                {empresas.map(e=>(
+                  <tr key={e.id} style={s.tr}>
+                    <td style={s.td}><button onClick={()=>setDetalle(e)} style={s.linkBtn}>{e.nombreEmpresa||'—'}</button></td>
+                    <td style={s.td}>{e.email||'—'}</td>
+                    <td style={s.td}><span style={{...s.pill,background:PLAN_COLOR[e.plan]||'#374151'}}>{e.plan||'starter'}</span></td>
+                    <td style={{...s.td,textAlign:'center'}}>{e.conversacionesTotales||0}</td>
+                    <td style={{...s.td,textAlign:'center'}}>{e.leadsTotal||0}</td>
+                    <td style={{...s.td,textAlign:'center'}}>{e.agentesActivos||0}</td>
+                    <td style={s.td}><span style={{...s.pill,background:e.whatsapp?.status==='connected'?'#14532d':'#374151'}}>{e.whatsapp?.status==='connected'?'📱 Sí':'⭕ No'}</span></td>
+                    <td style={s.td}><span style={{...s.pill,background:e.estado==='activo'?'#14532d':e.estado==='bloqueado'?'#7f1d1d':'#374151'}}>{e.estado||'pendiente'}</span></td>
+                    <td style={s.td}>
+                      <div style={s.actions}>
+                        <button onClick={()=>setDetalle(e)} style={{...s.btn,background:'#1e3a5f'}}>👁 Ver</button>
+                        <button onClick={()=>setConfirmar(e.id)} style={{...s.btn,background:'#7f1d1d'}}>🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
-      {/* MODAL CONFIRMAR ELIMINAR */}
-      {confirmar && (
-        <div style={s.overlay}>
-          <div style={s.modal}>
-            <h3 style={{ color: 'white', marginBottom: 12 }}>¿Eliminar este usuario?</h3>
-            <p style={{ color: '#9ca3af', marginBottom: 24 }}>Esta acción es irreversible. Se borrarán todos sus datos.</p>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => eliminarEmpresa(confirmar)} style={{ ...s.btn, background: '#7f1d1d', padding: '10px 24px' }}>Eliminar</button>
-              <button onClick={() => setConfirmar(null)} style={{ ...s.btn, background: '#374151', padding: '10px 24px' }}>Cancelar</button>
+      {detalle && (
+        <div style={s.overlay} onClick={()=>setDetalle(null)}>
+          <div style={s.modal} onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+              <h3 style={{color:'white',margin:0}}>{detalle.nombreEmpresa||'Sin nombre'}</h3>
+              <button onClick={()=>setDetalle(null)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:20,cursor:'pointer'}}>✕</button>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-const s = {
-  page: { minHeight: '100vh', background: '#0d0f12', fontFamily: 'Inter, sans-serif' },
-  header: { background: '#111318', borderBottom: '1px solid #1f2937', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  logo: { color: 'white', fontWeight: 700, fontSize: 18 },
-  badge: { background: '#FF6B00', color: 'white', fontSize: 10, padding: '2px 8px', borderRadius: 4, marginLeft: 8, fontWeight: 600 },
-  logout: { background: 'transparent', border: '1px solid #374151', color: '#9ca3af', padding: '6px 16px', borderRadius: 6, cursor: 'pointer' },
-  container: { maxWidth: 1200, margin: '0 auto', padding: '32px 24px' },
-  title: { color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 24 },
-  subtitle: { color: 'white', fontSize: 20, fontWeight: 600, marginBottom: 16 },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 32 },
-  statCard: { background: '#111318', border: '1px solid #1f2937', borderRadius: 12, padding: '20px 24px' },
-  statNum: { fontSize: 36, fontWeight: 700 },
-  statLabel: { color: '#6b7280', fontSize: 13, marginTop: 4 },
-  tabs: { display: 'flex', gap: 8, marginBottom: 24 },
-  tab: { background: 'transparent', border: '1px solid #1f2937', color: '#6b7280', padding: '8px 20px', borderRadius: 8, cursor: 'pointer', fontSize: 14 },
-  tabActive: { background: '#FF6B00', border: '1px solid #FF6B00', color: 'white' },
-  search: { width: '100%', background: '#111318', border: '1px solid #1f2937', borderRadius: 8, padding: '10px 16px', color: 'white', fontSize: 14, marginBottom: 16, boxSizing: 'border-box' },
-  tableWrap: { overflowX: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  th: { background: '#111318', color: '#6b7280', fontSize: 12, fontWeight: 600, padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #1f2937' },
-  tr: { borderBottom: '1px solid #1f2937' },
-  td: { padding: '14px 16px', color: '#d1d5db', fontSize: 14 },
-  pill: { display: 'inline-block', padding: '3px 10px', borderRadius: 20, fontSize: 12, color: 'white', fontWeight: 500 },
-  select: { background: '#1f2937', border: '1px solid #374151', color: 'white', borderRadius: 6, padding: '4px 8px', fontSize: 13, cursor: 'pointer' },
-  actions: { display: 'flex', gap: 6 },
-  btn: { border: 'none', color: 'white', padding: '5px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 500 },
-  empty: { color: '#6b7280', textAlign: 'center', padding: '48px 0', lineHeight: 2 },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal: { background: '#111318', border: '1px solid #1f2937', borderRadius: 16, padding: '32px', maxWidth: 400, width: '100%' },
-  statsDetail: {},
-};
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:20}}>
+              {[
+                {label:'Email',value:detalle.email},
+                {label:'Teléfono',value:detalle.telefono},
+                {label:'Plan',value:detalle.plan},
+                {label:'Estado',value:detalle.estado},
