@@ -7,27 +7,24 @@ import { useAuth } from '../../lib/AuthContext';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { updateEmpresa, db } from '../../lib/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, getDoc } from 'firebase/firestore';
 
 const NARANJA = '#FF6B00';
 
-// ── Plantillas completas ───────────────────────────────────────────────────────
 const PLANTILLAS = [
-  { id: 'estetica',         nombre: 'Centro de Estética',   emoji: '💆', color: '#EC4899', desc: 'Faciales, depilación, tratamientos corporales' },
-  { id: 'salon',            nombre: 'Salón de Belleza',      emoji: '✂️', color: '#F472B6', desc: 'Cortes, color, keratina, manicura' },
-  { id: 'spa',              nombre: 'Spa & Masajes',         emoji: '🧖', color: '#A78BFA', desc: 'Masajes, hidroterapia, aromaterapia' },
-  { id: 'dental',           nombre: 'Clínica Dental',        emoji: '🦷', color: '#3B82F6', desc: 'Limpieza, ortodoncia, implantes' },
-  { id: 'medicina-estetica',nombre: 'Medicina Estética',     emoji: '💉', color: '#8B5CF6', desc: 'Bótox, rellenos, láser, radiofrecuencia' },
-  { id: 'peluqueria',       nombre: 'Peluquería',            emoji: '💈', color: '#EAB308', desc: 'Cortes, tintes, tratamientos capilares' },
-  { id: 'gimnasio',         nombre: 'Gimnasio / Fitness',    emoji: '🏋️', color: '#F97316', desc: 'Membresías, clases, entrenamiento personal' },
-  { id: 'salud',            nombre: 'Clínica / Salud',       emoji: '🏥', color: '#14B8A6', desc: 'Consultas médicas, diagnóstico, seguimiento' },
-  { id: 'restaurante',      nombre: 'Restaurante / Café',    emoji: '🍽️', color: '#F59E0B', desc: 'Reservas, carta online, delivery' },
-  { id: 'inmobiliaria',     nombre: 'Inmobiliaria',          emoji: '🏠', color: '#10B981', desc: 'Propiedades, visitas, leads automáticos' },
-  { id: 'tienda',           nombre: 'Tienda / Retail',       emoji: '🛒', color: '#06B6D4', desc: 'Catálogo, pedidos, atención 24/7' },
-  { id: 'generico',         nombre: 'Profesional General',   emoji: '🏢', color: '#6366F1', desc: 'Diseño adaptable a cualquier negocio' },
+  { id: 'estetica',          nombre: 'Centro de Estética',   emoji: '💆', color: '#EC4899', desc: 'Faciales, depilación, tratamientos corporales' },
+  { id: 'salon',             nombre: 'Salón de Belleza',      emoji: '✂️', color: '#F472B6', desc: 'Cortes, color, keratina, manicura' },
+  { id: 'spa',               nombre: 'Spa & Masajes',         emoji: '🧖', color: '#A78BFA', desc: 'Masajes, hidroterapia, aromaterapia' },
+  { id: 'dental',            nombre: 'Clínica Dental',        emoji: '🦷', color: '#3B82F6', desc: 'Limpieza, ortodoncia, implantes' },
+  { id: 'medicina-estetica', nombre: 'Medicina Estética',     emoji: '💉', color: '#8B5CF6', desc: 'Bótox, rellenos, láser, radiofrecuencia' },
+  { id: 'peluqueria',        nombre: 'Peluquería',            emoji: '💈', color: '#EAB308', desc: 'Cortes, tintes, tratamientos capilares' },
+  { id: 'gimnasio',          nombre: 'Gimnasio / Fitness',    emoji: '🏋️', color: '#F97316', desc: 'Membresías, clases, entrenamiento personal' },
+  { id: 'salud',             nombre: 'Clínica / Salud',       emoji: '🏥', color: '#14B8A6', desc: 'Consultas médicas, diagnóstico, seguimiento' },
+  { id: 'restaurante',       nombre: 'Restaurante / Café',    emoji: '🍽️', color: '#F59E0B', desc: 'Reservas, carta online, delivery' },
+  { id: 'inmobiliaria',      nombre: 'Inmobiliaria',          emoji: '🏠', color: '#10B981', desc: 'Propiedades, visitas, leads automáticos' },
+  { id: 'tienda',            nombre: 'Tienda / Retail',       emoji: '🛒', color: '#06B6D4', desc: 'Catálogo, pedidos, atención 24/7' },
+  { id: 'generico',          nombre: 'Profesional General',   emoji: '🏢', color: '#6366F1', desc: 'Diseño adaptable a cualquier negocio' },
 ];
 
-// ── Fotos por plantilla ────────────────────────────────────────────────────────
 const FOTOS = {
   estetica:          ['https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1400&q=85','https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=1400&q=85','https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=1400&q=85'],
   salon:             ['https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1400&q=85','https://images.unsplash.com/photo-1560066984-138daaa5f571?w=1400&q=85','https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?w=1400&q=85'],
@@ -43,23 +40,30 @@ const FOTOS = {
   generico:          ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=85','https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1400&q=85','https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85'],
 };
 
-// ── Servicios sugeridos por plantilla ─────────────────────────────────────────
 const SERVICIOS_SUGERIDOS = {
-  estetica:          ['Limpieza facial profunda', 'Depilación láser', 'Tratamiento antiedad', 'Peeling químico', 'Microblading'],
-  salon:             ['Corte y peinado', 'Coloración y mechas', 'Keratina brasileña', 'Manicura y pedicura', 'Tratamiento capilar'],
-  spa:               ['Masaje relajante', 'Masaje deportivo', 'Hidroterapia', 'Aromaterapia', 'Envoltura corporal'],
-  dental:            ['Limpieza bucal', 'Ortodoncia invisible', 'Blanqueamiento dental', 'Implantes dentales', 'Revisión gratuita'],
-  'medicina-estetica':['Bótox y rellenos', 'Láser rejuvenecedor', 'Radiofrecuencia', 'Mesoterapia facial', 'Plasma rico en plaquetas'],
-  peluqueria:        ['Corte de pelo', 'Tinte y coloración', 'Permanente', 'Alisado japonés', 'Tratamiento hidratante'],
-  gimnasio:          ['Membresía mensual', 'Entrenamiento personal', 'Clases de yoga', 'Crossfit', 'Nutrición deportiva'],
-  salud:             ['Consulta médica', 'Análisis clínicos', 'Revisión general', 'Seguimiento crónico', 'Pediatría'],
-  restaurante:       ['Menú del día', 'Reserva de mesa', 'Carta a la carta', 'Eventos privados', 'Delivery a domicilio'],
-  inmobiliaria:      ['Compra de inmuebles', 'Alquiler residencial', 'Alquiler comercial', 'Tasación gratuita', 'Gestión de alquileres'],
-  tienda:            ['Consulta de stock', 'Pedido online', 'Envío a domicilio', 'Devoluciones', 'Atención al cliente'],
-  generico:          ['Servicio principal', 'Consulta inicial', 'Pack completo', 'Asesoría personalizada', 'Seguimiento'],
+  estetica:          ['Limpieza facial profunda','Depilación láser','Tratamiento antiedad','Peeling químico','Microblading'],
+  salon:             ['Corte y peinado','Coloración y mechas','Keratina brasileña','Manicura y pedicura','Tratamiento capilar'],
+  spa:               ['Masaje relajante','Masaje deportivo','Hidroterapia','Aromaterapia','Envoltura corporal'],
+  dental:            ['Limpieza bucal','Ortodoncia invisible','Blanqueamiento dental','Implantes dentales','Revisión gratuita'],
+  'medicina-estetica':['Bótox y rellenos','Láser rejuvenecedor','Radiofrecuencia','Mesoterapia facial','Plasma rico en plaquetas'],
+  peluqueria:        ['Corte de pelo','Tinte y coloración','Permanente','Alisado japonés','Tratamiento hidratante'],
+  gimnasio:          ['Membresía mensual','Entrenamiento personal','Clases de yoga','Crossfit','Nutrición deportiva'],
+  salud:             ['Consulta médica','Análisis clínicos','Revisión general','Seguimiento crónico','Pediatría'],
+  restaurante:       ['Menú del día','Reserva de mesa','Carta a la carta','Eventos privados','Delivery a domicilio'],
+  inmobiliaria:      ['Compra de inmuebles','Alquiler residencial','Alquiler comercial','Tasación gratuita','Gestión de alquileres'],
+  tienda:            ['Consulta de stock','Pedido online','Envío a domicilio','Devoluciones','Atención al cliente'],
+  generico:          ['Servicio principal','Consulta inicial','Pack completo','Asesoría personalizada','Seguimiento'],
 };
 
-// ── Preview del navegador ──────────────────────────────────────────────────────
+// ── Helper: asegurar que un valor sea string ──────────────────────────────────
+function toStr(val) {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') return ''; // Evita [object Object]
+  return String(val);
+}
+
+// ── Preview ────────────────────────────────────────────────────────────────────
 function WebPreview({ datos, plantilla }) {
   if (!plantilla) return null;
   const fotos = FOTOS[plantilla.id] || FOTOS.generico;
@@ -68,7 +72,6 @@ function WebPreview({ datos, plantilla }) {
 
   return (
     <div style={{ borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', fontFamily: "'DM Sans',sans-serif", boxShadow: '0 32px 64px rgba(0,0,0,0.5)', background: '#fff' }}>
-      {/* Barra del navegador */}
       <div style={{ background: '#1a1a2e', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ display: 'flex', gap: 5 }}>
           {['#FF5F57','#FEBC2E','#28C840'].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: '50%', background: c }} />)}
@@ -76,10 +79,8 @@ function WebPreview({ datos, plantilla }) {
         <div style={{ flex: 1, background: '#2d2d4e', borderRadius: 6, padding: '5px 14px', fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>
           🔒 bqinzagencia.com/{(datos.nombreEmpresa || 'tu-empresa').toLowerCase().replace(/\s+/g,'-')}
         </div>
-        <div style={{ fontSize: 11, color: '#4B5563', background: '#22C55E20', color: '#22C55E', padding: '2px 10px', borderRadius: 100, fontWeight: 700 }}>● ACTIVA</div>
+        <div style={{ fontSize: 11, background: '#22C55E20', color: '#22C55E', padding: '2px 10px', borderRadius: 100, fontWeight: 700 }}>● ACTIVA</div>
       </div>
-
-      {/* Hero */}
       <div style={{ position: 'relative', height: 300, overflow: 'hidden' }}>
         <img src={foto} alt="hero" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(105deg,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0.45) 55%,rgba(0,0,0,0.1) 100%)' }} />
@@ -97,17 +98,13 @@ function WebPreview({ datos, plantilla }) {
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 22, color: '#fff', lineHeight: 1.15, marginBottom: 10, letterSpacing: '-0.5px' }}>
             {datos.titular || `Bienvenidos a ${datos.nombreEmpresa || 'tu empresa'}`}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, lineHeight: 1.6, marginBottom: 14 }}>
-            {datos.descripcion || plantilla.desc}
-          </p>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, lineHeight: 1.6, marginBottom: 14 }}>{datos.descripcion || plantilla.desc}</p>
           <div style={{ display: 'flex', gap: 8 }}>
             <div style={{ background: color, color: '#fff', borderRadius: 100, padding: '8px 18px', fontSize: 10, fontWeight: 700 }}>Reservar cita →</div>
             <div style={{ background: '#25D366', color: '#fff', borderRadius: 100, padding: '8px 18px', fontSize: 10, fontWeight: 600 }}>💬 WhatsApp</div>
           </div>
         </div>
       </div>
-
-      {/* Servicios */}
       <div style={{ padding: '28px 24px', background: '#FAFAF8' }}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{ color, fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>Nuestros servicios</div>
@@ -115,15 +112,13 @@ function WebPreview({ datos, plantilla }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {(datos.servicios || SERVICIOS_SUGERIDOS[plantilla.id] || []).slice(0, 3).map((s, i) => (
-            <div key={i} style={{ background: '#fff', borderRadius: 12, padding: '16px 12px', textAlign: 'center', border: `1px solid ${i === 0 ? color + '40' : 'rgba(0,0,0,0.06)'}`, boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+            <div key={i} style={{ background: '#fff', borderRadius: 12, padding: '16px 12px', textAlign: 'center', border: `1px solid ${i === 0 ? color+'40' : 'rgba(0,0,0,0.06)'}`, boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: 20, marginBottom: 8 }}>{['💆','✨','⭐'][i]}</div>
               <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 11, color: '#111', marginBottom: 4 }}>{s}</div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Footer */}
       <div style={{ background: '#111', padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 12, color: '#fff', marginBottom: 2 }}>{datos.nombreEmpresa || 'Tu Empresa'}</div>
@@ -141,14 +136,13 @@ export default function Web() {
   const router = useRouter();
   const fileRef = useRef(null);
 
-  const [paso, setPaso] = useState(1); // 1=plantilla, 2=editor, 3=publicar
+  const [paso, setPaso] = useState(1);
   const [plantillaId, setPlantillaId] = useState('');
   const [fotoIdx, setFotoIdx] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [tabEditor, setTabEditor] = useState('general'); // general | servicios | fotos | contacto
+  const [tabEditor, setTabEditor] = useState('general');
 
-  // Datos editables de la web
   const [datos, setDatos] = useState({
     nombreEmpresa: '',
     titular: '',
@@ -157,7 +151,7 @@ export default function Web() {
     telefono: '',
     email: '',
     horario: '',
-    whatsapp: '',
+    whatsappContacto: '', // ← campo renombrado para evitar colisión con empresa.whatsapp (objeto Baileys)
     instagram: '',
     servicios: [],
     fotoHero: null,
@@ -169,17 +163,18 @@ export default function Web() {
     if (empresa) {
       setDatos(d => ({
         ...d,
-        nombreEmpresa: empresa.nombreEmpresa || '',
-        ciudad: empresa.ciudad || '',
-        telefono: empresa.telefono || '',
-        email: empresa.email || '',
-        titular: empresa.webTitular || '',
-        descripcion: empresa.webDescripcion || '',
-        horario: empresa.horario || 'Lunes–Sábado 9:00–20:00h',
-        whatsapp: empresa.whatsapp || empresa.telefono || '',
-        instagram: empresa.instagram || '',
-        servicios: empresa.webServicios || [],
-        fotoHero: empresa.fotoHeroPersonalizada || null,
+        nombreEmpresa: toStr(empresa.nombreEmpresa),
+        ciudad:        toStr(empresa.ciudad),
+        telefono:      toStr(empresa.telefono),
+        email:         toStr(empresa.email),
+        titular:       toStr(empresa.webTitular),
+        descripcion:   toStr(empresa.webDescripcion),
+        horario:       toStr(empresa.horario) || 'Lunes–Sábado 9:00–20:00h',
+        // ── FIX: empresa.whatsapp es el objeto Baileys. Usamos webWhatsapp para el contacto ──
+        whatsappContacto: toStr(empresa.webWhatsapp) || toStr(empresa.telefono),
+        instagram:     toStr(empresa.instagram),
+        servicios:     Array.isArray(empresa.webServicios) ? empresa.webServicios : [],
+        fotoHero:      typeof empresa.fotoHeroPersonalizada === 'string' ? empresa.fotoHeroPersonalizada : null,
       }));
       if (empresa.plantillaWeb) {
         setPlantillaId(empresa.plantillaWeb);
@@ -192,10 +187,8 @@ export default function Web() {
   const fotos = FOTOS[plantillaId] || FOTOS.generico;
   const serviciosSugeridos = SERVICIOS_SUGERIDOS[plantillaId] || SERVICIOS_SUGERIDOS.generico;
 
-  // Actualizar campo de datos
   function set(campo, valor) { setDatos(d => ({ ...d, [campo]: valor })); }
 
-  // Subir foto a Firebase Storage
   async function subirFoto(file) {
     if (!file) return;
     if (file.size > 8 * 1024 * 1024) { toast.error('La foto no puede superar 8 MB'); return; }
@@ -207,37 +200,39 @@ export default function Web() {
       const url = await getDownloadURL(storageRef);
       set('fotoHero', url);
       toast.success('✅ Foto subida correctamente');
-    } catch (e) {
-      // Fallback: base64 si Storage falla
+    } catch {
       const reader = new FileReader();
-      reader.onload = ev => { set('fotoHero', ev.target.result); toast.success('Foto cargada'); };
+      reader.onload = ev => { set('fotoHero', ev.target.result); toast.success('Foto cargada (sin Cloud)'); };
       reader.readAsDataURL(file);
     }
     setUploading(false);
   }
 
-  // Guardar todo en Firestore
   async function guardar(publicar = false) {
     setSaving(true);
     try {
       await updateEmpresa(user.uid, {
-        plantillaWeb: plantillaId,
-        webTitular: datos.titular,
-        webDescripcion: datos.descripcion,
-        webServicios: datos.servicios,
-        fotoHeroPersonalizada: datos.fotoHero || null,
-        ciudad: datos.ciudad,
-        telefono: datos.telefono,
-        email: datos.email,
-        horario: datos.horario,
-        whatsapp: datos.whatsapp,
-        instagram: datos.instagram,
-        webPublicada: true,
+        plantillaWeb:          plantillaId,
+        webTitular:            datos.titular,
+        webDescripcion:        datos.descripcion,
+        webServicios:          datos.servicios,
+        fotoHeroPersonalizada: typeof datos.fotoHero === 'string' && datos.fotoHero.startsWith('https://') ? datos.fotoHero : null,
+        ciudad:                datos.ciudad,
+        telefono:              datos.telefono,
+        email:                 datos.email,
+        horario:               datos.horario,
+        webWhatsapp:           datos.whatsappContacto, // ← guardamos en campo propio, no en whatsapp (Baileys)
+        instagram:             datos.instagram,
+        webPublicada:          true,
       });
       toast.success(publicar ? '🎉 ¡Web publicada con éxito!' : '✅ Cambios guardados');
       if (publicar) setPaso(3);
-    } catch { toast.error('Error al guardar'); }
-    finally { setSaving(false); }
+    } catch (err) {
+      console.error('Error al guardar:', err);
+      toast.error('Error al guardar. Revisa la consola.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const slugEmpresa = (empresa?.nombreEmpresa || datos.nombreEmpresa || 'mi-empresa')
@@ -246,7 +241,7 @@ export default function Web() {
     .replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 
   const urlPublica = `https://www.bqinzagencia.com/${slugEmpresa}`;
-  const urlLocal   = `http://localhost:3000/${slugEmpresa}`;
+  const urlLocal   = `http://localhost:3001/${slugEmpresa}`;
 
   if (loading || !empresa) return <div className="page-loader"><div className="spinner" /></div>;
 
@@ -255,12 +250,11 @@ export default function Web() {
       <Head><title>Mi Web — BQinzagencIA</title></Head>
       <DashboardLayout title="Mi Página Web">
 
-        {/* ── Stepper ── */}
+        {/* Stepper */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 40 }}>
           {[{ n: 1, label: 'Plantilla' }, { n: 2, label: 'Personalizar' }, { n: 3, label: 'Publicar' }].map((s, i) => (
             <div key={s.n} style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: paso > s.n ? 'pointer' : 'default' }}
-                onClick={() => paso > s.n && setPaso(s.n)}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: paso > s.n ? 'pointer' : 'default' }} onClick={() => paso > s.n && setPaso(s.n)}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', background: paso > s.n ? '#22C55E' : paso === s.n ? NARANJA : 'var(--gray2)', border: `2px solid ${paso >= s.n ? (paso > s.n ? '#22C55E' : NARANJA) : 'rgba(255,255,255,0.1)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff', transition: 'all 0.3s' }}>
                   {paso > s.n ? '✓' : s.n}
                 </div>
@@ -271,17 +265,15 @@ export default function Web() {
           ))}
         </div>
 
-        {/* ── PASO 1: Elegir plantilla ── */}
+        {/* PASO 1 */}
         {paso === 1 && (
           <div>
-            <p style={{ color: 'var(--gray5)', fontSize: 14, marginBottom: 28 }}>
-              Elige el tipo de negocio que mejor describe tu actividad. El diseño, fotos y textos se adaptarán automáticamente.
-            </p>
+            <p style={{ color: 'var(--gray5)', fontSize: 14, marginBottom: 28 }}>Elige el tipo de negocio que mejor describe tu actividad.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 36 }}>
               {PLANTILLAS.map(p => (
                 <div key={p.id} onClick={() => setPlantillaId(p.id)}
-                  style={{ background: plantillaId === p.id ? p.color + '18' : 'var(--gray1)', border: `2px solid ${plantillaId === p.id ? p.color : 'rgba(255,255,255,0.06)'}`, borderRadius: 14, padding: '18px 16px', cursor: 'pointer', transition: 'all 0.2s', position: 'relative' }}
-                  onMouseEnter={e => { if (plantillaId !== p.id) e.currentTarget.style.borderColor = p.color + '55'; }}
+                  style={{ background: plantillaId === p.id ? p.color+'18' : 'var(--gray1)', border: `2px solid ${plantillaId === p.id ? p.color : 'rgba(255,255,255,0.06)'}`, borderRadius: 14, padding: '18px 16px', cursor: 'pointer', transition: 'all 0.2s', position: 'relative' }}
+                  onMouseEnter={e => { if (plantillaId !== p.id) e.currentTarget.style.borderColor = p.color+'55'; }}
                   onMouseLeave={e => { if (plantillaId !== p.id) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}>
                   <div style={{ fontSize: 32, marginBottom: 8 }}>{p.emoji}</div>
                   <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 13, color: plantillaId === p.id ? p.color : 'var(--white)', marginBottom: 5 }}>{p.nombre}</div>
@@ -290,16 +282,12 @@ export default function Web() {
                 </div>
               ))}
             </div>
-
             {plantilla && (
               <div style={{ marginBottom: 32 }}>
-                <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--gray5)' }}>
-                  Preview — <span style={{ color: plantilla.color }}>{plantilla.nombre}</span>
-                </h3>
+                <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--gray5)' }}>Preview — <span style={{ color: plantilla.color }}>{plantilla.nombre}</span></h3>
                 <WebPreview datos={datos} plantilla={plantilla} />
               </div>
             )}
-
             <button className="btn btn-accent btn-lg" disabled={!plantillaId || saving}
               onClick={() => { if (plantillaId) { if (datos.servicios.length === 0) set('servicios', SERVICIOS_SUGERIDOS[plantillaId] || []); setPaso(2); } }}>
               Continuar — Personalizar mi web →
@@ -307,46 +295,33 @@ export default function Web() {
           </div>
         )}
 
-        {/* ── PASO 2: Editor ── */}
+        {/* PASO 2 */}
         {paso === 2 && plantilla && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 480px', gap: 32, alignItems: 'start' }}>
-
-            {/* Panel izquierdo — Editor */}
             <div>
-              {/* Barra de estado activa */}
+              {/* Barra estado */}
               <div style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
                   <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 14 }}>Tu web está activa</span>
                   <span style={{ fontSize: 12, color: 'var(--gray5)' }}>Plantilla: {plantilla.emoji} {plantilla.nombre}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <a
-                    href={typeof window !== 'undefined' && window.location.hostname === 'localhost' ? urlLocal : urlPublica}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ background: '#22C55E', color: '#fff', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    🜍 Ver web
+                  <a href={typeof window !== 'undefined' && window.location.hostname === 'localhost' ? urlLocal : urlPublica} target="_blank" rel="noopener noreferrer"
+                    style={{ background: '#22C55E', color: '#fff', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+                    🌐 Ver web
                   </a>
-                  <button onClick={() => setPaso(1)}
-                    style={{ background: 'var(--gray2)', color: 'var(--white)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                    Cambiar plantilla
-                  </button>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(urlPublica); toast.success('¡URL copiada!'); }}
+                  <button onClick={() => setPaso(1)} style={{ background: 'var(--gray2)', color: 'var(--white)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cambiar plantilla</button>
+                  <button onClick={() => { navigator.clipboard.writeText(urlPublica); toast.success('¡URL copiada!'); }}
                     style={{ background: 'var(--gray2)', color: 'var(--gray5)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '8px 14px', fontSize: 12, cursor: 'pointer' }}>
                     📋 Copiar URL
                   </button>
                 </div>
               </div>
-              {/* Tabs del editor */}
+
+              {/* Tabs */}
               <div style={{ display: 'flex', gap: 4, background: 'var(--gray1)', borderRadius: 12, padding: 4, marginBottom: 24 }}>
-                {[
-                  { id: 'general', label: '📝 Textos' },
-                  { id: 'servicios', label: '⭐ Servicios' },
-                  { id: 'fotos', label: '📸 Fotos' },
-                  { id: 'contacto', label: '📞 Contacto' },
-                ].map(t => (
+                {[{ id: 'general', label: '📝 Textos' }, { id: 'servicios', label: '⭐ Servicios' }, { id: 'fotos', label: '📸 Fotos' }, { id: 'contacto', label: '📞 Contacto' }].map(t => (
                   <button key={t.id} onClick={() => setTabEditor(t.id)}
                     style={{ flex: 1, background: tabEditor === t.id ? NARANJA : 'transparent', color: tabEditor === t.id ? '#fff' : 'var(--gray5)', border: 'none', borderRadius: 8, padding: '9px 8px', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
                     {t.label}
@@ -354,7 +329,7 @@ export default function Web() {
                 ))}
               </div>
 
-              {/* Tab: Textos generales */}
+              {/* Tab Textos */}
               {tabEditor === 'general' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, margin: 0 }}>Información principal</h3>
@@ -366,43 +341,33 @@ export default function Web() {
                       <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray5)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>{f.label}</label>
                       <input value={datos[f.campo]} onChange={e => set(f.campo, e.target.value)} placeholder={f.placeholder}
                         style={{ width: '100%', background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: 'var(--white)', outline: 'none', boxSizing: 'border-box' }}
-                        onFocus={e => e.target.style.borderColor = NARANJA}
-                        onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
-                      />
+                        onFocus={e => e.target.style.borderColor = NARANJA} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
                     </div>
                   ))}
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray5)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Descripción del negocio</label>
-                    <textarea value={datos.descripcion} onChange={e => set('descripcion', e.target.value)}
-                      placeholder="Ej: Somos un centro de estética especializado en tratamientos faciales y corporales. Atendemos con cita previa y nuestro agente IA está disponible 24h para reservas."
-                      rows={4} style={{ width: '100%', background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: 'var(--white)', outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
-                      onFocus={e => e.target.style.borderColor = NARANJA}
-                      onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
-                    />
+                    <textarea value={datos.descripcion} onChange={e => set('descripcion', e.target.value)} rows={4}
+                      placeholder="Ej: Somos un centro de estética especializado en tratamientos faciales y corporales..."
+                      style={{ width: '100%', background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: 'var(--white)', outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                      onFocus={e => e.target.style.borderColor = NARANJA} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
                   </div>
                 </div>
               )}
 
-              {/* Tab: Servicios */}
+              {/* Tab Servicios */}
               {tabEditor === 'servicios' && (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, margin: 0 }}>Tus servicios</h3>
-                    <button onClick={() => set('servicios', [...datos.servicios, ''])}
-                      style={{ background: NARANJA, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      + Añadir
-                    </button>
+                    <button onClick={() => set('servicios', [...datos.servicios, ''])} style={{ background: NARANJA, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ Añadir</button>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
                     {datos.servicios.map((s, i) => (
                       <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)', color: NARANJA, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0 }}>{i+1}</span>
-                        <input value={s} onChange={e => { const arr = [...datos.servicios]; arr[i] = e.target.value; set('servicios', arr); }}
-                          placeholder={`Servicio ${i+1}`}
+                        <input value={s} onChange={e => { const arr = [...datos.servicios]; arr[i] = e.target.value; set('servicios', arr); }} placeholder={`Servicio ${i+1}`}
                           style={{ flex: 1, background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--white)', outline: 'none' }}
-                          onFocus={e => e.target.style.borderColor = NARANJA}
-                          onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
-                        />
+                          onFocus={e => e.target.style.borderColor = NARANJA} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
                         <button onClick={() => set('servicios', datos.servicios.filter((_, j) => j !== i))}
                           style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                       </div>
@@ -424,39 +389,26 @@ export default function Web() {
                 </div>
               )}
 
-              {/* Tab: Fotos */}
+              {/* Tab Fotos */}
               {tabEditor === 'fotos' && (
                 <div>
                   <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Foto de portada</h3>
                   <p style={{ color: 'var(--gray5)', fontSize: 13, marginBottom: 20 }}>Sube una foto de tu negocio o elige una de nuestras fotos profesionales del sector.</p>
-
                   <input ref={fileRef} type="file" accept="image/*" onChange={e => subirFoto(e.target.files?.[0])} style={{ display: 'none' }} />
                   <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
                     <button onClick={() => fileRef.current?.click()} disabled={uploading}
                       style={{ background: 'linear-gradient(135deg,#FF6B00,#FF9A3C)', color: '#fff', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 13, fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, opacity: uploading ? 0.7 : 1 }}>
                       {uploading ? '⏳ Subiendo...' : '📤 Subir foto de mi negocio'}
                     </button>
-                    {datos.fotoHero && (
-                      <button onClick={() => set('fotoHero', null)}
-                        style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, padding: '11px 16px', fontSize: 13, cursor: 'pointer' }}>
-                        ✕ Quitar
-                      </button>
-                    )}
+                    {datos.fotoHero && <button onClick={() => set('fotoHero', null)} style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, padding: '11px 16px', fontSize: 13, cursor: 'pointer' }}>✕ Quitar</button>}
                   </div>
-
-                  {datos.fotoHero && (
-                    <div style={{ marginBottom: 20, borderRadius: 12, overflow: 'hidden', height: 140 }}>
-                      <img src={datos.fotoHero} alt="Mi foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  )}
-
+                  {datos.fotoHero && <div style={{ marginBottom: 20, borderRadius: 12, overflow: 'hidden', height: 140 }}><img src={datos.fotoHero} alt="Mi foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
                   {!datos.fotoHero && (
                     <>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray5)', marginBottom: 12 }}>O elige una foto profesional de {plantilla.nombre}:</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray5)', marginBottom: 12 }}>O elige una foto profesional:</div>
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                         {fotos.map((url, i) => (
-                          <div key={i} onClick={() => setFotoIdx(i)}
-                            style={{ width: 130, height: 82, borderRadius: 10, overflow: 'hidden', cursor: 'pointer', border: `3px solid ${fotoIdx === i ? NARANJA : 'transparent'}`, transition: 'all 0.2s' }}>
+                          <div key={i} onClick={() => setFotoIdx(i)} style={{ width: 130, height: 82, borderRadius: 10, overflow: 'hidden', cursor: 'pointer', border: `3px solid ${fotoIdx === i ? NARANJA : 'transparent'}`, transition: 'all 0.2s' }}>
                             <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         ))}
@@ -466,44 +418,42 @@ export default function Web() {
                 </div>
               )}
 
-              {/* Tab: Contacto */}
+              {/* Tab Contacto */}
               {tabEditor === 'contacto' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, margin: 0 }}>Datos de contacto</h3>
                   {[
-                    { label: 'Ciudad', campo: 'ciudad', placeholder: 'Madrid' },
-                    { label: 'Teléfono', campo: 'telefono', placeholder: '+34 600 000 000' },
-                    { label: 'WhatsApp', campo: 'whatsapp', placeholder: '+34 600 000 000' },
-                    { label: 'Email', campo: 'email', placeholder: 'hola@tucentro.com' },
-                    { label: 'Horario', campo: 'horario', placeholder: 'Lunes–Sábado 9:00–20:00h' },
-                    { label: 'Instagram (solo usuario)', campo: 'instagram', placeholder: '@tucentro' },
+                    { label: 'Ciudad',                       campo: 'ciudad',           placeholder: 'Madrid' },
+                    { label: 'Teléfono',                     campo: 'telefono',         placeholder: '+34 600 000 000' },
+                    { label: 'WhatsApp de contacto',         campo: 'whatsappContacto', placeholder: '+34 600 000 000' },
+                    { label: 'Email',                        campo: 'email',            placeholder: 'hola@tucentro.com' },
+                    { label: 'Horario',                      campo: 'horario',          placeholder: 'Lunes–Sábado 9:00–20:00h' },
+                    { label: 'Instagram (solo usuario)',      campo: 'instagram',        placeholder: '@tucentro' },
                   ].map(f => (
                     <div key={f.campo}>
                       <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray5)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>{f.label}</label>
                       <input value={datos[f.campo]} onChange={e => set(f.campo, e.target.value)} placeholder={f.placeholder}
                         style={{ width: '100%', background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: 'var(--white)', outline: 'none', boxSizing: 'border-box' }}
-                        onFocus={e => e.target.style.borderColor = NARANJA}
-                        onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
-                      />
+                        onFocus={e => e.target.style.borderColor = NARANJA} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Botones de acción */}
+              {/* Botones */}
               <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
                 <button onClick={() => guardar(false)} disabled={saving}
                   style={{ flex: 1, background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--white)', borderRadius: 12, padding: '13px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                   {saving ? 'Guardando...' : '💾 Guardar borrador'}
                 </button>
                 <button onClick={() => guardar(true)} disabled={saving}
-                  style={{ flex: 2, background: NARANJA, color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: `0 8px 24px rgba(255,107,0,0.35)` }}>
+                  style={{ flex: 2, background: NARANJA, color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 24px rgba(255,107,0,0.35)' }}>
                   {saving ? 'Publicando...' : '🚀 Publicar mi web'}
                 </button>
               </div>
             </div>
 
-            {/* Panel derecho — Preview en tiempo real */}
+            {/* Preview */}
             <div style={{ position: 'sticky', top: 100 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray5)' }}>Vista previa en tiempo real</span>
@@ -514,53 +464,23 @@ export default function Web() {
           </div>
         )}
 
-        {/* ── PASO 3: Publicada ── */}
+        {/* PASO 3 */}
         {paso === 3 && (
           <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
             <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
-            <h2 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 32, letterSpacing: '-1.5px', marginBottom: 14 }}>
-              ¡Tu web está publicada!
-            </h2>
-            <p style={{ color: 'var(--gray5)', fontSize: 16, marginBottom: 32 }}>
-              Cualquier persona puede acceder ahora mismo a tu página web profesional.
-            </p>
-
+            <h2 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 32, letterSpacing: '-1.5px', marginBottom: 14 }}>¡Tu web está publicada!</h2>
+            <p style={{ color: 'var(--gray5)', fontSize: 16, marginBottom: 32 }}>Cualquier persona puede acceder ahora mismo a tu página web profesional.</p>
             <div style={{ background: 'var(--gray1)', border: `1px solid ${NARANJA}44`, borderRadius: 16, padding: '20px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 14 }}>
               <span style={{ fontSize: 22 }}>🔗</span>
               <div style={{ flex: 1, textAlign: 'left' }}>
                 <div style={{ fontSize: 11, color: 'var(--gray5)', marginBottom: 4, fontWeight: 600 }}>Tu URL pública</div>
-                <a href={typeof window !== 'undefined' && window.location.hostname === 'localhost' ? urlLocal : urlPublica} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 15, fontWeight: 700, color: NARANJA, textDecoration: 'none', fontFamily: 'monospace' }}>
-                {typeof window !== 'undefined' && window.location.hostname === 'localhost' ? urlLocal : urlPublica}
-                </a>
+                <a href={urlPublica} target="_blank" rel="noopener noreferrer" style={{ fontSize: 15, fontWeight: 700, color: NARANJA, textDecoration: 'none', fontFamily: 'monospace' }}>{urlPublica}</a>
               </div>
-              <button onClick={() => { navigator.clipboard.writeText(urlPublica); toast.success('¡URL copiada!'); }}
-                style={{ background: NARANJA, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                Copiar
-              </button>
+              <button onClick={() => { navigator.clipboard.writeText(urlPublica); toast.success('¡URL copiada!'); }} style={{ background: NARANJA, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copiar</button>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
-              {[
-                { icon: '📱', title: 'Comparte por WhatsApp', href: `https://wa.me/?text=Visita mi web: ${urlPublica}`, color: '#25D366' },
-                { icon: '📋', title: 'Copiar para Instagram', onClick: () => { navigator.clipboard.writeText(urlPublica); toast.success('¡Copiado!'); }, color: '#E1306C' },
-              ].map((a, i) => (
-                <a key={i} href={a.href} target={a.href ? '_blank' : undefined} rel="noopener noreferrer"
-                  onClick={a.onClick}
-                  style={{ background: a.color + '15', border: `1px solid ${a.color}33`, borderRadius: 12, padding: '16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'var(--white)', cursor: 'pointer' }}>
-                  <span style={{ fontSize: 20 }}>{a.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{a.title}</span>
-                </a>
-              ))}
-            </div>
-
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setPaso(2)}
-                style={{ flex: 1, background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--white)', borderRadius: 12, padding: '13px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                ✏️ Editar web
-              </button>
-              <a href={urlPublica} target="_blank" rel="noopener noreferrer"
-                style={{ flex: 2, background: NARANJA, color: '#fff', borderRadius: 12, padding: '13px', fontSize: 14, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: `0 8px 24px rgba(255,107,0,0.35)` }}>
+              <button onClick={() => setPaso(2)} style={{ flex: 1, background: 'var(--gray1)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--white)', borderRadius: 12, padding: '13px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>✏️ Editar web</button>
+              <a href={urlPublica} target="_blank" rel="noopener noreferrer" style={{ flex: 2, background: NARANJA, color: '#fff', borderRadius: 12, padding: '13px', fontSize: 14, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 8px 24px rgba(255,107,0,0.35)' }}>
                 🌐 Ver mi web publicada →
               </a>
             </div>

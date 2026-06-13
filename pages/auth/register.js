@@ -108,8 +108,8 @@ export default function Register() {
         <div style={{ width: '100%', maxWidth: 500, position: 'relative' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <Link href="/"><Logo size={28} /></Link>
-            <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 26, fontWeight: 800, marginTop: 20, marginBottom: 6 }}>Crea tu cuenta gratis</h1>
-            <p style={{ color: 'var(--gray6)', fontSize: 14 }}>14 días de prueba · Sin tarjeta de crédito</p>
+            <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 26, fontWeight: 800, marginTop: 20, marginBottom: 6 }}>Crea tu cuenta</h1>
+            <p style={{ color: 'var(--gray6)', fontSize: 14 }}>Empieza a automatizar tu negocio hoy</p>
           </div>
 
           {/* Steps indicator */}
@@ -197,7 +197,7 @@ export default function Register() {
                 <div style={{ display: 'flex', gap: 12 }}>
                   <button className="btn btn-ghost btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(1)}>← Atrás</button>
                   <button className="btn btn-accent btn-lg" style={{ flex: 2, justifyContent: 'center' }} onClick={handleSubmit} disabled={loading}>
-                    {loading ? 'Creando cuenta...' : '¡Comenzar gratis! 🚀'}
+                    {loading ? 'Creando cuenta...' : '¡Comenzar ahora! 🚀'}
                   </button>
                 </div>
               </>

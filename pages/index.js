@@ -75,7 +75,7 @@ const PLANES = [
       'Soporte por email en 48h',
     ],
     nota: 'Bloque extra de 250 conversaciones por solo 10€/mes',
-    cta: 'Empezar 7 días gratis',
+    cta: 'Comenzar ahora',
     popular: false,
     href: '/auth/register?plan=starter',
     ahorro: 'Ahorra 180€/año',
@@ -574,7 +574,7 @@ export default function Landing() {
             Demo por WhatsApp
           </Link>
         </div>
-        <p style={{ color: '#4B5563', fontSize: 13, marginTop: 20 }}>Crea tu cuenta gratis · Sin tarjeta · Activo en 24h</p>
+        <p style={{ color: '#9CA3AF', fontSize: 13, marginTop: 20 }}>Sin tarjeta · Activo en 24h</p>
       </section>
 
       {/* ── HOW IT WORKS ── */}
@@ -583,7 +583,7 @@ export default function Landing() {
         <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(28px,4vw,52px)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 48 }}>Tu centro automatizado en 4 pasos</h2>
         <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 28 }}>
           {[
-            { n: 1, img: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&h=80&fit=crop&crop=center&q=80', title: 'Regístrate', desc: 'Crea tu cuenta en 2 minutos. Sin tarjeta. 7 días gratis.' },
+        { n: 1, img: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&h=80&fit=crop&crop=center&q=80', title: 'Regístrate', desc: 'Crea tu cuenta en 2 minutos. Sin tarjeta.' },
             { n: 2, img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=80&h=80&fit=crop&crop=center&q=80', title: 'Configura tu centro', desc: 'Añade servicios, precios y horarios. La IA los aprende al instante.' },
             { n: 3, img: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=80&h=80&fit=crop&crop=center&q=80', title: 'Conecta tus canales', desc: 'WhatsApp Business y tu número de teléfono en minutos.' },
             { n: 4, img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=80&h=80&fit=crop&crop=center&q=80', title: 'Tu centro en automático', desc: 'El agente empieza a gestionar citas. Tú solo revisas el panel.' },
@@ -604,7 +604,7 @@ export default function Landing() {
       <section id="precios" className="section-pad">
         <p style={{ color: NARANJA, fontSize: 13, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Precios</p>
         <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(28px,4vw,52px)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 8 }}>Recupera el coste en la primera semana</h2>
-      <p style={{ color: '#9CA3AF', fontSize: 17, marginBottom: 12 }}>Sin permanencia. Sin sorpresas. Cancela cuando quieras.</p>
+        <p style={{ color: '#9CA3AF', fontSize: 17, marginBottom: 12 }}>Sin permanencia. Sin sorpresas. Cancela cuando quieras.</p>
 
         {/* Toggle mensual/anual */}
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:48, flexWrap:'wrap' }}>
@@ -731,13 +731,11 @@ export default function Landing() {
         <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 'clamp(30px,5vw,64px)', fontWeight: 800, letterSpacing: '-2px', lineHeight: 1.1, marginBottom: 20, position: 'relative' }}>
           ¿Tu centro listo para<br /><span style={{ color: NARANJA }}>no perder ni una cita más?</span>
         </h2>
-        <p style={{ color: '#9CA3AF', fontSize: 'clamp(15px,2vw,18px)', marginBottom: 40, position: 'relative' }}>
-          7 días gratis · Sin tarjeta de crédito · Activo en menos de 24h
-        </p>
+        <p style={{ color: '#9CA3AF', fontSize: 'clamp(15px,2vw,18px)', marginBottom: 40, position: 'relative' }}>Sin tarjeta de crédito · Activo en menos de 24h</p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', position: 'relative' }}>
           <Link href="/auth/register"
             style={{ background: NARANJA, color: '#fff', borderRadius: 100, padding: '15px 36px', fontSize: 17, fontWeight: 800, textDecoration: 'none', boxShadow: `0 0 32px ${NARANJA_GLOW}` }}>
-            Activar mi agente IA gratis →
+            Activar mi agente IA →
           </Link>
           <a href="#demo" className="btn btn-ghost btn-lg">Ver demostración</a>
         </div>
