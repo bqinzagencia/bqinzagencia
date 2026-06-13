@@ -230,7 +230,7 @@ export default function Landing() {
           ) : (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <Link href="/auth/login"><span style={{ color: '#555', fontSize: 13, cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#555'}>Ingresar</span></Link>
-              <Link href="/auth/register"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Empezar gratis</button></Link>
+              <Link href="/auth/register"><button className="btn-lima" style={{ padding: '9px 22px', fontSize: 13 }}>Crear cuenta</button></Link>
             </div>
           ))}
         </div>
@@ -286,7 +286,7 @@ export default function Landing() {
 
             {/* CTAs */}
             <div className="slide-up d3 lnd-hero-ctas" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              <Link href="/auth/register"><button className="btn-lima" style={{ fontSize: 16, padding: '16px 44px' }}>Probar 14 días gratis →</button></Link>
+              <Link href="/auth/register"><button className="btn-lima" style={{ fontSize: 16, padding: '16px 44px' }}>Activar mi plan →</button></Link>
               <a href="#industrias"><button className="btn-ghost" style={{ fontSize: 16, padding: '16px 44px' }}>Ver industrias</button></a>
             </div>
 
@@ -317,13 +317,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── MARQUEE ─────────────────────────────────────────────────────────────── */}
-      <div style={{ borderTop: '1px solid #141414', borderBottom: '1px solid #141414', padding: '16px 0', overflow: 'hidden', background: '#0C0C0C' }}>
+      {/* ── MARQUEE — dentro del hero en la parte inferior ── */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10, borderTop: '1px solid rgba(255,255,255,0.06)', padding: '14px 0', overflow: 'hidden', background: 'rgba(8,8,8,0.7)', backdropFilter: 'blur(8px)' }}>
         <div style={{ display: 'flex', gap: 80, animation: 'marquee 32s linear infinite', whiteSpace: 'nowrap' }}>
           {['Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads',
             'Agentes IA 24/7', 'Chat Automatizado', 'CRM Inteligente', 'Voz con IA', 'WhatsApp Business', 'Sitio Web IA', 'Agendamiento', 'Captura de Leads'].map((t, i) => (
-              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#252525', fontSize: 12, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
-                <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.6 }} />{t}
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#333', fontSize: 11, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
+                <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.5 }} />{t}
               </span>
             ))}
         </div>
@@ -470,7 +470,7 @@ export default function Landing() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, background: '#141414' }} className="lnd-steps-grid">
             {[
-              { n: '01', title: 'Regístrate', desc: 'Crea tu cuenta en segundos. Sin tarjeta de crédito. 14 días completamente gratis.' },
+              { n: '01', title: 'Regístrate', desc: 'Crea tu cuenta en segundos. Sin tarjeta de crédito. Sin contratos ni permanencia.' },
               { n: '02', title: 'Configura', desc: 'Ingresa servicios, precios y horarios. La IA aprende todo sobre tu negocio automáticamente.' },
               { n: '03', title: 'Activa', desc: 'Conecta WhatsApp, tu sitio web o teléfono. Tu agente empieza a trabajar en minutos.' },
               { n: '04', title: 'Crece', desc: 'Revisa reportes y conversaciones en tiempo real. Escala cuando quieras, sin límites.' },
@@ -494,7 +494,7 @@ export default function Landing() {
             <div>
               <span className="label">Planes y precios</span>
               <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(40px, 5.5vw, 80px)', fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.0, color: '#F0F0F0' }}>
-                Comienza gratis,<br />crece sin límites
+                Elige tu plan,<br />crece sin límites
               </h2>
             </div>
             <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.3)', fontSize: 18, maxWidth: 320, lineHeight: 1.8, fontWeight: 300 }}>
@@ -591,11 +591,11 @@ export default function Landing() {
             ¿Listo para poner<br />tu negocio en<br /><span style={{ color: G }}>modo automático?</span>
           </h2>
           <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontSize: 20, marginBottom: 60, fontWeight: 300, lineHeight: 1.6, maxWidth: 460 }}>
-            14 días gratis · Sin tarjeta de crédito · Configuración en minutos
+            Sin contratos · Cancela cuando quieras · Configuración en minutos
           </p>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             <Link href="/auth/register">
-              <button className="btn-lima" style={{ fontSize: 17, padding: '18px 52px' }}>Crear mi cuenta gratis →</button>
+              <button className="btn-lima" style={{ fontSize: 17, padding: '18px 52px' }}>Crear mi cuenta →</button>
             </Link>
             <a href="mailto:soportesistemas@soporteia.net">
               <button className="btn-ghost" style={{ fontSize: 17, padding: '18px 52px' }}>Agendar una demo</button>
