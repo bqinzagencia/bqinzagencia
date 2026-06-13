@@ -13,7 +13,9 @@ export default async function handler(req, res) {
       const empSnap = await adminDb.collection('empresas').doc(id).get();
       if (!empSnap.exists) return res.status(404).json({ error: 'Empresa no encontrada' });
       const empData = empSnap.data();
-      if (empData.producto !== 'wasapbot')
+      // Tolerar empresas antiguas sin campo "producto" (fueron creadas antes de implementar el campo)
+      const productoValido = empData.producto === 'wasapbot' || !empData.producto || empData.producto === '';
+      if (!productoValido)
         return res.status(403).json({ error: 'Acceso no permitido' });
 
       // Subcollección de citas

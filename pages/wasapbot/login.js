@@ -24,47 +24,79 @@ export default function WasapBotLogin() {
     if (saved) router.replace(`/wasapbot/panel/${saved}`);
   }, []);
 
-  // Buscar empresa del usuario — primero por uid, luego por email como fallback
+  // Buscar empresa del usuario — múltiples fallbacks para compatibilidad
   const redirigirAlPanel = async (uid, emailUsuario) => {
     try {
-      // Intento 1: buscar por ownerUid
-      let q = query(
+      let empresaId = null;
+
+      // Intento 1: buscar por ownerUid + producto wasapbot
+      let snap = await getDocs(query(
         collection(db, 'empresas'),
         where('ownerUid', '==', uid),
         where('producto', '==', 'wasapbot'),
         limit(1)
-      );
-      let snap = await getDocs(q);
+      ));
 
-      // Intento 2: si no encontró por uid, buscar por email (empresas creadas antes de guardar uid)
+      // Intento 2: buscar por ownerUid sin filtro de producto (empresas antiguas)
+      if (snap.empty) {
+        snap = await getDocs(query(
+          collection(db, 'empresas'),
+          where('ownerUid', '==', uid),
+          limit(5)
+        ));
+        // Filtrar las que sean wasapbot o no tengan producto definido
+        const docs = snap.docs.filter(d => {
+          const prod = d.data().producto;
+          return prod === 'wasapbot' || !prod || prod === '';
+        });
+        if (docs.length > 0) snap = { empty: false, docs };
+        else snap = { empty: true, docs: [] };
+      }
+
+      // Intento 3: buscar por email + producto wasapbot
       if (snap.empty && emailUsuario) {
-        q = query(
+        snap = await getDocs(query(
           collection(db, 'empresas'),
           where('email', '==', emailUsuario),
           where('producto', '==', 'wasapbot'),
           limit(1)
-        );
-        snap = await getDocs(q);
-
-        // Si encontró por email, actualizar el ownerUid en Firestore para futuros logins
-        if (!snap.empty) {
-          const { doc, updateDoc } = await import('firebase/firestore');
-          const ref = doc(db, 'empresas', snap.docs[0].id);
-          await updateDoc(ref, { ownerUid: uid }).catch(() => {});
-        }
+        ));
       }
 
-      if (!snap.empty) {
-        const empresaId = snap.docs[0].id;
+      // Intento 4: buscar por email sin filtro de producto
+      if (snap.empty && emailUsuario) {
+        snap = await getDocs(query(
+          collection(db, 'empresas'),
+          where('email', '==', emailUsuario),
+          limit(5)
+        ));
+        const docs = snap.docs.filter(d => {
+          const prod = d.data().producto;
+          return prod === 'wasapbot' || !prod || prod === '';
+        });
+        if (docs.length > 0) snap = { empty: false, docs };
+        else snap = { empty: true, docs: [] };
+      }
+
+      if (!snap.empty && snap.docs.length > 0) {
+        empresaId = snap.docs[0].id;
+        // Actualizar ownerUid y producto para futuros logins
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const ref = doc(db, 'empresas', empresaId);
+        await updateDoc(ref, {
+          ownerUid: uid,
+          producto: 'wasapbot',
+        }).catch(() => {});
+
         localStorage.setItem('wasapbot_empresa_id', empresaId);
         router.replace(`/wasapbot/panel/${empresaId}`);
       } else {
-        setError('No encontramos un WasapBot con esta cuenta. ¿Quieres crear uno?');
+        setError('No encontramos un negocio asociado a esta cuenta. ¿Quieres crear uno?');
         setLoading(false);
         setGLoading(false);
       }
     } catch (err) {
-      setError('Error buscando tu negocio: ' + err.message);
+      setError('Error al buscar tu negocio: ' + err.message);
       setLoading(false);
       setGLoading(false);
     }
