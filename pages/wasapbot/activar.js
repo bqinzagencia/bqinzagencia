@@ -140,7 +140,13 @@ export default function WasapBotActivar() {
         body:JSON.stringify({nombre,industria,descripcion,email,horario,ciudad,producto:'wasapbot'})});
       const d = await r.json();
       if (!d.ok) throw new Error(d.error);
-      setEmpresaId(d.empresaId); setStep(2);
+      setEmpresaId(d.empresaId);
+      // Marcar como nuevo usuario para mostrar bienvenida en el panel
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wasapbot_nuevo_' + d.empresaId, '1');
+      }
+      // Ir directo al panel — la configuración se hace desde ahí
+      window.location.href = '/wasapbot/panel/' + d.empresaId;
     } catch(e) { setError(e.message); }
     finally { setLoading(false); }
   };
@@ -413,7 +419,7 @@ export default function WasapBotActivar() {
             <button className="bmain" onClick={crearEmpresa} disabled={loading}>
               {loading
                 ?<><span style={{width:17,height:17,border:'2.5px solid rgba(255,255,255,.3)',borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite',display:'inline-block',flexShrink:0}}/>Creando tu agente...</>
-                :<>Continuar al catalogo<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg></>}
+                :<>Crear mi WasapBot →<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg></>}
             </button>
           </div>
         )}

@@ -27,26 +27,175 @@ const ESTADO_CITA = {
   completada: { label:'Completada', bg:'rgba(96,165,250,0.1)',  color:'#60A5FA', border:'rgba(96,165,250,0.3)'  },
 };
 
+// ── Componente de anotación guía ──────────────────────────────────────────────
+// Aparece cuando el campo está vacío, desaparece cuando tiene valor
+function Guia({ texto, icono = '💡', visible = true }) {
+  if (!visible) return null;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'flex-start', gap: 8,
+      background: 'rgba(37,211,102,0.05)',
+      border: '1px dashed rgba(37,211,102,0.25)',
+      borderRadius: 8, padding: '8px 12px', marginTop: 6,
+      animation: 'fadeInGuia 0.3s ease',
+    }}>
+      <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1 }}>{icono}</span>
+      <span style={{ fontFamily: F, fontSize: 11, color: 'rgba(37,211,102,0.7)', lineHeight: 1.6 }}>
+        {texto}
+      </span>
+    </div>
+  );
+}
+
+// ── Modal de bienvenida ───────────────────────────────────────────────────────
+function ModalBienvenidaWasapbot({ nombre, industria, onCerrar }) {
+  const [paso, setPaso] = useState(0);
+  const pasos = [
+    {
+      emoji: '🎉',
+      titulo: `¡Bienvenido, ${nombre || 'emprendedor'}!`,
+      texto: 'Tu WasapBot está listo. Ahora vamos a configurarlo para que responda perfectamente a tus clientes las 24 horas.',
+      color: '#25D366',
+    },
+    {
+      emoji: '📋',
+      titulo: 'Paso 1: Tu catálogo',
+      texto: 'En la pestaña "Catálogo base" agrega tus productos o servicios con nombre, precio y descripción. El bot los presentará cuando un cliente pregunte.',
+      color: '#60A5FA',
+    },
+    {
+      emoji: '📱',
+      titulo: 'Paso 2: Conecta WhatsApp',
+      texto: 'En la pestaña "Configuración" conecta tu número de WhatsApp escaneando el código QR. Tu bot empieza a responder desde ese momento.',
+      color: '#F59E0B',
+    },
+    {
+      emoji: '📦',
+      titulo: 'Paso 3: Menú del día',
+      texto: 'Si vendes por porciones o tienes cambios diarios, usa "Inventario / Menú del día" para activar el menú de hoy con el stock disponible.',
+      color: '#A78BFA',
+    },
+    {
+      emoji: '🚀',
+      titulo: '¡Todo listo para arrancar!',
+      texto: 'Las casillas vacías tienen anotaciones en verde que te guían. A medida que las vas llenando, las anotaciones desaparecen. ¡Tú puedes!',
+      color: '#25D366',
+    },
+  ];
+  const p = pasos[paso];
+  const ultimo = paso === pasos.length - 1;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+    }}>
+      <style>{`
+        @keyframes popIn { from{opacity:0;transform:scale(0.85) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        @keyframes fadeInGuia { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulse-wb { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)} 70%{box-shadow:0 0 0 12px rgba(37,211,102,0)} }
+      `}</style>
+      <div style={{
+        background: '#0C0F14', border: `1px solid ${p.color}33`,
+        borderRadius: 24, padding: '40px 36px', maxWidth: 480, width: '100%',
+        animation: 'popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275)',
+        boxShadow: `0 40px 80px rgba(0,0,0,0.6), 0 0 40px ${p.color}15`,
+        position: 'relative',
+      }}>
+        {/* Progreso */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 32 }}>
+          {pasos.map((_, i) => (
+            <div key={i} style={{
+              flex: 1, height: 3, borderRadius: 2,
+              background: i <= paso ? p.color : 'rgba(255,255,255,0.08)',
+              transition: 'background 0.4s',
+            }} />
+          ))}
+        </div>
+
+        {/* Emoji */}
+        <div style={{
+          width: 72, height: 72, borderRadius: '50%',
+          background: `${p.color}15`, border: `2px solid ${p.color}40`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 32, marginBottom: 24,
+          animation: 'pulse-wb 2.5s ease-in-out infinite',
+        }}>
+          {p.emoji}
+        </div>
+
+        {/* Contenido */}
+        <h2 style={{
+          fontFamily: FA, fontSize: 28, fontWeight: 400,
+          color: '#EFF4FF', marginBottom: 12, lineHeight: 1.2,
+        }}>{p.titulo}</h2>
+        <p style={{
+          fontFamily: F, fontSize: 14, color: 'rgba(255,255,255,0.5)',
+          lineHeight: 1.8, marginBottom: 36, fontWeight: 300,
+        }}>{p.texto}</p>
+
+        {/* Botones */}
+        <div style={{ display: 'flex', gap: 10 }}>
+          {paso > 0 && (
+            <button onClick={() => setPaso(p => p - 1)} style={{
+              background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10,
+              padding: '12px 20px', fontFamily: F, fontSize: 13, cursor: 'pointer',
+            }}>← Anterior</button>
+          )}
+          <button onClick={() => ultimo ? onCerrar() : setPaso(p => p + 1)} style={{
+            flex: 1, background: `linear-gradient(135deg, ${p.color}, ${p.color}BB)`,
+            color: '#fff', border: 'none', borderRadius: 10,
+            padding: '12px 20px', fontFamily: F, fontSize: 14, fontWeight: 700,
+            cursor: 'pointer', transition: 'all 0.2s',
+          }}>
+            {ultimo ? '¡Entendido, vamos a configurar! 🚀' : `Siguiente →`}
+          </button>
+        </div>
+
+        {/* Skip */}
+        {!ultimo && (
+          <button onClick={onCerrar} style={{
+            display: 'block', width: '100%', marginTop: 14,
+            background: 'none', border: 'none', fontFamily: F, fontSize: 11,
+            color: 'rgba(255,255,255,0.2)', cursor: 'pointer', textAlign: 'center',
+          }}>
+            Saltar introducción
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function WasapBotPanel() {
   const router = useRouter();
   const { id } = router.query;
 
-  const [empresa,      setEmpresa]      = useState(null);
-  const [conocimiento, setConocimiento] = useState(null);
-  const [loadError,    setLoadError]    = useState('');
-  const [status,       setStatus]       = useState('loading');
-  const [qrBase64,     setQrBase64]     = useState('');
-  const [convs,        setConvs]        = useState([]);
-  const [citas,        setCitas]        = useState([]);
-  const [citasFiltro,  setCitasFiltro]  = useState('todos');
-  const [stats,        setStats]        = useState({ hoy:0, semana:0, total:0, tokensUsados:0 });
-  const [tab,          setTab]          = useState('inicio');
-  const [reconect,     setReconect]     = useState(false);
-  const [editando,     setEditando]     = useState(false);
-  const [itemsEdit,    setItemsEdit]    = useState([]);
-  const [savingCat,    setSavingCat]    = useState(false);
-  const [saveMsg,      setSaveMsg]      = useState('');
-  const [updatingCita, setUpdatingCita] = useState(null);
+  const [empresa,        setEmpresa]        = useState(null);
+  const [conocimiento,   setConocimiento]   = useState(null);
+  const [loadError,      setLoadError]      = useState('');
+  const [status,         setStatus]         = useState('loading');
+  const [qrBase64,       setQrBase64]       = useState('');
+  const [convs,          setConvs]          = useState([]);
+  const [citas,          setCitas]          = useState([]);
+  const [citasFiltro,    setCitasFiltro]    = useState('todos');
+  const [stats,          setStats]          = useState({ hoy:0, semana:0, total:0, tokensUsados:0 });
+  const [tab,            setTab]            = useState('inicio');
+  const [reconect,       setReconect]       = useState(false);
+  const [editando,       setEditando]       = useState(false);
+  const [itemsEdit,      setItemsEdit]      = useState([]);
+  const [savingCat,      setSavingCat]      = useState(false);
+  const [saveMsg,        setSaveMsg]        = useState('');
+  const [updatingCita,   setUpdatingCita]   = useState(null);
+
+  // Modal bienvenida
+  const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
+
+  // Tracking de guías vistas (por localStorage)
+  const [guiasVistas, setGuiasVistas] = useState({});
+
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -56,6 +205,37 @@ export default function WasapBotPanel() {
     verificarStatus();
     return () => clearInterval(pollRef.current);
   }, [id]);
+
+  // Verificar si es nuevo usuario (viene de activar.js)
+  useEffect(() => {
+    if (!id) return;
+    const esNuevo = localStorage.getItem('wasapbot_nuevo_' + id);
+    if (esNuevo) {
+      setMostrarBienvenida(true);
+      localStorage.removeItem('wasapbot_nuevo_' + id);
+    }
+    // Cargar guías ya vistas
+    const g = localStorage.getItem('wasapbot_guias_' + id);
+    if (g) {
+      try { setGuiasVistas(JSON.parse(g)); } catch {}
+    }
+  }, [id]);
+
+  // Marcar una guía como vista cuando el campo se llena
+  const marcarGuia = (clave) => {
+    setGuiasVistas(prev => {
+      const nuevo = { ...prev, [clave]: true };
+      if (id) localStorage.setItem('wasapbot_guias_' + id, JSON.stringify(nuevo));
+      return nuevo;
+    });
+  };
+
+  // ¿Mostrar guía? — solo si el campo está vacío Y la guía no fue marcada
+  const mostrarGuia = (clave, valor) => {
+    if (guiasVistas[clave]) return false;
+    if (valor && String(valor).trim()) return false;
+    return true;
+  };
 
   const cargarDatos = async () => {
     try {
@@ -76,7 +256,7 @@ export default function WasapBotPanel() {
         total:   list.length,
         tokensUsados: d.tokens?.usados||0,
       });
-    } catch { setLoadError('No se pudo cargar el panel. Verifica tu conexión.'); }
+    } catch { setLoadError('No se pudo cargar el panel.'); }
   };
 
   const cargarCitas = async () => {
@@ -85,8 +265,7 @@ export default function WasapBotPanel() {
       if (!r.ok) return;
       const d = await r.json();
       if (d.ok && d.citas) {
-        const sorted = [...d.citas].sort((a,b) => (b.fechaHora?._seconds||0)-(a.fechaHora?._seconds||0));
-        setCitas(sorted);
+        setCitas([...d.citas].sort((a,b)=>(b.fechaHora?._seconds||0)-(a.fechaHora?._seconds||0)));
       }
     } catch {}
   };
@@ -99,7 +278,7 @@ export default function WasapBotPanel() {
         body: JSON.stringify({ accion:'actualizarCita', empresaId:id, citaId, estado:nuevoEstado }),
       });
       const d = await r.json();
-      if (d.ok) setCitas(prev => prev.map(c => c.id===citaId ? {...c,estado:nuevoEstado} : c));
+      if (d.ok) setCitas(prev=>prev.map(c=>c.id===citaId?{...c,estado:nuevoEstado}:c));
     } catch {}
     setUpdatingCita(null);
   };
@@ -139,8 +318,13 @@ export default function WasapBotPanel() {
     try {
       const r = await fetch('/api/wasapbot-servicios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({empresaId:id,servicios:itemsEdit})});
       const d = await r.json();
-      if(d.ok){setSaveMsg('✓ Catálogo guardado');setConocimiento(prev=>({...prev,servicios:itemsEdit}));setEditando(false);}
-      else setSaveMsg('Error: '+(d.error||''));
+      if(d.ok){
+        setSaveMsg('✓ Catálogo guardado');
+        setConocimiento(prev=>({...prev,servicios:itemsEdit}));
+        setEditando(false);
+        // Marcar guías de catálogo como vistas si hay items
+        if (itemsEdit.some(it => it.nombre?.trim())) marcarGuia('catalogo_items');
+      } else setSaveMsg('Error: '+(d.error||''));
     } catch{setSaveMsg('Error de conexión');}
     setSavingCat(false);
     setTimeout(()=>setSaveMsg(''),3000);
@@ -200,7 +384,6 @@ export default function WasapBotPanel() {
     {key:'config',   label:'Configuración',  icon:'⚙️'},
   ];
 
-  // Links externos (páginas separadas)
   const LINKS=[
     {href:`/wasapbot/panel/inventario/${id}`, label:'Inventario / Menú día', icon:'📦', color:'#60A5FA', bg:'rgba(96,165,250,0.08)', border:'rgba(96,165,250,0.2)'},
     {href:`/wasapbot/panel/pedidos/${id}`,    label:'Pedidos del día',        icon:'🛒', color:'#25D366', bg:'rgba(37,211,102,0.06)', border:'rgba(37,211,102,0.15)'},
@@ -209,12 +392,24 @@ export default function WasapBotPanel() {
   return(
     <>
       <Head><title>{empresa.nombreEmpresa} — WasapBot Panel</title></Head>
+
+      {/* Modal bienvenida */}
+      {mostrarBienvenida && (
+        <ModalBienvenidaWasapbot
+          nombre={empresa.nombreEmpresa}
+          industria={empresa.industria}
+          onCerrar={() => setMostrarBienvenida(false)}
+        />
+      )}
+
       <style dangerouslySetInnerHTML={{__html:`
         body{margin:0;background:#06090D;color:#EFF4FF;font-family:${F};overflow-x:hidden}
         *{box-sizing:border-box}a{text-decoration:none;color:inherit}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes pulse-g{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)}70%{box-shadow:0 0 0 10px rgba(37,211,102,0)}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeInGuia{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
         .wb-tab{background:transparent;border:none;border-radius:8px;padding:8px 14px;font-family:${F};font-size:13px;cursor:pointer;transition:all 0.15s;color:#6B7A99;display:flex;align-items:center;gap:8px;width:100%;text-align:left}
         .wb-tab:hover{color:#EFF4FF;background:rgba(255,255,255,0.04)}
         .wb-tab.on{color:#25D366;background:rgba(37,211,102,0.08);font-weight:600}
@@ -231,10 +426,11 @@ export default function WasapBotPanel() {
         select.cat-inp option{background:#0E1118}
         .ext-link{display:flex;align-items:center;gap:8px;border-radius:8px;padding:8px 14px;font-family:${F};font-size:13px;font-weight:600;transition:all 0.15s;text-decoration:none}
         .ext-link:hover{opacity:0.8;transform:translateX(2px)}
+        .guia-field{border-color:rgba(37,211,102,0.3)!important}
       `}}/>
 
       {/* NAV */}
-      <nav style={{background:'rgba(6,9,13,0.97)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.06)',padding:'0 24px',height:58,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
+      <nav style={{background:'rgba(6,9,13,.97)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'0 24px',height:58,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <Link href="/wasapbot"><span style={{fontFamily:FA,fontSize:16,cursor:'pointer'}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span></Link>
           <span style={{color:'rgba(255,255,255,0.15)'}}>|</span>
@@ -251,10 +447,8 @@ export default function WasapBotPanel() {
 
       <div style={{display:'flex',minHeight:'calc(100vh - 58px)'}}>
 
-        {/* ═══ SIDEBAR ═══ */}
+        {/* SIDEBAR */}
         <div style={{width:210,borderRight:'1px solid rgba(255,255,255,0.05)',padding:'16px 10px',flexShrink:0,display:'flex',flexDirection:'column',gap:2}}>
-
-          {/* Tabs de navegación */}
           {TABS.map(t=>(
             <button key={t.key} className={`wb-tab${tab===t.key?' on':''}`} onClick={()=>setTab(t.key)}>
               <span style={{fontSize:14}}>{t.icon}</span>
@@ -263,10 +457,8 @@ export default function WasapBotPanel() {
             </button>
           ))}
 
-          {/* Separador */}
           <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'8px 4px'}}/>
 
-          {/* Links a páginas externas — Inventario y Pedidos */}
           {LINKS.map(l=>(
             <Link key={l.href} href={l.href} className="ext-link"
               style={{background:l.bg,border:`1px solid ${l.border}`,color:l.color}}>
@@ -278,7 +470,7 @@ export default function WasapBotPanel() {
 
           <div style={{flex:1}}/>
 
-          {/* Card del plan */}
+          {/* Card plan */}
           <div style={{padding:'12px',background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.12)',borderRadius:10,marginTop:8}}>
             <div style={{fontFamily:F,fontSize:10,color:'#4B6080',marginBottom:4}}>Plan actual</div>
             <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:plan.color,marginBottom:2}}>{plan.nombre}</div>
@@ -290,7 +482,7 @@ export default function WasapBotPanel() {
           </div>
         </div>
 
-        {/* ═══ CONTENIDO ═══ */}
+        {/* CONTENIDO */}
         <div style={{flex:1,padding:'28px 32px',overflowY:'auto'}}>
 
           {/* ══ INICIO ══ */}
@@ -299,22 +491,25 @@ export default function WasapBotPanel() {
               <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:6}}>Bienvenido, {empresa.nombreEmpresa}</h2>
               <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24,fontWeight:300}}>Panel de control de tu WasapBot</p>
 
+              {/* Alerta bot desconectado */}
               {!connected&&(
                 <div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:12,padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
                   <div>
-                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EF4444',marginBottom:3}}>Bot desconectado</div>
-                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.35)'}}>Tu WhatsApp no está respondiendo. Reconecta el bot.</div>
+                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EF4444',marginBottom:3}}>⚠️ Bot desconectado</div>
+                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.35)'}}>
+                      Tu WhatsApp no está conectado. Ve a <strong style={{color:'#EFF4FF'}}>Configuración</strong> para conectarlo con QR.
+                    </div>
                   </div>
-                  <button onClick={reconectar} disabled={reconect} style={{background:'#EF4444',color:'#fff',border:'none',borderRadius:8,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',opacity:reconect?0.7:1}}>
-                    {reconect?'Conectando...':'Reconectar bot'}
+                  <button onClick={()=>setTab('config')} style={{background:'#EF4444',color:'#fff',border:'none',borderRadius:8,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                    Conectar ahora →
                   </button>
                 </div>
               )}
 
-              {/* Accesos rápidos a Inventario y Pedidos */}
+              {/* Accesos rápidos */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
                 <Link href={`/wasapbot/panel/inventario/${id}`}
-                  style={{background:'rgba(96,165,250,0.06)',border:'1px solid rgba(96,165,250,0.2)',borderRadius:14,padding:'18px 20px',display:'flex',alignItems:'center',gap:14,textDecoration:'none',transition:'all 0.15s'}}>
+                  style={{background:'rgba(96,165,250,0.06)',border:'1px solid rgba(96,165,250,0.2)',borderRadius:14,padding:'18px 20px',display:'flex',alignItems:'center',gap:14,textDecoration:'none'}}>
                   <span style={{fontSize:28}}>📦</span>
                   <div>
                     <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#60A5FA',marginBottom:3}}>Inventario / Menú del día</div>
@@ -322,7 +517,7 @@ export default function WasapBotPanel() {
                   </div>
                 </Link>
                 <Link href={`/wasapbot/panel/pedidos/${id}`}
-                  style={{background:'rgba(37,211,102,0.06)',border:'1px solid rgba(37,211,102,0.2)',borderRadius:14,padding:'18px 20px',display:'flex',alignItems:'center',gap:14,textDecoration:'none',transition:'all 0.15s'}}>
+                  style={{background:'rgba(37,211,102,0.06)',border:'1px solid rgba(37,211,102,0.2)',borderRadius:14,padding:'18px 20px',display:'flex',alignItems:'center',gap:14,textDecoration:'none'}}>
                   <span style={{fontSize:28}}>🛒</span>
                   <div>
                     <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#25D366',marginBottom:3}}>Pedidos del día</div>
@@ -331,6 +526,7 @@ export default function WasapBotPanel() {
                 </Link>
               </div>
 
+              {/* Stats */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:20}}>
                 {[
                   {label:'Conversaciones hoy',  val:stats.hoy,    color:'#25D366', icon:'💬'},
@@ -346,28 +542,7 @@ export default function WasapBotPanel() {
                 ))}
               </div>
 
-              {citas.filter(c=>c.estado!=='cancelada').slice(0,3).length>0&&(
-                <div style={{...CARD,marginBottom:16}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-                    <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF'}}>Próximas citas</div>
-                    <button onClick={()=>setTab('citas')} style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'#25D366',cursor:'pointer'}}>Ver todas →</button>
-                  </div>
-                  {citas.filter(c=>c.estado!=='cancelada').slice(0,3).map((c,i)=>{
-                    const est=ESTADO_CITA[c.estado]||ESTADO_CITA.pendiente;
-                    return(
-                      <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<2?'1px solid rgba(255,255,255,0.05)':'none'}}>
-                        <div style={{width:40,height:40,borderRadius:10,background:'rgba(37,211,102,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>📅</div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontFamily:F,fontSize:13,fontWeight:600,color:'#EFF4FF'}}>{c.nombreCliente}</div>
-                          <div style={{fontFamily:F,fontSize:11,color:'#4B6080'}}>{c.servicio} · {c.fecha} {c.hora}</div>
-                        </div>
-                        <span style={{background:est.bg,color:est.color,border:`1px solid ${est.border}`,borderRadius:99,padding:'3px 10px',fontFamily:F,fontSize:10,fontWeight:700,flexShrink:0}}>{est.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
+              {/* Consumo */}
               <div style={CARD}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:16}}>Consumo del plan</div>
                 {[
@@ -400,14 +575,16 @@ export default function WasapBotPanel() {
                 </div>
                 <button onClick={cargarCitas} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:9,padding:'8px 16px',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.5)',cursor:'pointer'}}>↻ Actualizar</button>
               </div>
+
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
                 {Object.entries(ESTADO_CITA).map(([key,est])=>(
                   <div key={key} style={{background:est.bg,border:`1px solid ${est.border}`,borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
-                    <div style={{fontFamily:FA,fontSize:24,color:est.color,letterSpacing:'-0.5px',marginBottom:2}}>{citas.filter(c=>c.estado===key).length}</div>
+                    <div style={{fontFamily:FA,fontSize:24,color:est.color,marginBottom:2}}>{citas.filter(c=>c.estado===key).length}</div>
                     <div style={{fontFamily:F,fontSize:11,color:est.color,fontWeight:600}}>{est.label}</div>
                   </div>
                 ))}
               </div>
+
               <div style={{display:'flex',gap:6,marginBottom:18,flexWrap:'wrap'}}>
                 {[{key:'todos',label:'Todas'},{key:'pendiente',label:'Pendientes'},{key:'confirmada',label:'Confirmadas'},{key:'cancelada',label:'Canceladas'},{key:'completada',label:'Completadas'}].map(f=>(
                   <button key={f.key} className={`filtro-pill${citasFiltro===f.key?' on':''}`} onClick={()=>setCitasFiltro(f.key)}>
@@ -415,10 +592,12 @@ export default function WasapBotPanel() {
                   </button>
                 ))}
               </div>
+
               {citasFiltradas.length===0?(
                 <div style={{...CARD,textAlign:'center',padding:'60px 20px'}}>
                   <div style={{fontSize:48,marginBottom:12}}>📅</div>
-                  <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:'#EFF4FF',marginBottom:8}}>{citasFiltro==='todos'?'Sin citas aún':`Sin citas ${ESTADO_CITA[citasFiltro]?.label.toLowerCase()||citasFiltro}`}</div>
+                  <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:'#EFF4FF',marginBottom:8}}>Sin citas aún</div>
+                  <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.3)'}}>El bot agendará citas automáticamente cuando los clientes lo soliciten por WhatsApp.</div>
                 </div>
               ):(
                 <div>
@@ -460,6 +639,15 @@ export default function WasapBotPanel() {
           {tab==='convs'&&(
             <div>
               <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:20}}>Conversaciones</h2>
+
+              {/* Guía — si no hay convs todavía */}
+              <Guia
+                clave="convs_vacio"
+                visible={convs.length === 0 && !guiasVistas['convs_vacio']}
+                texto="Aquí aparecerán todas las conversaciones que tu bot tenga con los clientes por WhatsApp. Primero conecta tu número en Configuración y comparte tu WhatsApp con tus clientes."
+                icono="💬"
+              />
+
               <div style={CARD}>
                 {convs.map((c,i)=>(
                   <div key={i} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 0',borderBottom:i<convs.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
@@ -475,7 +663,7 @@ export default function WasapBotPanel() {
                     </div>
                   </div>
                 ))}
-                {convs.length===0&&<div style={{fontFamily:F,fontSize:13,color:'#4B6080',textAlign:'center',padding:'40px 0'}}>Sin conversaciones aún.</div>}
+                {convs.length===0&&<div style={{fontFamily:F,fontSize:13,color:'#4B6080',textAlign:'center',padding:'40px 0'}}>Sin conversaciones aún. ¡Conecta tu WhatsApp y comparte tu número!</div>}
               </div>
             </div>
           )}
@@ -487,11 +675,13 @@ export default function WasapBotPanel() {
                 <div>
                   <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:4}}>{cfg.labelCatalogo} base</h2>
                   <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>
-                    Define tus platos/productos aquí. Luego usa <strong style={{color:'#60A5FA'}}>Inventario / Menú del día</strong> para gestionar el stock y las porciones diarias.
+                    Define tus {cfg.labelCatalogo.toLowerCase()} aquí. El bot los presentará cuando un cliente pregunte.
                   </p>
                 </div>
                 {!editando?(
-                  <button onClick={()=>{setItemsEdit(servicios.map(s=>({...s})));setEditando(true);}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>✏️ Editar</button>
+                  <button onClick={()=>{setItemsEdit(servicios.length>0?servicios.map(s=>({...s})):[{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]);setEditando(true);}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                    {servicios.length>0?'✏️ Editar':'+ Agregar primer item'}
+                  </button>
                 ):(
                   <div style={{display:'flex',gap:8}}>
                     <button onClick={()=>setEditando(false)} style={{background:'rgba(255,255,255,0.04)',color:'#6B7A99',border:'1px solid rgba(255,255,255,0.08)',borderRadius:9,padding:'9px 16px',fontFamily:F,fontSize:13,cursor:'pointer'}}>Cancelar</button>
@@ -500,42 +690,42 @@ export default function WasapBotPanel() {
                 )}
               </div>
 
-              {/* Tip */}
-              <div style={{background:'rgba(96,165,250,0.06)',border:'1px solid rgba(96,165,250,0.2)',borderRadius:12,padding:'12px 16px',marginBottom:18,display:'flex',gap:10,alignItems:'flex-start'}}>
-                <span style={{fontSize:16,flexShrink:0}}>💡</span>
-                <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.45)',lineHeight:1.6}}>
-                  Este es el catálogo base (nombres, precios, fotos). Para gestionar el <strong style={{color:'#60A5FA'}}>stock del día</strong>, ir a <Link href={`/wasapbot/panel/inventario/${id}`} style={{color:'#60A5FA',fontWeight:700}}>Inventario / Menú del día →</Link>
-                </div>
-              </div>
-
               {saveMsg&&<div style={{background:saveMsg.startsWith('✓')?'rgba(37,211,102,0.08)':'rgba(239,68,68,0.08)',border:`1px solid ${saveMsg.startsWith('✓')?'rgba(37,211,102,0.25)':'rgba(239,68,68,0.25)'}`,borderRadius:9,padding:'10px 14px',marginBottom:16,fontFamily:F,fontSize:13,color:saveMsg.startsWith('✓')?'#25D366':'#EF4444'}}>{saveMsg}</div>}
 
-              {!editando&&(
-                servicios.length===0?(
-                  <div style={{...CARD,textAlign:'center',padding:'48px 20px'}}>
-                    <div style={{fontSize:40,marginBottom:12}}>📋</div>
-                    <div style={{fontFamily:F,fontSize:15,fontWeight:600,color:'#EFF4FF',marginBottom:8}}>Sin items en el catálogo</div>
-                    <button onClick={()=>{setItemsEdit([{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]);setEditando(true);}} style={{background:'#25D366',color:'#fff',border:'none',borderRadius:9,padding:'10px 24px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer'}}>Agregar primer item</button>
-                  </div>
-                ):(
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:14}}>
-                    {servicios.map((s,i)=>(
-                      <div key={i} style={{...CARD,padding:0,overflow:'hidden'}}>
-                        {s.foto?<img src={s.foto} alt={s.nombre} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>:<div style={{width:'100%',height:60,background:'rgba(37,211,102,0.05)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>📌</div>}
-                        <div style={{padding:12}}>
-                          {s.categoria&&<span style={{background:'rgba(255,255,255,0.05)',color:'#6B7A99',borderRadius:100,padding:'2px 8px',fontFamily:F,fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,display:'inline-block',marginBottom:5}}>{s.categoria}</span>}
-                          <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>{s.nombre||'Sin nombre'}</div>
-                          {s.descripcion&&<div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:6,lineHeight:1.4}}>{s.descripcion}</div>}
-                          {s.precio&&<div style={{fontFamily:FA,fontSize:16,color:'#25D366'}}>${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')||s.precio}</div>}
-                        </div>
+              {/* Guía — catálogo vacío */}
+              <Guia
+                visible={servicios.length === 0 && !editando && !guiasVistas['catalogo_items']}
+                texto={`Agrega aquí tus ${cfg.labelCatalogo.toLowerCase()}: nombre, precio, descripción y foto. El bot los mostrará cuando un cliente pregunte "¿qué tienen?" o "¿cuánto cuesta?". Haz clic en "+ Agregar primer item" para empezar.`}
+                icono="📋"
+              />
+
+              {/* Vista de items guardados */}
+              {!editando&&servicios.length>0&&(
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:14}}>
+                  {servicios.map((s,i)=>(
+                    <div key={i} style={{...CARD,padding:0,overflow:'hidden'}}>
+                      {s.foto?<img src={s.foto} alt={s.nombre} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>:<div style={{width:'100%',height:60,background:'rgba(37,211,102,0.05)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>📌</div>}
+                      <div style={{padding:12}}>
+                        {s.categoria&&<span style={{background:'rgba(255,255,255,0.05)',color:'#6B7A99',borderRadius:100,padding:'2px 8px',fontFamily:F,fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5,display:'inline-block',marginBottom:5}}>{s.categoria}</span>}
+                        <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>{s.nombre||'Sin nombre'}</div>
+                        {s.descripcion&&<div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:6,lineHeight:1.4}}>{s.descripcion}</div>}
+                        {s.precio&&<div style={{fontFamily:FA,fontSize:16,color:'#25D366'}}>${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')||s.precio}</div>}
                       </div>
-                    ))}
-                  </div>
-                )
+                    </div>
+                  ))}
+                </div>
               )}
 
+              {/* Formulario edición */}
               {editando&&(
                 <div>
+                  {/* Guía edición */}
+                  <Guia
+                    visible={!guiasVistas['catalogo_editando']}
+                    texto={`Agrega el nombre, precio y descripción de cada ${cfg.labelItem.toLowerCase()}. La descripción ayuda al bot a responder preguntas específicas. Puedes agregar foto para que el bot la muestre por WhatsApp.`}
+                    icono="✏️"
+                  />
+
                   {itemsEdit.map((item,idx)=>(
                     <div key={idx} style={{...CARD,marginBottom:12}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
@@ -545,29 +735,42 @@ export default function WasapBotPanel() {
                       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
                         <div>
                           <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>{cfg.labelItem} *</label>
-                          <input className="cat-inp" style={INP} value={item.nombre||''} onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,nombre:e.target.value}:it))} placeholder={`Nombre del ${cfg.labelItem.toLowerCase()}`}/>
+                          <input className={`cat-inp${!item.nombre?' guia-field':''}`} style={{...INP,borderColor:!item.nombre?'rgba(37,211,102,0.3)':undefined}} value={item.nombre||''}
+                            onChange={e=>{setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,nombre:e.target.value}:it));if(e.target.value) marcarGuia(`item_nombre_${idx}`);}}
+                            placeholder={`Ej: Bandeja paisa, Corte de cabello...`}/>
+                          <Guia
+                            visible={!item.nombre && !guiasVistas[`item_nombre_${idx}`]}
+                            texto={`Escribe el nombre exacto como lo dirías al cliente. El bot usará este nombre para identificar el ${cfg.labelItem.toLowerCase()}.`}
+                            icono="🏷️"
+                          />
                         </div>
                         <div>
                           <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>{cfg.labelPrecio}</label>
-                          <input className="cat-inp" style={INP} value={item.precio||''} onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,precio:e.target.value}:it))} placeholder="0"/>
+                          <input className={`cat-inp${!item.precio?' guia-field':''}`} style={{...INP,borderColor:!item.precio?'rgba(37,211,102,0.3)':undefined}} value={item.precio||''}
+                            onChange={e=>{setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,precio:e.target.value}:it));if(e.target.value) marcarGuia(`item_precio_${idx}`);}}
+                            placeholder="22000"/>
+                          <Guia
+                            visible={!item.precio && !guiasVistas[`item_precio_${idx}`]}
+                            texto="Solo el número, sin $ ni puntos. Ejemplo: 22000. El bot lo formateará automáticamente."
+                            icono="💰"
+                          />
                         </div>
                       </div>
-                      <div style={{marginBottom:cfg.tieneCategoria?10:0}}>
+                      <div>
                         <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>{cfg.labelDescripcion}</label>
-                        <input className="cat-inp" style={INP} value={item.descripcion||''} onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,descripcion:e.target.value}:it))} placeholder="Descripción..."/>
+                        <input className={`cat-inp${!item.descripcion?' guia-field':''}`} style={{...INP,borderColor:!item.descripcion?'rgba(37,211,102,0.25)':undefined}} value={item.descripcion||''}
+                          onChange={e=>{setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,descripcion:e.target.value}:it));if(e.target.value) marcarGuia(`item_desc_${idx}`);}}
+                          placeholder="Ej: Con arroz, frijoles, chicharrón, huevo y plátano"/>
+                        <Guia
+                          visible={!item.descripcion && !guiasVistas[`item_desc_${idx}`]}
+                          texto="Describe qué incluye o en qué consiste. Cuanto más detalle, mejor responde el bot a preguntas de los clientes."
+                          icono="📝"
+                        />
                       </div>
-                      {cfg.tieneCategoria&&(
-                        <div>
-                          <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>Categoría</label>
-                          <select className="cat-inp" style={{...INP,cursor:'pointer'}} value={item.categoria||''} onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,categoria:e.target.value}:it))}>
-                            <option value="">Sin categoría</option>
-                            {cfg.categorias.map(c=><option key={c} value={c}>{c}</option>)}
-                          </select>
-                        </div>
-                      )}
                     </div>
                   ))}
-                  <button onClick={()=>setItemsEdit(prev=>[...prev,{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}])} style={{width:'100%',background:'none',border:'1px dashed rgba(255,255,255,0.1)',borderRadius:10,padding:'11px',fontFamily:F,fontSize:13,color:'#4B6080',cursor:'pointer',marginTop:4}}>
+                  <button onClick={()=>setItemsEdit(prev=>[...prev,{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}])}
+                    style={{width:'100%',background:'none',border:'1px dashed rgba(255,255,255,0.1)',borderRadius:10,padding:'11px',fontFamily:F,fontSize:13,color:'#4B6080',cursor:'pointer',marginTop:4}}>
                     + Agregar {cfg.labelItem.toLowerCase()}
                   </button>
                 </div>
@@ -578,7 +781,7 @@ export default function WasapBotPanel() {
           {/* ══ QR ══ */}
           {tab==='qr'&&(
             <div style={{textAlign:'center',maxWidth:420,margin:'0 auto'}}>
-              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:8}}>Reconectar WhatsApp</h2>
+              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:8}}>Conectar WhatsApp</h2>
               {qrBase64?(
                 <div>
                   <div style={{background:'#fff',borderRadius:16,padding:20,display:'inline-block',marginBottom:20,boxShadow:'0 8px 40px rgba(0,0,0,0.4)'}}>
@@ -588,7 +791,7 @@ export default function WasapBotPanel() {
                 </div>
               ):(
                 <div>
-                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24}}>Genera un nuevo QR para reconectar tu número de WhatsApp.</p>
+                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24}}>Genera un QR para conectar tu número de WhatsApp al bot.</p>
                   <button onClick={reconectar} disabled={reconect} style={{background:'linear-gradient(135deg,#25D366,#1DA851)',color:'#fff',border:'none',borderRadius:12,padding:'14px 36px',fontFamily:F,fontSize:15,fontWeight:700,cursor:'pointer'}}>
                     {reconect?'Generando QR...':'Generar QR'}
                   </button>
@@ -597,24 +800,55 @@ export default function WasapBotPanel() {
             </div>
           )}
 
-          {/* ══ CONFIG ══ */}
+          {/* ══ CONFIGURACIÓN ══ */}
           {tab==='config'&&(
-            <div style={{maxWidth:500}}>
+            <div style={{maxWidth:560}}>
               <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:20}}>Configuración</h2>
-              <div style={CARD}>
-                <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:16}}>Estado del bot</div>
-                <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-                  <button onClick={()=>setTab('qr')} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Reconectar QR</button>
-                  <button onClick={async()=>{await fetch(`${WA}/sesion/${id}/desconectar`,{method:'POST',headers:{'x-server-secret':SECRET}});setStatus('disconnected');}} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Desconectar bot</button>
+
+              {/* Conectar WhatsApp */}
+              <div style={{...CARD,marginBottom:14}}>
+                <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>Conexión WhatsApp</div>
+
+                {/* Guía — WhatsApp sin conectar */}
+                <Guia
+                  visible={!connected && !guiasVistas['whatsapp_conectado']}
+                  texto="Para que el bot responda a tus clientes, necesitas conectar tu número de WhatsApp. Haz clic en 'Generar QR', luego abre WhatsApp en tu celular → Dispositivos vinculados → Vincular dispositivo → Escanea el código."
+                  icono="📱"
+                />
+
+                <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
+                  <button onClick={()=>setTab('qr')} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                    {connected ? '↻ Reconectar QR' : '📱 Generar QR para conectar'}
+                  </button>
+                  {connected && (
+                    <button onClick={async()=>{await fetch(`${WA}/sesion/${id}/desconectar`,{method:'POST',headers:{'x-server-secret':SECRET}});setStatus('disconnected');}} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Desconectar</button>
+                  )}
                 </div>
               </div>
-              <div style={{...CARD,marginTop:14}}>
+
+              {/* Info del negocio */}
+              <div style={CARD}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:14}}>Información del negocio</div>
+
+                {/* Guía — email vacío */}
+                <Guia
+                  visible={!empresa.email && !guiasVistas['email_negocio']}
+                  texto="Tu correo es donde recibirás las notificaciones de citas, pedidos y alertas del bot. Asegúrate de tenerlo configurado correctamente."
+                  icono="📧"
+                />
+
                 <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.5)',lineHeight:2}}>
-                  {[['Empresa',empresa.nombreEmpresa],['Industria',empresa.industria],['Email',empresa.email],['Ciudad',empresa.ciudad||'—'],['Plan',`${plan.nombre} — ${plan.precio}/mes`]].map(([k,v])=>(
-                    <div key={k}><span style={{color:'#4B6080'}}>{k}:</span> {v}</div>
+                  {[
+                    ['Empresa', empresa.nombreEmpresa],
+                    ['Industria', empresa.industria],
+                    ['Email', empresa.email || '⚠️ Sin correo configurado'],
+                    ['Ciudad', empresa.ciudad || '—'],
+                    ['Plan', `${plan.nombre} — ${plan.precio}/mes`],
+                  ].map(([k,v])=>(
+                    <div key={k}><span style={{color:'#4B6080'}}>{k}:</span> <span style={{color:k==='Email'&&!empresa.email?'#F59E0B':'rgba(255,255,255,0.5)'}}>{v}</span></div>
                   ))}
                 </div>
+
                 <a href="https://wa.me/573105056616" target="_blank" rel="noreferrer" style={{display:'inline-block',marginTop:16,background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600}}>
                   Actualizar información con soporte
                 </a>
