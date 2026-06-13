@@ -153,6 +153,10 @@ export default function WasapBotPanel() {
   const [stats,          setStats]          = useState({ hoy:0, semana:0, total:0, tokensUsados:0 });
   const [tab,            setTab]            = useState('inicio');
   const [reconect,       setReconect]       = useState(false);
+  const [metodoConexion, setMetodoConexion] = useState('');   // '' | 'qr' | 'codigo'
+  const [telefonoCod,    setTelefonoCod]    = useState('');
+  const [codigoBot,      setCodigoBot]      = useState('');
+  const [solicitandoCod, setSolicitandoCod] = useState(false);
   const [editando,       setEditando]       = useState(false);
   const [itemsEdit,      setItemsEdit]      = useState([]);
   const [savingCat,      setSavingCat]      = useState(false);
@@ -252,21 +256,53 @@ export default function WasapBotPanel() {
     } catch { setStatus('disconnected'); }
   };
 
-  const reconectar = async () => {
-    setReconect(true); setQrBase64('');
+  const iniciarQR = async () => {
+    setMetodoConexion('qr'); setReconect(true); setQrBase64('');
     try {
       await fetch(`${WA}/sesion/iniciar`,{method:'POST',headers:{'Content-Type':'application/json','x-server-secret':SECRET},body:JSON.stringify({empresaId:id})});
       let n=0;
       const poll=async()=>{
-        if(n++>20){setReconect(false);return;}
+        if(n++>30){setReconect(false);return;}
         const r=await fetch(`${WA}/sesion/${id}/qr`,{headers:{'x-server-secret':SECRET}}).catch(()=>null);
-        const d=r?await r.json().catch(()=>({})):{};
-        if(d.qrBase64){setQrBase64(d.qrBase64);setReconect(false);setTab('qr');return;}
-        if(d.status==='connected'){setStatus('connected');setQrBase64('');setReconect(false);setTab('inicio');return;}
+        const dq=r?await r.json().catch(()=>({})):{};
+        if(dq.qrBase64){setQrBase64(dq.qrBase64);setReconect(false);return;}
+        if(dq.status==='connected'){setStatus('connected');setQrBase64('');setReconect(false);setTab('inicio');return;}
         setTimeout(poll,2000);
       };
       poll();
     } catch{setReconect(false);}
+  };
+
+  const reconectar = async () => { setTab('qr'); setMetodoConexion(''); setQrBase64(''); setCodigoBot(''); };
+
+  const solicitarCodigo = async () => {
+    const tel = telefonoCod.replace(/\D/g,'');
+    if(tel.length < 10){ alert('Escribe tu número completo con código de país. Ej: 573001234567'); return; }
+    setSolicitandoCod(true);
+    try {
+      await fetch(`${WA}/sesion/iniciar`,{method:'POST',headers:{'Content-Type':'application/json','x-server-secret':SECRET},body:JSON.stringify({empresaId:id})});
+      await new Promise(r=>setTimeout(r,2000));
+      const r = await fetch(`${WA}/sesion/${id}/pairing-code`,{
+        method:'POST', headers:{'Content-Type':'application/json','x-server-secret':SECRET},
+        body:JSON.stringify({telefono:tel}),
+      });
+      const dpc = await r.json();
+      if(dpc.code){ setCodigoBot(dpc.code); pollConexion(); }
+      else alert(dpc.error||'No se pudo generar el código. Intenta con QR.');
+    } catch(e){ alert('Error: '+e.message); }
+    setSolicitandoCod(false);
+  };
+
+  const pollConexion = () => {
+    let n=0;
+    const check=async()=>{
+      if(n++>60)return;
+      const r=await fetch(`${WA}/sesion/${id}/status`,{headers:{'x-server-secret':SECRET}}).catch(()=>null);
+      const ds=r?await r.json().catch(()=>({})):{};
+      if(ds.status==='connected'){setStatus('connected');setTab('inicio');setMetodoConexion('');setCodigoBot('');return;}
+      setTimeout(check,3000);
+    };
+    check();
   };
 
   const guardarCatalogo = async () => {
@@ -756,23 +792,191 @@ export default function WasapBotPanel() {
             </div>
           )}
 
-          {/* ══ QR ══ */}
+          {/* ══ CONEXIÓN WHATSAPP — QR o Código ══ */}
           {tab==='qr'&&(
-            <div style={{textAlign:'center',maxWidth:420,margin:'0 auto'}}>
-              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:8}}>Conectar WhatsApp</h2>
-              {qrBase64?(
-                <div>
-                  <div style={{background:'#fff',borderRadius:16,padding:20,display:'inline-block',marginBottom:20,boxShadow:'0 8px 40px rgba(0,0,0,0.4)'}}>
-                    <img src={qrBase64} style={{width:200,height:200,display:'block'}} alt="QR"/>
+            <div style={{maxWidth:680,margin:'0 auto'}}>
+              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:6}}>Conectar WhatsApp</h2>
+              <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:28,fontWeight:300}}>
+                Elige cómo conectar tu número. Ambas opciones funcionan igual de bien — elige según tu situación.
+              </p>
+
+              {/* SELECTOR — aparece cuando no hay método elegido */}
+              {!metodoConexion&&(
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+
+                  {/* Opción A: QR */}
+                  <div onClick={iniciarQR} style={{background:'rgba(37,211,102,0.04)',border:'1.5px solid rgba(37,211,102,0.2)',borderRadius:16,padding:22,cursor:'pointer',transition:'all 0.2s'}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(37,211,102,0.5)';e.currentTarget.style.transform='translateY(-2px)';}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(37,211,102,0.2)';e.currentTarget.style.transform='none';}}>
+                    <div style={{width:46,height:46,borderRadius:12,background:'rgba(37,211,102,0.1)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:14}}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.8" strokeLinecap="round">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                        <line x1="14" y1="14" x2="14" y2="14"/><line x1="17" y1="14" x2="21" y2="14"/>
+                        <line x1="14" y1="17" x2="14" y2="21"/><line x1="21" y1="17" x2="21" y2="21"/>
+                      </svg>
+                    </div>
+                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>Escanear código QR</div>
+                    <div style={{fontFamily:F,fontSize:11,color:'#25D366',fontWeight:600,marginBottom:10}}>✓ Recomendado</div>
+                    <p style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.6,margin:'0 0 12px'}}>
+                      Abre WhatsApp desde otro celular o PC y escanea el código con la cámara.
+                    </p>
+                    <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                      {['Tienes otro celular disponible','Estás en computador','Conexión rápida y confiable'].map((t,i)=>(
+                        <span key={i} style={{fontFamily:F,fontSize:10,color:'rgba(37,211,102,0.7)',fontWeight:600}}>✓ {t}</span>
+                      ))}
+                    </div>
                   </div>
-                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)'}}>Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo → Escanea</p>
+
+                  {/* Opción B: Código numérico */}
+                  <div onClick={()=>setMetodoConexion('codigo')} style={{background:'rgba(96,165,250,0.04)',border:'1.5px solid rgba(96,165,250,0.2)',borderRadius:16,padding:22,cursor:'pointer',transition:'all 0.2s'}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(96,165,250,0.5)';e.currentTarget.style.transform='translateY(-2px)';}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(96,165,250,0.2)';e.currentTarget.style.transform='none';}}>
+                    <div style={{width:46,height:46,borderRadius:12,background:'rgba(96,165,250,0.1)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:14}}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2"/>
+                        <line x1="12" y1="18" x2="12.01" y2="18"/>
+                        <path d="M9 8h1l1 4 1-4h1"/>
+                      </svg>
+                    </div>
+                    <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>Código por número</div>
+                    <div style={{fontFamily:F,fontSize:11,color:'#60A5FA',fontWeight:600,marginBottom:10}}>Solo un celular</div>
+                    <p style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.6,margin:'0 0 12px'}}>
+                      WhatsApp te envía un código de 8 dígitos directamente al celular. No necesitas cámara.
+                    </p>
+                    <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                      {['Solo tienes un celular','Estás desde el mismo celular','Sin necesidad de cámara'].map((t,i)=>(
+                        <span key={i} style={{fontFamily:F,fontSize:10,color:'rgba(96,165,250,0.7)',fontWeight:600}}>✓ {t}</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              ):(
-                <div>
-                  <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24}}>Genera un QR para conectar tu número de WhatsApp al bot.</p>
-                  <button onClick={reconectar} disabled={reconect} style={{background:'linear-gradient(135deg,#25D366,#1DA851)',color:'#fff',border:'none',borderRadius:12,padding:'14px 36px',fontFamily:F,fontSize:15,fontWeight:700,cursor:'pointer'}}>
-                    {reconect?'Generando QR...':'Generar QR'}
+              )}
+
+              {/* FLUJO QR */}
+              {metodoConexion==='qr'&&(
+                <div style={{textAlign:'center'}}>
+                  <button onClick={()=>{setMetodoConexion('');setQrBase64('');setReconect(false);}} style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.3)',cursor:'pointer',marginBottom:24,display:'inline-flex',alignItems:'center',gap:6}}>
+                    ← Cambiar método
                   </button>
+
+                  {reconect&&!qrBase64&&(
+                    <div style={{padding:'60px 0'}}>
+                      <div style={{width:48,height:48,border:'3px solid rgba(37,211,102,0.1)',borderTop:'3px solid #25D366',borderRadius:'50%',animation:'spin 0.9s linear infinite',margin:'0 auto 20px'}}/>
+                      <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.25)'}}>Generando código QR...</div>
+                    </div>
+                  )}
+
+                  {qrBase64&&(
+                    <div>
+                      <div style={{background:'#fff',borderRadius:20,padding:22,display:'inline-block',marginBottom:24,boxShadow:'0 20px 60px rgba(0,0,0,0.6)'}}>
+                        <img src={qrBase64} alt="QR" style={{width:220,height:220,display:'block'}}/>
+                      </div>
+                      <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:14,padding:'16px 20px',maxWidth:400,margin:'0 auto 20px',textAlign:'left'}}>
+                        <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,0.4)',marginBottom:12,textTransform:'uppercase',letterSpacing:1}}>Cómo escanear</div>
+                        {['Abre WhatsApp en tu otro celular o PC','Ve a Ajustes → Dispositivos vinculados','Toca "Vincular un dispositivo"','Apunta la cámara al código QR'].map((t,i)=>(
+                          <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:i<3?10:0}}>
+                            <div style={{width:22,height:22,borderRadius:7,background:'rgba(37,211,102,0.1)',border:'1px solid rgba(37,211,102,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366',flexShrink:0,marginTop:1}}>{i+1}</div>
+                            <span style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.45)',lineHeight:1.6}}>{t}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(245,158,11,0.07)',border:'1px solid rgba(245,158,11,0.15)',borderRadius:99,padding:'8px 16px',marginBottom:20}}>
+                        <div style={{width:7,height:7,borderRadius:'50%',background:'#F59E0B',animation:'pulse-g 1.5s ease infinite'}}/>
+                        <span style={{fontFamily:F,fontSize:12,color:'rgba(245,158,11,0.85)',fontWeight:500}}>Esperando que escanees...</span>
+                      </div>
+                      <div>
+                        <button onClick={()=>{setMetodoConexion('codigo');setQrBase64('');setReconect(false);}} style={{background:'none',border:'1px solid rgba(96,165,250,0.2)',borderRadius:9,padding:'8px 16px',fontFamily:F,fontSize:12,color:'#60A5FA',cursor:'pointer'}}>
+                          ¿Solo tienes un celular? → Usar código numérico
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* FLUJO CÓDIGO NUMÉRICO */}
+              {metodoConexion==='codigo'&&(
+                <div>
+                  <button onClick={()=>{setMetodoConexion('');setCodigoBot('');setTelefonoCod('');}} style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.3)',cursor:'pointer',marginBottom:24,display:'inline-flex',alignItems:'center',gap:6}}>
+                    ← Cambiar método
+                  </button>
+
+                  {!codigoBot?(
+                    <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'28px 24px',maxWidth:480}}>
+                      <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:6}}>Conectar con código de WhatsApp</div>
+                      <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.4)',lineHeight:1.6,marginBottom:24}}>
+                        Escribe el número de WhatsApp que usará el bot. Te enviamos un código de 8 dígitos directamente al celular.
+                      </div>
+
+                      <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:12,padding:'14px 16px',marginBottom:20}}>
+                        <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,0.3)',marginBottom:10,textTransform:'uppercase',letterSpacing:1}}>Qué va a pasar</div>
+                        {[
+                          {n:'1',t:'Escribes tu número y presionas el botón',color:'#60A5FA'},
+                          {n:'2',t:'WhatsApp te envía un código de 8 dígitos',color:'#60A5FA'},
+                          {n:'3',t:'Lo escribes en WhatsApp y el bot queda conectado',color:'#25D366'},
+                        ].map((s,i)=>(
+                          <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:i<2?8:0}}>
+                            <div style={{width:20,height:20,borderRadius:6,background:s.color==='#25D366'?'rgba(37,211,102,0.1)':'rgba(96,165,250,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:800,color:s.color,flexShrink:0,marginTop:1}}>{s.n}</div>
+                            <span style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.45)',lineHeight:1.5}}>{s.t}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <label style={{fontFamily:F,fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:6}}>Número de WhatsApp del bot</label>
+                      <div style={{position:'relative',marginBottom:6}}>
+                        <span style={{position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',fontFamily:F,fontSize:14,color:'rgba(255,255,255,0.35)',pointerEvents:'none'}}>+</span>
+                        <input type="tel" value={telefonoCod} onChange={e=>setTelefonoCod(e.target.value.replace(/\D/g,''))}
+                          placeholder="57 300 123 4567"
+                          style={{width:'100%',background:'#06090D',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'10px 12px 10px 28px',color:'#EFF4FF',fontFamily:F,fontSize:14,outline:'none',boxSizing:'border-box',marginBottom:4}}/>
+                      </div>
+                      <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.2)',marginBottom:20}}>Colombia: 57 + número de 10 dígitos. Ej: 573001234567</p>
+
+                      <button onClick={solicitarCodigo} disabled={solicitandoCod||!telefonoCod.trim()} style={{width:'100%',background:'linear-gradient(135deg,#60A5FA,#3B82F6)',color:'#fff',border:'none',borderRadius:10,padding:'12px',fontFamily:F,fontSize:14,fontWeight:700,cursor:'pointer',opacity:(solicitandoCod||!telefonoCod.trim())?0.6:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                        {solicitandoCod?(
+                          <><div style={{width:16,height:16,border:'2px solid rgba(255,255,255,0.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>Enviando solicitud...</>
+                        ):'Enviar código a mi WhatsApp →'}
+                      </button>
+                    </div>
+                  ):(
+                    <div style={{textAlign:'center',maxWidth:480}}>
+                      <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.4)',marginBottom:20}}>
+                        WhatsApp te envió un código. Búscalo en el chat de <strong style={{color:'#EFF4FF'}}>WhatsApp</strong>:
+                      </div>
+
+                      {/* Código en grande */}
+                      <div style={{display:'flex',justifyContent:'center',gap:6,marginBottom:20,flexWrap:'wrap'}}>
+                        {[codigoBot.slice(0,4),codigoBot.slice(4,8)].map((bloque,bi)=>(
+                          <div key={bi} style={{display:'flex',gap:5}}>
+                            {bloque.split('').map((digit,di)=>(
+                              <div key={di} style={{width:48,height:56,borderRadius:12,background:'rgba(37,211,102,0.1)',border:'2px solid rgba(37,211,102,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:22,fontWeight:800,color:'#25D366'}}>{digit}</div>
+                            ))}
+                            {bi===0&&<div style={{display:'flex',alignItems:'center',padding:'0 3px',fontFamily:F,fontSize:22,fontWeight:800,color:'rgba(37,211,102,0.3)'}}>–</div>}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:14,padding:'16px 20px',marginBottom:20,textAlign:'left'}}>
+                        <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,0.4)',marginBottom:12,textTransform:'uppercase',letterSpacing:1}}>Dónde ingresar el código</div>
+                        {['Abre WhatsApp en tu celular','Ve a Ajustes → Dispositivos vinculados','Toca "Vincular con número de teléfono"','Ingresa el código de 8 dígitos de arriba'].map((t,i)=>(
+                          <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:i<3?10:0}}>
+                            <div style={{width:22,height:22,borderRadius:7,background:'rgba(37,211,102,0.1)',border:'1px solid rgba(37,211,102,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366',flexShrink:0,marginTop:1}}>{i+1}</div>
+                            <span style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.45)',lineHeight:1.6}}>{t}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(37,211,102,0.06)',border:'1px solid rgba(37,211,102,0.15)',borderRadius:99,padding:'8px 16px',marginBottom:16}}>
+                        <div style={{width:7,height:7,borderRadius:'50%',background:'#25D366',animation:'pulse-g 1.5s ease infinite'}}/>
+                        <span style={{fontFamily:F,fontSize:12,color:'rgba(37,211,102,0.85)',fontWeight:500}}>Esperando que ingreses el código...</span>
+                      </div>
+
+                      <div>
+                        <button onClick={()=>{setCodigoBot('');setTelefonoCod('');}} style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.25)',cursor:'pointer',textDecoration:'underline'}}>
+                          No recibí el código — intentar de nuevo
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -791,8 +995,8 @@ export default function WasapBotPanel() {
                   icono="📱"
                 />
                 <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
-                  <button onClick={()=>setTab('qr')} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
-                    {connected?'↻ Reconectar QR':'📱 Generar QR para conectar'}
+                  <button onClick={()=>{setTab('qr');setMetodoConexion('');setQrBase64('');setCodigoBot('');}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                    {connected?'↻ Reconectar WhatsApp':'📱 Conectar WhatsApp'}
                   </button>
                   {connected&&<button onClick={async()=>{await fetch(`${WA}/sesion/${id}/desconectar`,{method:'POST',headers:{'x-server-secret':SECRET}});setStatus('disconnected');}} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Desconectar</button>}
                 </div>
