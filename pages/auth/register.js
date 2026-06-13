@@ -278,9 +278,9 @@ export default function Register() {
               </div>
             </Link>
             <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6, color: '#E8E8E8' }}>
-              {flow === 'social-choice' ? 'Crea tu cuenta gratis' : flow === 'social-complete' ? 'Completa tu perfil' : 'Crea tu cuenta'}
+              {flow === 'social-choice' ? 'Crea tu cuenta' : flow === 'social-complete' ? 'Completa tu perfil' : 'Crea tu cuenta'}
             </h1>
-            <p style={{ color: '#2A2A2A', fontSize: 13 }}>14 días de prueba · Sin tarjeta de crédito</p>
+            <p style={{ color: '#2A2A2A', fontSize: 13 }}>Sin contratos · Cancela cuando quieras</p>
           </div>
 
           <div style={{ background: '#0C0C0C', border: '1px solid #161616', borderRadius: 8, padding: 32 }}>
