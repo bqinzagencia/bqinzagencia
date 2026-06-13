@@ -24,22 +24,47 @@ export default function WasapBotLogin() {
     if (saved) router.replace(`/wasapbot/panel/${saved}`);
   }, []);
 
-  // Buscar empresas del usuario en Firestore y redirigir al panel
-  const redirigirAlPanel = async (uid) => {
-    const q = query(
-      collection(db, 'empresas'),
-      where('ownerUid', '==', uid),
-      where('producto', '==', 'wasapbot'),
-      limit(1)
-    );
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      const empresaId = snap.docs[0].id;
-      localStorage.setItem('wasapbot_empresa_id', empresaId);
-      router.replace(`/wasapbot/panel/${empresaId}`);
-    } else {
-      // Tiene cuenta de agencIAme pero no de WasapBot
-      setError('No encontramos un WasapBot asociado a esta cuenta. ¿Quieres activar uno?');
+  // Buscar empresa del usuario — primero por uid, luego por email como fallback
+  const redirigirAlPanel = async (uid, emailUsuario) => {
+    try {
+      // Intento 1: buscar por ownerUid
+      let q = query(
+        collection(db, 'empresas'),
+        where('ownerUid', '==', uid),
+        where('producto', '==', 'wasapbot'),
+        limit(1)
+      );
+      let snap = await getDocs(q);
+
+      // Intento 2: si no encontró por uid, buscar por email (empresas creadas antes de guardar uid)
+      if (snap.empty && emailUsuario) {
+        q = query(
+          collection(db, 'empresas'),
+          where('email', '==', emailUsuario),
+          where('producto', '==', 'wasapbot'),
+          limit(1)
+        );
+        snap = await getDocs(q);
+
+        // Si encontró por email, actualizar el ownerUid en Firestore para futuros logins
+        if (!snap.empty) {
+          const { doc, updateDoc } = await import('firebase/firestore');
+          const ref = doc(db, 'empresas', snap.docs[0].id);
+          await updateDoc(ref, { ownerUid: uid }).catch(() => {});
+        }
+      }
+
+      if (!snap.empty) {
+        const empresaId = snap.docs[0].id;
+        localStorage.setItem('wasapbot_empresa_id', empresaId);
+        router.replace(`/wasapbot/panel/${empresaId}`);
+      } else {
+        setError('No encontramos un WasapBot con esta cuenta. ¿Quieres crear uno?');
+        setLoading(false);
+        setGLoading(false);
+      }
+    } catch (err) {
+      setError('Error buscando tu negocio: ' + err.message);
       setLoading(false);
       setGLoading(false);
     }
@@ -49,7 +74,7 @@ export default function WasapBotLogin() {
     setGLoading(true); setError('');
     try {
       const result = await loginWithGoogle();
-      await redirigirAlPanel(result.user.uid);
+      await redirigirAlPanel(result.user.uid, result.user.email);
     } catch (err) {
       if (err.code !== 'auth/popup-closed-by-user') {
         setError('Error al conectar con Google. Intenta de nuevo.');
@@ -64,7 +89,7 @@ export default function WasapBotLogin() {
     setLoading(true); setError('');
     try {
       const result = await loginUser(email, password);
-      await redirigirAlPanel(result.user.uid);
+      await redirigirAlPanel(result.user.uid, email);
     } catch (err) {
       const msgs = {
         'auth/user-not-found':  'No existe una cuenta con ese correo',

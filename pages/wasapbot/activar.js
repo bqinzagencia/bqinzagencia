@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { INDUSTRIAS_WB, getConfigIndustria } from '../../lib/wasapbotConfig';
+import { auth } from '../../lib/firebase';
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
@@ -137,7 +138,7 @@ export default function WasapBotActivar() {
     setError(''); setLoading(true);
     try {
       const r = await fetch('/api/wasapbot-crear',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nombre,industria,descripcion,email,horario,ciudad,producto:'wasapbot'})});
+        body:JSON.stringify({nombre,industria,descripcion,email,horario,ciudad,producto:'wasapbot',ownerUid:auth.currentUser?.uid||null})});
       const d = await r.json();
       if (!d.ok) throw new Error(d.error);
       setEmpresaId(d.empresaId);

@@ -4,6 +4,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { getConfigIndustria } from '../../../lib/wasapbotConfig';
+import { auth } from '../../../lib/firebase';
+import { signOut } from 'firebase/auth';
 import dynamic from 'next/dynamic';
 
 const AsesorWasapbot = dynamic(() => import('../../../components/AsesorWasapbot'), { ssr: false });
@@ -321,6 +323,15 @@ export default function WasapBotPanel() {
     setTimeout(()=>setSaveMsg(''),3000);
   };
 
+  const cerrarSesion = async () => {
+    if (!confirm('¿Cerrar sesión?')) return;
+    try {
+      await signOut(auth);
+      localStorage.removeItem('wasapbot_empresa_id');
+      router.replace('/wasapbot/login');
+    } catch {}
+  };
+
   const toDate = ts => {
     if(!ts)return null;
     if(ts._seconds)return new Date(ts._seconds*1000);
@@ -435,6 +446,10 @@ export default function WasapBotPanel() {
             <span style={{fontFamily:F,fontSize:11,fontWeight:700,color:connected?'#25D366':'#EF4444'}}>{connected?'Bot activo':'Desconectado'}</span>
           </div>
           <span style={{background:plan.color+'22',color:plan.color,border:`1px solid ${plan.color}44`,borderRadius:100,padding:'3px 12px',fontFamily:F,fontSize:11,fontWeight:700}}>{plan.nombre}</span>
+          <button onClick={cerrarSesion} style={{background:'rgba(239,68,68,0.07)',color:'rgba(239,68,68,0.7)',border:'1px solid rgba(239,68,68,0.15)',borderRadius:8,padding:'5px 12px',fontFamily:F,fontSize:11,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',gap:5}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Salir
+          </button>
         </div>
       </nav>
 
