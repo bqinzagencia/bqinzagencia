@@ -2,7 +2,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../lib/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const INDUSTRIES = [
   { icon: '🔧', title: 'Talleres & Mecánica', desc: 'Agenda citas, historial y presupuestos automáticos.', slug: 'taller', color: '#FF6B35', img: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=600&q=80' },
@@ -67,6 +67,22 @@ const POPUP_ITEMS = [
 ];
 
 function PopupBienvenida({ onClose }) {
+  const [sonidoActivo, setSonidoActivo] = useState(false);
+  const videoRef = useRef(null);
+
+  const toggleSonido = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (sonidoActivo) {
+      v.muted = true;
+      setSonidoActivo(false);
+    } else {
+      v.muted = false;
+      v.play().catch(() => {});
+      setSonidoActivo(true);
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
@@ -79,6 +95,7 @@ function PopupBienvenida({ onClose }) {
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         .popup-box { animation: popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) both; }
         .popup-item { animation: fadeUp 0.3s ease both; }
+        .popup-sound-btn:hover { background: rgba(37,211,102,0.2) !important; border-color: rgba(37,211,102,0.5) !important; }
       `}</style>
 
       <div className="popup-box" style={{
@@ -90,26 +107,43 @@ function PopupBienvenida({ onClose }) {
         overflowY: 'auto',
         boxShadow: '0 40px 80px rgba(0,0,0,0.7), 0 0 60px rgba(37,211,102,0.08)',
       }}>
-        {/* Video pequeño arriba */}
-        <div style={{ position: 'relative', borderRadius: '24px 24px 0 0', overflow: 'hidden', height: 180, background: '#000', flexShrink: 0 }}>
+        {/* Video pequeño arriba — miniatura, video completo sin recortar (object-fit: contain) */}
+        <div style={{ position: 'relative', borderRadius: '24px 24px 0 0', overflow: 'hidden', height: 150, background: '#000', flexShrink: 0 }}>
           <video
+            ref={videoRef}
             autoPlay muted loop playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           >
             <source src="/bienvenida.mp4" type="video/mp4"/>
           </video>
-          {/* Overlay gradiente */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(10,13,18,0.9) 100%)' }}/>
+          {/* Overlay gradiente — solo abajo, para que el badge se lea sin oscurecer el video */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(10,13,18,0.9) 100%)', pointerEvents: 'none' }}/>
           {/* Badge WasapBot sobre el video */}
-          <div style={{ position: 'absolute', bottom: 14, left: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <PopupIcon type="bot" size={16}/>
+          <div style={{ position: 'absolute', bottom: 10, left: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PopupIcon type="bot" size={15}/>
             </div>
             <div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: '#25D366' }}>WasapBot · agencIAme</div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, color: 'rgba(255,255,255,0.4)', marginTop: 1 }}>● En línea · Responde al instante</div>
             </div>
           </div>
+          {/* Botón sonido */}
+          <button onClick={toggleSonido} aria-label="Activar sonido" className="popup-sound-btn" style={{
+            position: 'absolute', bottom: 10, right: 14, zIndex: 11,
+            width: 30, height: 30, borderRadius: '50%',
+            background: sonidoActivo ? 'rgba(37,211,102,0.22)' : 'rgba(0,0,0,0.55)',
+            border: `1px solid ${sonidoActivo ? 'rgba(37,211,102,0.55)' : 'rgba(255,255,255,0.18)'}`,
+            color: sonidoActivo ? '#25D366' : 'rgba(255,255,255,0.75)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all .2s',
+          }}>
+            {sonidoActivo ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+            )}
+          </button>
           {/* Botón cerrar */}
           <button onClick={onClose} style={{
             position: 'absolute', top: 12, right: 12,
@@ -117,7 +151,7 @@ function PopupBienvenida({ onClose }) {
             borderRadius: '50%', width: 32, height: 32,
             color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, fontWeight: 700,
+            fontSize: 16, fontWeight: 700, zIndex: 12,
           }}>✕</button>
         </div>
 
