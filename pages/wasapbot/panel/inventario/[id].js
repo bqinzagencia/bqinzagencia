@@ -10,6 +10,10 @@ import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
+import GuiaWasapbot from '../../../../components/GuiaWasapbot';
+
+const TourGuia = dynamic(() => import('../../../../components/TourGuia'), { ssr: false });
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
@@ -223,11 +227,14 @@ export default function InventarioPanel() {
     </nav>
 
     <div style={{maxWidth:960,margin:'0 auto',padding:'20px'}}>
-      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:18,flexWrap:'wrap'}}>
+      <div data-tour="inv-fecha" style={{display:'flex',alignItems:'center',gap:12,marginBottom:18,flexWrap:'wrap'}}>
         <input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} style={{...INP,padding:'7px 12px',cursor:'pointer'}}/>
         <span style={{fontFamily:F,fontSize:13,color:'#25D366',fontWeight:600}}>{fmtFecha(fecha)}{fecha===hoyStr()?' (hoy)':''}</span>
         {menuDia&&<span className="bdg" style={abierto?{background:'rgba(37,211,102,.1)',color:'#25D366'}:{background:'rgba(107,114,128,.1)',color:'#9CA3AF'}}>{abierto?'🟢 Abierto':'⭕ Cerrado'}</span>}
       </div>
+
+      <GuiaWasapbot visible={!menuDia&&!loading} icono="🍽️"
+        texto="Aquí controlas qué hay disponible hoy y cuánto stock queda de cada producto. El bot solo le ofrece a tus clientes lo que esté activo y con stock. Abre el menú desde tu catálogo o una plantilla guardada para empezar."/>
 
       {menuDia&&(
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:18}}>
@@ -241,15 +248,15 @@ export default function InventarioPanel() {
         </div>
       )}
 
-      <div style={{borderBottom:'1px solid rgba(255,255,255,.07)',marginBottom:18,display:'flex'}}>
+      <div data-tour="inv-tabs" style={{borderBottom:'1px solid rgba(255,255,255,.07)',marginBottom:18,display:'flex'}}>
         {[{k:'menuDia',l:'📅 Menú del día'},{k:'plantillas',l:'📋 Plantillas'}].map(t=>(
           <button key={t.k} className={`tb${tab===t.k?' on':''}`} onClick={()=>setTab(t.k)}>{t.l}</button>
         ))}
       </div>
 
       {tab==='menuDia'&&(
-        <div>
-          <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+        <div data-tour="inv-contenido">
+          <div data-tour="inv-acciones" style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
             {!menuDia?(
               <>
                 <button onClick={abrirDesdeCatalogo} style={BG}>🍽️ Abrir desde catálogo</button>
@@ -424,5 +431,20 @@ export default function InventarioPanel() {
         </div>
       </div>
     </div>)}
+
+    <TourGuia
+      storageKey={`wasapbot_tour_inventario_${id}`}
+      activo={!!empresa}
+      pasos={[
+        { selector:'[data-tour="inv-fecha"]', titulo:'Elige el día', icono:'📅',
+          texto:'Por defecto se abre en "hoy". Cambia la fecha para configurar el menú de otro día (por ejemplo, para dejarlo listo desde la noche anterior).' },
+        { selector:'[data-tour="inv-acciones"]', titulo:'Abrir o editar el menú', icono:'🍽️',
+          texto:'Si el menú de este día no existe aún, ábrelo desde tu catálogo o una plantilla guardada. Si ya está abierto, desde aquí editas el stock, lo guardas como plantilla, lo copias a otro día o lo cierras.' },
+        { selector:'[data-tour="inv-tabs"]', titulo:'Menú del día y plantillas', icono:'📋',
+          texto:'Cambia entre el menú de hoy y tus plantillas guardadas. Una plantilla es un conjunto de platos que puedes reutilizar con un clic cualquier día.' },
+        { selector:'[data-tour="inv-contenido"]', titulo:'Tu inventario del día', icono:'📦',
+          texto:'Aquí ves cada plato con su stock: cuántas porciones quedan y si está activo. El bot solo le ofrece a tus clientes lo que esté activo y con stock disponible. Toca "✏️ Editar stock" para escribir las cantidades de cada plato.' },
+      ]}
+    />
   </>);
 }

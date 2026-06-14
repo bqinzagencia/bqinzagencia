@@ -5,7 +5,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 const SECRET = process.env.ADMIN_METRICS_SECRET || 'nexoia_admin_metrics_2026';
 
-const PLAN_TOKENS = { basico:50000, estandar:150000, pro:400000, wasapbot:15000 };
+const PLAN_TOKENS = { basico:50000, estandar:150000, pro:400000, wasapbot:15000, prueba_5k:15000 };
 
 export default async function handler(req, res) {
   const secret = req.headers['x-admin-secret'];

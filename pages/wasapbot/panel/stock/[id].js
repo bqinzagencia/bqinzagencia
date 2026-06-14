@@ -4,7 +4,11 @@ import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import { getStockIndustria } from '../../../../lib/stockIndustrias';
+import GuiaWasapbot from '../../../../components/GuiaWasapbot';
+
+const TourGuia = dynamic(() => import('../../../../components/TourGuia'), { ssr: false });
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
@@ -256,7 +260,7 @@ export default function StockPanel() {
       {/* Tabs — solo si hay plan */}
       {!sinPlan&&(
         <>
-        <div style={{borderBottom:'1px solid rgba(255,255,255,.07)',marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:8}}>
+        <div data-tour="stk-tabs" style={{borderBottom:'1px solid rgba(255,255,255,.07)',marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:8}}>
           <div style={{display:'flex'}}>
             {[{k:'resumen',l:'📊 Resumen'},{k:'items',l:'📦 Stock'},{k:'movimientos',l:'📋 Movimientos'}].map(t=>(
               <button key={t.k} className={`tb${tab===t.k?' on':''}`} onClick={()=>setTab(t.k)}>{t.l}</button>
@@ -281,7 +285,9 @@ export default function StockPanel() {
           <>
           {/* ══ RESUMEN ══ */}
           {tab==='resumen'&&(
-            <div>
+            <div data-tour="stk-resumen">
+              <GuiaWasapbot visible={(resumenDia?.totalMovimientos||0)===0} icono="📊"
+                texto="Aquí ves cuánto compraste, cuánto vendiste y tu ganancia del día y del mes. Usa los botones '📥 Registrar entrada' (compras) y '📤 Registrar salida' (ventas) arriba para empezar a llevar el control."/>
               <div style={{display:'flex',gap:12,marginBottom:18,flexWrap:'wrap',alignItems:'center'}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
                   <span style={{fontFamily:F,fontSize:12,color:'#4B6080'}}>Día:</span>
@@ -353,7 +359,7 @@ export default function StockPanel() {
 
           {/* ══ ITEMS / STOCK ══ */}
           {tab==='items'&&(
-            <div>
+            <div data-tour="stk-items">
               {items.length===0?(
                 <div style={{...CARD,textAlign:'center',padding:'48px 20px'}}>
                   <div style={{fontSize:48,marginBottom:12}}>📦</div>
@@ -558,6 +564,8 @@ export default function StockPanel() {
           <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)',marginBottom:18}}>
             Se agregará al inventario de {empresa?.nombreEmpresa}.
           </div>
+          <GuiaWasapbot visible icono="📦"
+            texto="Nombre: el insumo o producto (ej: Pollo, Gaseosa 1.5L). Categoría: para agruparlo en tu lista. Unidad: cómo lo mides (unidad, kg, lt...). Precio compra/venta: lo que pagas y lo que cobras por él. Stock mínimo: cuándo te avisamos que se está agotando."/>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
             <div style={{gridColumn:'1/-1'}}>
               <label style={{fontFamily:F,fontSize:10,fontWeight:700,color:'#4B6080',display:'block',marginBottom:4,textTransform:'uppercase',letterSpacing:.8}}>Nombre *</label>
@@ -621,5 +629,18 @@ export default function StockPanel() {
         </div>
       </div>
     )}
+
+    <TourGuia
+      storageKey={`wasapbot_tour_stock_${id}`}
+      activo={!!empresa && !sinPlan}
+      pasos={[
+        { selector:'[data-tour="stk-tabs"]', titulo:'Resumen, Stock y Movimientos', icono:'📊', accion:()=>setTab('resumen'),
+          texto:'Aquí registras tus compras (📥 Entrada) y ventas (📤 Salida) del día, o agregas un producto nuevo con "+ Nuevo item". Las pestañas de arriba te llevan al resumen, al listado de stock y al historial de movimientos.' },
+        { selector:'[data-tour="stk-resumen"]', titulo:'Resumen del negocio', icono:'💰', accion:()=>setTab('resumen'),
+          texto:'Aquí ves cuánto compraste, cuánto vendiste y tu ganancia del día y del mes — todo se calcula solo con cada movimiento que registres.' },
+        { selector:'[data-tour="stk-items"]', titulo:'Tu inventario', icono:'📦', accion:()=>setTab('items'),
+          texto:'Aquí ves todos tus productos organizados por categoría: cuánto cuestan, a qué precio los vendes y cuánto stock te queda. Toca "Ajustar" si el conteo real no coincide con el del sistema.' },
+      ]}
+    />
   </>);
 }

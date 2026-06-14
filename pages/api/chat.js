@@ -2,6 +2,7 @@
 // Motor de chat con OpenAI + deteccion automatica de citas + captura de leads — NEXOIA
 
 import * as admin from 'firebase-admin';
+import { evaluarMensaje, respuestaFiltro } from '../../lib/filtroMensajes';
 
 function getAdminDb() {
   if (!admin.apps.length) {
@@ -71,6 +72,20 @@ export default async function handler(req, res) {
 
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   if (!OPENAI_API_KEY) return res.status(500).json({ error: 'OpenAI no configurado' });
+
+  // ── FILTRO ANTI-CHARLATANES ──────────────────────────────
+  // Evita que mensajes sin relacion con el negocio (spam, saludos
+  // sueltos, pruebas, groserias, etc.) consuman tokens de OpenAI.
+  // Igual al filtro ya usado en /api/chatbot-responder.js
+  const ultimoMensaje = messages[messages.length - 1]?.content || '';
+  const historialLen  = Math.max(messages.length - 1, 0);
+  const evaluacion    = evaluarMensaje(ultimoMensaje, empresa?.industria, historialLen);
+  if (!evaluacion.pasar) {
+    return res.status(200).json({
+      reply: respuestaFiltro(empresa?.nombreEmpresa),
+      filtrado: true,
+    });
+  }
 
   // Cargar base de conocimiento
   let promptConocimiento = '';

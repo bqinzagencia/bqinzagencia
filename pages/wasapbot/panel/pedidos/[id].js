@@ -4,6 +4,10 @@ import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
+import GuiaWasapbot from '../../../../components/GuiaWasapbot';
+
+const TourGuia = dynamic(() => import('../../../../components/TourGuia'), { ssr: false });
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
@@ -193,7 +197,7 @@ export default function PedidosPanel() {
     <div style={{maxWidth:960,margin:'0 auto',padding:'20px'}}>
 
       {/* Selector fecha */}
-      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:18,flexWrap:'wrap'}}>
+      <div data-tour="ped-fecha" style={{display:'flex',alignItems:'center',gap:12,marginBottom:18,flexWrap:'wrap'}}>
         <input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} style={{...INP,padding:'7px 12px',cursor:'pointer'}}/>
         <span style={{fontFamily:F,fontSize:13,color:'#25D366',fontWeight:600}}>
           {fecha === hoyStr() ? 'Hoy' : fmtFecha(fecha)}
@@ -202,7 +206,7 @@ export default function PedidosPanel() {
       </div>
 
       {/* Stats */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10,marginBottom:18}}>
+      <div data-tour="ped-stats" style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10,marginBottom:18}}>
         {[
           {label:'Total ventas', val:`$${fmtP(totalVentas)}`, color:'#25D366', icon:'💰', big:true},
           {label:'Pendientes',   val:pendientes,  color:'#F59E0B', icon:'🔔'},
@@ -219,7 +223,9 @@ export default function PedidosPanel() {
       </div>
 
       {/* Nequi config */}
-      <div style={{...CARD,marginBottom:16,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+      <GuiaWasapbot visible={!nequi} icono="💳"
+        texto="Configura aquí tu número de Nequi: el bot lo incluye automáticamente en el mensaje de confirmación que recibe el cliente cuando hace un pedido por WhatsApp, para que pueda pagar de una vez."/>
+      <div data-tour="ped-nequi" style={{...CARD,marginBottom:16,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
         <span style={{fontSize:18}}>💳</span>
         <div style={{flex:1}}>
           <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#EFF4FF',marginBottom:2}}>Número Nequi para pagos</div>
@@ -263,7 +269,7 @@ export default function PedidosPanel() {
       )}
 
       {/* Filtros */}
-      <div style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
+      <div data-tour="ped-filtros" style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
         {[
           {key:'todos',      label:'Todos'},
           {key:'pendiente',  label:'Pendientes'},
@@ -378,5 +384,20 @@ export default function PedidosPanel() {
         </div>
       )}
     </div>
+
+    <TourGuia
+      storageKey={`wasapbot_tour_pedidos_${id}`}
+      activo={!!empresa}
+      pasos={[
+        { selector:'[data-tour="ped-fecha"]', titulo:'Elige el día', icono:'📅',
+          texto:'Por defecto ves los pedidos de hoy. Cambia la fecha para revisar pedidos de otro día.' },
+        { selector:'[data-tour="ped-stats"]', titulo:'Resumen del día', icono:'💰',
+          texto:'Aquí ves el total vendido y cuántos pedidos están pendientes, en proceso, entregados o cancelados — se actualiza solo cada 30 segundos.' },
+        { selector:'[data-tour="ped-nequi"]', titulo:'Tu número Nequi', icono:'💳',
+          texto:'Escríbelo aquí una sola vez: el bot lo incluye automáticamente en el mensaje de confirmación para que tu cliente pueda pagar el pedido por Nequi de inmediato.' },
+        { selector:'[data-tour="ped-filtros"]', titulo:'Sigue el flujo de cada pedido', icono:'🛍️',
+          texto:'Usa estos filtros para ver solo los pedidos en cada estado. En cada pedido tienes un botón para avanzarlo: Pendiente → Preparando → Listo → Entregado, o cancelarlo si es necesario.' },
+      ]}
+    />
   </>);
 }

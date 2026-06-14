@@ -9,6 +9,7 @@ import { signOut } from 'firebase/auth';
 import dynamic from 'next/dynamic';
 
 const AsesorWasapbot = dynamic(() => import('../../../components/AsesorWasapbot'), { ssr: false });
+const TourGuia       = dynamic(() => import('../../../components/TourGuia'), { ssr: false });
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
@@ -16,6 +17,7 @@ const WA     = 'https://agenciame-whatsapp-server-production.up.railway.app';
 const SECRET = 'agenciame2026secreto_nexoia';
 
 const PLANES = {
+  prueba_5k:{ nombre:'Prueba Técnica', tokens:15000,  convs:100,  color:'#F59E0B', precio:'$5.000'   },
   basico:   { nombre:'Básico',   tokens:50000,  convs:500,  color:'#25D366', precio:'$189.000' },
   estandar: { nombre:'Estándar', tokens:150000, convs:1500, color:'#2563EB', precio:'$390.000' },
   pro:      { nombre:'Pro',      tokens:400000, convs:4000, color:'#A78BFA', precio:'$690.000' },
@@ -107,6 +109,7 @@ export default function WasapBotPanel() {
   const [telefonoCod,    setTelefonoCod]    = useState('');
   const [codigoBot,      setCodigoBot]      = useState('');
   const [solicitandoCod, setSolicitandoCod] = useState(false);
+  const [codigoCopiado,  setCodigoCopiado]  = useState(false);
   const [editando,       setEditando]       = useState(false);
   const [itemsEdit,      setItemsEdit]      = useState([]);
   const [savingCat,      setSavingCat]      = useState(false);
@@ -244,6 +247,22 @@ export default function WasapBotPanel() {
     check();
   };
 
+  const copiarCodigo = () => {
+    if(!codigoBot)return;
+    const hacerCopia = () => { setCodigoCopiado(true); setTimeout(()=>setCodigoCopiado(false),2000); };
+    if(navigator.clipboard?.writeText){
+      navigator.clipboard.writeText(codigoBot).then(hacerCopia).catch(()=>{});
+    } else {
+      try{
+        const ta=document.createElement('textarea');
+        ta.value=codigoBot; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        hacerCopia();
+      }catch{}
+    }
+  };
+
   const guardarCatalogo = async () => {
     setSavingCat(true); setSaveMsg('');
     try {
@@ -361,7 +380,7 @@ export default function WasapBotPanel() {
 
       <div style={{display:'flex',minHeight:'calc(100vh - 58px)'}}>
         {/* SIDEBAR */}
-        <div style={{width:216,borderRight:'1px solid rgba(255,255,255,0.05)',padding:'16px 10px',flexShrink:0,display:'flex',flexDirection:'column',gap:2}}>
+        <div data-tour="hub-sidebar" style={{width:216,borderRight:'1px solid rgba(255,255,255,0.05)',padding:'16px 10px',flexShrink:0,display:'flex',flexDirection:'column',gap:2}}>
           {TABS.map(t=>(
             <button key={t.key} className={`wb-tab${tab===t.key?' on':''}`} onClick={()=>setTab(t.key)}>
               <span style={{fontSize:14}}>{t.icon}</span>
@@ -370,7 +389,7 @@ export default function WasapBotPanel() {
             </button>
           ))}
           {LINKS.length>0&&(
-            <>
+            <div data-tour="hub-links">
               <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'8px 4px'}}/>
               {LINKS.map(l=>(
                 <Link key={l.href} href={l.href} className="ext-link" style={{background:l.bg,border:`1px solid ${l.border}`,color:l.color}}>
@@ -379,7 +398,7 @@ export default function WasapBotPanel() {
                   <span style={{fontSize:10,opacity:0.6}}>↗</span>
                 </Link>
               ))}
-            </>
+            </div>
           )}
           <div style={{flex:1}}/>
           <div style={{padding:'12px',background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.12)',borderRadius:10,marginTop:8}}>
@@ -472,7 +491,7 @@ export default function WasapBotPanel() {
               )}
 
               {/* Stats */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:16}}>
+              <div data-tour="hub-stats" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:16}}>
                 {[
                   {label:'Hoy',val:stats.hoy,color:'#25D366',icon:'💬'},
                   {label:'Esta semana',val:stats.semana,color:'#60A5FA',icon:'📊'},
@@ -620,7 +639,7 @@ export default function WasapBotPanel() {
                   <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>El bot usará esta información para responder a tus clientes.</p>
                 </div>
                 {!editando?(
-                  <button onClick={()=>{setItemsEdit(servicios.length>0?servicios.map(s=>({...s})):[{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]);setEditando(true);}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                  <button data-tour="hub-catalogo-btn" onClick={()=>{setItemsEdit(servicios.length>0?servicios.map(s=>({...s})):[{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]);setEditando(true);}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
                     {servicios.length>0?'✏️ Editar':'+ Agregar primer '+cfg.labelItem.toLowerCase()}
                   </button>
                 ):(
@@ -792,7 +811,12 @@ export default function WasapBotPanel() {
                         ))}
                       </div>
                       <p style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.7}}>WhatsApp → Ajustes → Dispositivos vinculados → Vincular con número → Ingresa el código</p>
-                      <button onClick={()=>{setCodigoBot('');setTelefonoCod('');}} style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.25)',cursor:'pointer',textDecoration:'underline',marginTop:12}}>No recibí el código — intentar de nuevo</button>
+                      <button onClick={copiarCodigo} style={{display:'inline-flex',alignItems:'center',gap:7,background:codigoCopiado?'rgba(37,211,102,0.12)':'rgba(255,255,255,0.04)',color:codigoCopiado?'#25D366':'rgba(255,255,255,0.5)',border:`1px solid ${codigoCopiado?'rgba(37,211,102,0.35)':'rgba(255,255,255,0.08)'}`,borderRadius:8,padding:'8px 16px',fontFamily:F,fontSize:12,fontWeight:600,cursor:'pointer',marginTop:14}}>
+                        {codigoCopiado?(<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg> Copiado</>):(<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar código</>)}
+                      </button>
+                      <div>
+                        <button onClick={()=>{setCodigoBot('');setTelefonoCod('');}} style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.25)',cursor:'pointer',textDecoration:'underline',marginTop:12}}>No recibí el código — intentar de nuevo</button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -804,7 +828,7 @@ export default function WasapBotPanel() {
           {tab==='config'&&(
             <div style={{maxWidth:560}}>
               <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:20}}>Configuración</h2>
-              <div style={{...CARD,marginBottom:14}}>
+              <div data-tour="hub-config" style={{...CARD,marginBottom:14}}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>Conexión WhatsApp</div>
                 <Guia visible={!connected&&!guiasVistas['whatsapp_conectado']} texto={d.guias.whatsapp} icono="📱"/>
                 <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
@@ -831,6 +855,22 @@ export default function WasapBotPanel() {
         </div>
       </div>
       <AsesorWasapbot empresa={empresa}/>
+      <TourGuia
+        storageKey={`wasapbot_tour_panel_${id}`}
+        activo={!!empresa}
+        pasos={[
+          { selector:'[data-tour="hub-sidebar"]', titulo:'Tu menú principal', icono:'🧭',
+            texto:'Aquí navegas entre las secciones de tu negocio: Inicio (resumen), '+(d.tabCitas?d.tabCitas+', ':'')+'Conversaciones de WhatsApp, tu '+d.tabCatalogo+' y la Configuración para conectar el bot.' },
+          { selector:'[data-tour="hub-links"]', titulo:'Accesos directos', icono:'🔗',
+            texto:'Atajos a herramientas extra: inventario y reportes de ventas'+(cfg.tieneInventario?', el menú del día':'')+(cfg.tienePedidos?' y los pedidos en tiempo real':'')+'.' },
+          { selector:'[data-tour="hub-catalogo-btn"]', titulo:d.tabCatalogo, icono:'📋', accion:()=>setTab('catalogo'),
+            texto:'Aquí registras tu '+cfg.labelCatalogo.toLowerCase()+': nombre, '+cfg.labelPrecio.toLowerCase()+' y descripción de cada '+cfg.labelItem.toLowerCase()+'. El bot usa esta información para responder a tus clientes — empieza por aquí si aún no tienes nada cargado.' },
+          { selector:'[data-tour="hub-config"]', titulo:'Conecta tu WhatsApp', icono:'📱', accion:()=>setTab('config'),
+            texto:'Escanea el código QR o usa el código por número para conectar el WhatsApp de tu negocio. En cuanto quede conectado, tu bot empieza a responder automaticamente a tus clientes.' },
+          { selector:'[data-tour="hub-stats"]', titulo:'Tu actividad', icono:'📊', accion:()=>setTab('inicio'),
+            texto:'Aquí ves cuántas conversaciones, citas y contactos genera tu bot cada día — y más abajo, cuánto plan te queda disponible.' },
+        ]}
+      />
     </>
   );
 }

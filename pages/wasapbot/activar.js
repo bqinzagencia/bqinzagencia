@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { INDUSTRIAS_WB, getConfigIndustria } from '../../lib/wasapbotConfig';
-import { auth } from '../../lib/firebase';
+import { auth, loginWithGoogle } from '../../lib/firebase';
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
@@ -63,6 +63,27 @@ function IndIcon({ id, color, size = 22 }) {
   return icons[id] || icons.otro;
 }
 
+// Dominios que no aceptamos en el correo de contacto (temporales, de prueba, etc.)
+const DOMINIOS_FALSOS = [
+  'tucorreo.com', 'correo.com', 'email.com', 'test.com', 'prueba.com',
+  'ejemplo.com', 'example.com', 'fake.com', 'nomail.com', 'noemail.com',
+  'sinmail.com', 'temporal.com', 'temp.com', 'mimail.com', 'micorreo.com',
+  'tuemail.com', 'miemail.com', 'correofalso.com', 'mailinator.com',
+  'guerrillamail.com', 'throwaway.email', 'yopmail.com', 'trashmail.com',
+  'tempmail.com', 'sharklasers.com', 'spam4.me', 'dispostable.com',
+];
+
+// Valida formato + dominios falsos. Devuelve el mensaje de error o null si esta OK.
+function validarEmailFormato(email) {
+  const e = (email || '').trim();
+  if (!e) return 'Escribe tu correo electronico';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!emailRegex.test(e)) return 'El correo no tiene un formato válido. Ej: tunombre@gmail.com';
+  const dominio = e.split('@')[1]?.toLowerCase();
+  if (DOMINIOS_FALSOS.includes(dominio)) return 'Por favor usa un correo real (Gmail, Outlook, tu empresa, etc.). Necesitamos poder contactarte.';
+  return null;
+}
+
 export default function WasapBotActivar() {
   const [step, setStep]              = useState(1);
   const [loading, setLoading]        = useState(false);
@@ -91,6 +112,16 @@ export default function WasapBotActivar() {
   const [telefonoCodigo, setTelefonoCodigo] = useState('');
   const [codigoBot, setCodigoBot]           = useState('');
   const [solicitandoCodigo, setSolicitandoCodigo] = useState(false);
+  const [codigoCopiado, setCodigoCopiado]   = useState(false);
+
+  // Verificacion de correo (Google o codigo de 6 digitos)
+  const [emailVerificado, setEmailVerificado] = useState(false);
+  const [verificadoVia, setVerificadoVia]     = useState(''); // '' | 'google' | 'codigo'
+  const [gLoading, setGLoading]               = useState(false);
+  const [codigoEnviado, setCodigoEnviado]     = useState(false);
+  const [enviandoCodigo, setEnviandoCodigo]   = useState(false);
+  const [codigoEmail, setCodigoEmail]         = useState('');
+  const [verificandoCodigo, setVerificandoCodigo] = useState(false);
 
   const cfg    = industria ? getConfigIndustria(industria) : null;
   const ph     = cfg?.placeholders || {};
@@ -131,30 +162,77 @@ export default function WasapBotActivar() {
     } catch { setItems(p=>p.map((it,i)=>i===idx?{...it,subiendo:false}:it)); }
   };
 
+  // ── Verificacion de correo: Google ──
+  const conectarConGoogle = async () => {
+    setError(''); setGLoading(true);
+    try {
+      const result = await loginWithGoogle();
+      setEmail(result.user.email || '');
+      setEmailVerificado(true);
+      setVerificadoVia('google');
+      setCodigoEnviado(false); setCodigoEmail('');
+    } catch (e) {
+      if (e.code !== 'auth/popup-closed-by-user') {
+        setError('No se pudo conectar con Google. Intenta de nuevo o usa tu correo.');
+      }
+    } finally { setGLoading(false); }
+  };
+
+  // Si el usuario cambia el correo, se pierde cualquier verificacion previa
+  const handleEmailChange = (val) => {
+    setEmail(val);
+    if (emailVerificado || codigoEnviado) {
+      setEmailVerificado(false); setVerificadoVia('');
+      setCodigoEnviado(false); setCodigoEmail('');
+    }
+  };
+
+  const usarOtroCorreo = () => {
+    setEmailVerificado(false); setVerificadoVia(''); setEmail('');
+    setCodigoEnviado(false); setCodigoEmail(''); setError('');
+  };
+
+  // ── Verificacion de correo: codigo de 6 digitos por correo manual ──
+  const enviarCodigoVerificacion = async () => {
+    const err = validarEmailFormato(email);
+    if (err) { setError(err); return; }
+    setError(''); setEnviandoCodigo(true);
+    try {
+      const r = await fetch('/api/wasapbot-enviar-codigo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'No se pudo enviar el código');
+      setCodigoEnviado(true); setCodigoEmail('');
+    } catch (e) { setError(e.message); }
+    finally { setEnviandoCodigo(false); }
+  };
+
+  const verificarCodigoEmail = async () => {
+    if (codigoEmail.trim().length !== 6) { setError('Escribe el código de 6 dígitos que enviamos a tu correo'); return; }
+    setError(''); setVerificandoCodigo(true);
+    try {
+      const r = await fetch('/api/wasapbot-verificar-codigo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), codigo: codigoEmail.trim() }),
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'Código incorrecto');
+      setEmailVerificado(true); setVerificadoVia('codigo');
+    } catch (e) { setError(e.message); }
+    finally { setVerificandoCodigo(false); }
+  };
+
   const crearEmpresa = async () => {
     if (!nombre.trim()) { setError('Escribe el nombre de tu negocio'); return; }
     if (!industria)     { setError('Selecciona el tipo de negocio'); return; }
-    if (!email.trim())  { setError('Escribe tu correo electronico'); return; }
 
-    // Validar formato de correo
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    if (!emailRegex.test(email.trim())) {
-      setError('El correo no tiene un formato válido. Ej: tunombre@gmail.com');
-      return;
-    }
+    const errEmail = validarEmailFormato(email);
+    if (errEmail) { setError(errEmail); return; }
 
-    // Bloquear dominios falsos o de prueba
-    const dominiosFalsos = [
-      'tucorreo.com', 'correo.com', 'email.com', 'test.com', 'prueba.com',
-      'ejemplo.com', 'example.com', 'fake.com', 'nomail.com', 'noemail.com',
-      'sinmail.com', 'temporal.com', 'temp.com', 'mimail.com', 'micorreo.com',
-      'tuemail.com', 'miemail.com', 'correofalso.com', 'mailinator.com',
-      'guerrillamail.com', 'throwaway.email', 'yopmail.com', 'trashmail.com',
-      'tempmail.com', 'sharklasers.com', 'spam4.me', 'dispostable.com',
-    ];
-    const dominio = email.trim().split('@')[1]?.toLowerCase();
-    if (dominiosFalsos.includes(dominio)) {
-      setError('Por favor usa un correo real (Gmail, Outlook, tu empresa, etc.). Necesitamos poder contactarte.');
+    if (!emailVerificado) {
+      setError('Verifica tu correo electrónico para continuar (con Google o con el código que te enviamos).');
       return;
     }
 
@@ -254,6 +332,22 @@ export default function WasapBotActivar() {
     check();
   };
 
+  const copiarCodigoBot = () => {
+    if (!codigoBot) return;
+    const hacerCopia = () => { setCodigoCopiado(true); setTimeout(()=>setCodigoCopiado(false),2000); };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(codigoBot).then(hacerCopia).catch(()=>{});
+    } else {
+      try{
+        const ta=document.createElement('textarea');
+        ta.value=codigoBot; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        hacerCopia();
+      }catch{}
+    }
+  };
+
   const pct = ((step-1)/3)*100;
 
   return (
@@ -277,6 +371,7 @@ export default function WasapBotActivar() {
         .bmain:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
         .bsec{background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 20px;font-family:${F};font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:8px}
         .bsec:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.75)}
+        .g-btn:hover:not(:disabled){background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.16)!important}
         .bdash{width:100%;background:none;border:1.5px dashed rgba(255,255,255,.1);border-radius:12px;padding:13px;font-family:${F};font-size:13px;color:rgba(255,255,255,.3);cursor:pointer;transition:all .18s}
         .bdash:hover{border-color:rgba(37,211,102,.4);color:rgba(37,211,102,.8);background:rgba(37,211,102,.03)}
         .cpill{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:99px;padding:5px 14px;font-family:${F};font-size:11px;font-weight:600;color:rgba(255,255,255,.35);cursor:pointer;transition:all .18s;white-space:nowrap}
@@ -307,10 +402,15 @@ export default function WasapBotActivar() {
             <span style={{color:'#25D366',fontSize:11,fontFamily:F,fontWeight:700,background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.2)',padding:'3px 10px',borderRadius:99}}>WasapBot</span>
           </span>
         </Link>
-        <Link href="/wasapbot" style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.3)',display:'flex',alignItems:'center',gap:5}}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
-          Volver
-        </Link>
+        <div style={{display:'flex',alignItems:'center',gap:18}}>
+          <Link href="/wasapbot/login" style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.4)',fontWeight:600}}>
+            Ingresar
+          </Link>
+          <Link href="/wasapbot" style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.3)',display:'flex',alignItems:'center',gap:5}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
+            Volver
+          </Link>
+        </div>
       </nav>
 
       {/* PROGRESS BAR */}
@@ -437,20 +537,84 @@ export default function WasapBotActivar() {
 
             <div style={CARD}>
               <label style={LBL}>Correo electronico *</label>
-              <div style={{position:'relative'}}>
-                <svg style={{position:'absolute',left:16,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" strokeWidth="2" strokeLinecap="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-                </svg>
-                <input className="wi" style={{...INP,paddingLeft:46}} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tucorreo@gmail.com"/>
-              </div>
+
+              {emailVerificado ? (
+                <div style={{display:'flex',alignItems:'center',gap:12,background:'rgba(37,211,102,.07)',border:'1px solid rgba(37,211,102,.22)',borderRadius:12,padding:'13px 16px'}}>
+                  <div style={{width:30,height:30,borderRadius:9,background:'rgba(37,211,102,.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{email}</div>
+                    <div style={{fontFamily:F,fontSize:11,color:'rgba(37,211,102,.75)',marginTop:1}}>
+                      Correo verificado{verificadoVia==='google'?' con Google':''}
+                    </div>
+                  </div>
+                  <button onClick={usarOtroCorreo} style={{background:'none',border:'none',fontFamily:F,fontSize:11,color:'rgba(255,255,255,.3)',cursor:'pointer',whiteSpace:'nowrap'}}>Cambiar</button>
+                </div>
+              ) : (
+                <>
+                  <button className="g-btn" onClick={conectarConGoogle} disabled={gLoading} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,width:'100%',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.09)',borderRadius:12,padding:'13px 18px',cursor:'pointer',color:'#EFF4FF',fontFamily:F,fontSize:13,fontWeight:600,marginBottom:14,transition:'all .18s',opacity:gLoading?.6:1}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" style={{flexShrink:0}}>
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    {gLoading?'Conectando...':'Verificar con Google'}
+                  </button>
+
+                  <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+                    <div style={{flex:1,height:1,background:'rgba(255,255,255,.06)'}}/>
+                    <span style={{fontFamily:F,fontSize:10,color:'rgba(255,255,255,.2)',letterSpacing:1,textTransform:'uppercase'}}>o escribe tu correo</span>
+                    <div style={{flex:1,height:1,background:'rgba(255,255,255,.06)'}}/>
+                  </div>
+
+                  <div style={{position:'relative'}}>
+                    <svg style={{position:'absolute',left:16,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" strokeWidth="2" strokeLinecap="round">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <input className="wi" style={{...INP,paddingLeft:46}} type="email" value={email} onChange={e=>handleEmailChange(e.target.value)} placeholder="tucorreo@gmail.com"/>
+                  </div>
+
+                  {!codigoEnviado ? (
+                    <button className="bdash" style={{marginTop:12}} onClick={enviarCodigoVerificacion} disabled={enviandoCodigo || !email.trim()}>
+                      {enviandoCodigo?'Enviando código...':'Enviar código de verificación a este correo'}
+                    </button>
+                  ) : (
+                    <div style={{marginTop:14,background:'rgba(255,255,255,.025)',border:'1px solid rgba(255,255,255,.07)',borderRadius:12,padding:16}}>
+                      <p style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.4)',margin:'0 0 12px',lineHeight:1.6}}>
+                        Te enviamos un código de 6 dígitos a <strong style={{color:'#EFF4FF'}}>{email}</strong>. Escríbelo abajo para verificar tu correo.
+                      </p>
+                      <div style={{display:'flex',gap:10}}>
+                        <input className="wi" style={{...INP,letterSpacing:6,fontWeight:700,textAlign:'center',flex:1}} value={codigoEmail}
+                          onChange={e=>setCodigoEmail(e.target.value.replace(/\D/g,'').slice(0,6))}
+                          placeholder="000000" maxLength={6} inputMode="numeric"/>
+                        <button className="bmain" style={{width:'auto',padding:'0 22px'}} onClick={verificarCodigoEmail} disabled={verificandoCodigo || codigoEmail.trim().length!==6}>
+                          {verificandoCodigo?'Verificando...':'Verificar'}
+                        </button>
+                      </div>
+                      <button onClick={enviarCodigoVerificacion} disabled={enviandoCodigo}
+                        style={{background:'none',border:'none',fontFamily:F,fontSize:11,color:'rgba(255,255,255,.25)',cursor:'pointer',marginTop:10,textDecoration:'underline'}}>
+                        {enviandoCodigo?'Enviando...':'Reenviar código'}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+
               <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',margin:'10px 0 0',fontWeight:300}}>Recibiras resumenes diarios y alertas de citas agendadas.</p>
             </div>
 
-            <button className="bmain" onClick={crearEmpresa} disabled={loading}>
+            <button className="bmain" onClick={crearEmpresa} disabled={loading || !emailVerificado}>
               {loading
                 ?<><span style={{width:17,height:17,border:'2.5px solid rgba(255,255,255,.3)',borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite',display:'inline-block',flexShrink:0}}/>Creando tu agente...</>
                 :<>Crear mi WasapBot →<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg></>}
             </button>
+            {!emailVerificado&&(
+              <p style={{textAlign:'center',fontFamily:F,fontSize:12,color:'rgba(255,255,255,.25)',marginTop:10}}>
+                Verifica tu correo arriba (con Google o con el código) para continuar
+              </p>
+            )}
           </div>
         )}
 
@@ -766,9 +930,13 @@ export default function WasapBotActivar() {
                         ))}
                       </div>
 
-                      <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',fontWeight:300}}>
+                      <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',fontWeight:300,marginBottom:14}}>
                         Este codigo expira en 60 segundos
                       </div>
+
+                      <button onClick={copiarCodigoBot} style={{display:'inline-flex',alignItems:'center',gap:7,background:codigoCopiado?'rgba(37,211,102,.12)':'rgba(255,255,255,.04)',color:codigoCopiado?'#25D366':'rgba(255,255,255,.5)',border:'1px solid '+(codigoCopiado?'rgba(37,211,102,.35)':'rgba(255,255,255,.08)'),borderRadius:9,padding:'9px 18px',fontFamily:F,fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        {codigoCopiado?(<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg> Copiado</>):(<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar código</>)}
+                      </button>
                     </div>
 
                     {/* Instrucciones */}
