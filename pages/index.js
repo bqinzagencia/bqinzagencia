@@ -891,3 +891,11 @@ export default function Landing() {
     </>
   );
 }
+
+export function Logo({ size = 20 }) {
+  return (
+    <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: size + 2, color: '#E8E8E8' }}>
+      agenc<span style={{ color: '#FF6B00', fontSize: size + 5 }}>IA</span>me
+    </div>
+  );
+}
