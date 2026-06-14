@@ -176,8 +176,8 @@ export default function Conocimiento() {
                   <input className="form-input" placeholder="Ej: Corte de cabello" value={sv.nombre} onChange={e => updateServicio(i, 'nombre', e.target.value)} />
                 </div>
                 <div>
-                  <span style={label}>Precio (COP)</span>
-                  <input className="form-input" placeholder="25000" value={sv.precio} onChange={e => updateServicio(i, 'precio', e.target.value)} />
+                  <span style={label}>Precio (€)</span>
+                  <input className="form-input" placeholder="25" value={sv.precio} onChange={e => updateServicio(i, 'precio', e.target.value)} />
                 </div>
                 <div>
                   <span style={label}>Duracion (min)</span>

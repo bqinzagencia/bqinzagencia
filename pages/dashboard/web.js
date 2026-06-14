@@ -170,7 +170,6 @@ export default function Web() {
         titular:       toStr(empresa.webTitular),
         descripcion:   toStr(empresa.webDescripcion),
         horario:       toStr(empresa.horario) || 'Lunes–Sábado 9:00–20:00h',
-        // ── FIX: empresa.whatsapp es el objeto Baileys. Usamos webWhatsapp para el contacto ──
         whatsappContacto: toStr(empresa.webWhatsapp) || toStr(empresa.telefono),
         instagram:     toStr(empresa.instagram),
         servicios:     Array.isArray(empresa.webServicios) ? empresa.webServicios : [],
