@@ -34,16 +34,36 @@ const PLANES = [
   { name: 'Pro', price: '690.000', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado', 'Múltiples agentes IA', 'Gestor dedicado'], cta: 'Hablar con ventas', popular: false },
 ];
 
+// ── Iconos de línea (sin emojis tipo caricatura) ─────────────────────────────
+function PopupIcon({ type, color = '#25D366', size = 14 }) {
+  const p = { fill: 'none', stroke: color, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const icons = {
+    bot:       <svg width={size} height={size} viewBox="0 0 24 24" {...p}><rect x="3" y="11" width="18" height="9" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>,
+    calendar:  <svg width={size} height={size} viewBox="0 0 24 24" {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+    clipboard: <svg width={size} height={size} viewBox="0 0 24 24" {...p}><rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 2h6v3H9z"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg>,
+    box:       <svg width={size} height={size} viewBox="0 0 24 24" {...p}><path d="M21 8 12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="21"/></svg>,
+    cart:      <svg width={size} height={size} viewBox="0 0 24 24" {...p}><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M2 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L22 6H5"/></svg>,
+    chart:     <svg width={size} height={size} viewBox="0 0 24 24" {...p}><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="6"/><rect x="11" y="8" width="3" height="10"/><rect x="16" y="4" width="3" height="14"/></svg>,
+    bell:      <svg width={size} height={size} viewBox="0 0 24 24" {...p}><path d="M6 8a6 6 0 1 1 12 0c0 4 1.5 6 1.5 6H4.5S6 12 6 8z"/><path d="M9.5 18a2.5 2.5 0 0 0 5 0"/></svg>,
+    megaphone: <svg width={size} height={size} viewBox="0 0 24 24" {...p}><path d="M3 11v2a1 1 0 0 0 1 1h2l9 5V5L6 10H4a1 1 0 0 0-1 1z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>,
+    globe:     <svg width={size} height={size} viewBox="0 0 24 24" {...p}><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg>,
+    briefcase: <svg width={size} height={size} viewBox="0 0 24 24" {...p}><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+  };
+  return icons[type] || icons.bot;
+}
+
 // ── Popup de bienvenida ──────────────────────────────────────────────────────
 const POPUP_ITEMS = [
-  { icon: '🤖', t: 'Bot WhatsApp que responde 24/7 con IA' },
-  { icon: '📅', t: 'Agenda citas automáticamente' },
-  { icon: '📋', t: 'Catálogo con fotos, precios y descripciones' },
-  { icon: '📦', t: 'Inventario y control de stock en tiempo real' },
-  { icon: '🛒', t: 'Pedidos por WhatsApp con confirmación automática' },
-  { icon: '📊', t: 'Reportes diarios de ventas y actividad' },
-  { icon: '🔔', t: 'Alertas de stock mínimo por email' },
-  { icon: '📣', t: 'Broadcasts masivos a todos tus clientes' },
+  { type: 'bot',       t: 'Bot WhatsApp que responde 24/7 con IA' },
+  { type: 'calendar',  t: 'Agenda citas automáticamente' },
+  { type: 'clipboard', t: 'Catálogo con fotos, precios y descripciones' },
+  { type: 'box',       t: 'Inventario y control de stock en tiempo real' },
+  { type: 'cart',      t: 'Pedidos por WhatsApp con confirmación automática' },
+  { type: 'chart',     t: 'Reportes diarios de ventas y actividad' },
+  { type: 'bell',      t: 'Alertas de stock mínimo por email' },
+  { type: 'megaphone', t: 'Broadcasts masivos a todos tus clientes' },
+  { type: 'globe',     t: 'Página web profesional incluida (Plan Pro)' },
+  { type: 'briefcase', t: 'CRM inteligente de clientes (Plan Pro)' },
 ];
 
 function PopupBienvenida({ onClose }) {
@@ -82,7 +102,9 @@ function PopupBienvenida({ onClose }) {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(10,13,18,0.9) 100%)' }}/>
           {/* Badge WasapBot sobre el video */}
           <div style={{ position: 'absolute', bottom: 14, left: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🤖</div>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PopupIcon type="bot" size={16}/>
+            </div>
             <div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: '#25D366' }}>WasapBot · agencIAme</div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, color: 'rgba(255,255,255,0.4)', marginTop: 1 }}>● En línea · Responde al instante</div>
@@ -125,7 +147,9 @@ function PopupBienvenida({ onClose }) {
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: 10, padding: '9px 10px',
             }}>
-              <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
+              <div style={{ width: 22, height: 22, borderRadius: 7, background: 'rgba(37,211,102,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 0 }}>
+                <PopupIcon type={item.type}/>
+              </div>
               <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.45, fontWeight: 400 }}>{item.t}</span>
             </div>
           ))}
@@ -238,6 +262,8 @@ export default function Landing() {
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         @keyframes pulseWA { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)} 70%{box-shadow:0 0 0 10px rgba(37,211,102,0)} }
 
+        .planes-swipe-hint { display: none; }
+
         /* ─── MOBILE ─────────────────────────────────────────────────── */
         @media (max-width: 768px) {
           .lnd-nav { padding: 0 20px !important; height: 58px !important; }
@@ -287,6 +313,32 @@ export default function Landing() {
 
           /* WASAPBOT SECTION — visible en móvil sin scroll cuando cierra popup */
           .wasapbot-hero-mobile { display: flex !important; }
+
+          /* Carrusel de planes deslizable (id tiene mayor especificidad que el selector de arriba) */
+          .planes-swipe-hint { display: flex !important; }
+          #planes-scroll-mobile {
+            display: flex !important;
+            grid-template-columns: unset !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            scroll-snap-type: x mandatory !important;
+            gap: 10px !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            padding-bottom: 6px !important;
+            margin: 0 -22px 0 !important;
+            padding-left: 22px !important;
+            padding-right: 22px !important;
+          }
+          #planes-scroll-mobile::-webkit-scrollbar { display: none; }
+          #planes-scroll-mobile > a {
+            flex: 0 0 82% !important;
+            scroll-snap-align: center !important;
+          }
+          #planes-scroll-mobile > a > div {
+            border-radius: 14px !important;
+            height: 100% !important;
+          }
         }
         @media (max-width: 420px) {
           .lnd-ind-grid { grid-template-columns: 1fr !important; }
@@ -421,14 +473,23 @@ export default function Landing() {
       <section id="wasapbot" style={{ background: '#06090D', borderTop: '1px solid rgba(37,211,102,0.15)', padding: '64px 80px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
-            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(37,211,102,0.1)', border: '2px solid rgba(37,211,102,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, animation: 'pulseWA 2s infinite' }}>🤖</div>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(37,211,102,0.1)', border: '2px solid rgba(37,211,102,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'pulseWA 2s infinite' }}>
+              <PopupIcon type="bot" size={24}/>
+            </div>
             <div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: G, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 4 }}>Producto principal</div>
               <div style={{ fontFamily: "'Abril Fatface',serif", fontSize: 'clamp(28px,5vw,48px)', color: '#F0F0F0', letterSpacing: '-1px', lineHeight: 1 }}>WasapBot</div>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 16, overflow: 'hidden', marginBottom: 32 }}>
+          {/* Hint de swipe — solo móvil */}
+          <div className="planes-swipe-hint" style={{ alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Desliza para ver los 3 planes
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <div id="planes-scroll-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 16, overflow: 'hidden', marginBottom: 32 }}>
             {[
               { plan: 'Básico', precio: '$189K/mes', color: '#25D366', items: ['Bot WhatsApp IA 24/7', 'Catálogo con fotos', 'Agendamiento automático', 'Inventario básico'] },
               { plan: 'Estándar', precio: '$390K/mes', color: '#2563EB', popular: true, items: ['Todo lo del Básico', 'Panel de pedidos', 'Reportes de ventas', 'Broadcasts masivos'] },
