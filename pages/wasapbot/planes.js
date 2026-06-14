@@ -19,6 +19,7 @@ const PLANES = [
     desc:    'Ideal para arrancar',
     features: [
       { ok: true,  t: 'Bot WhatsApp responde con IA 24/7' },
+      { ok: true,  t: 'Libreta de clientes automática' },
       { ok: true,  t: '500 conversaciones / mes' },
       { ok: true,  t: 'Catálogo de productos y servicios' },
       { ok: true,  t: 'Agendamiento de citas automático' },

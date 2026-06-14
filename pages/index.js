@@ -29,9 +29,9 @@ const INDUSTRIES = [
 ];
 
 const PLANES = [
-  { name: 'Básico', price: '189.000', features: ['Bot WhatsApp 24/7', 'Catálogo de productos', 'Agendamiento de citas', 'Inventario básico', 'Notificaciones email'], cta: 'Activar WasapBot', popular: false },
+  { name: 'Básico', price: '189.000', features: ['Bot WhatsApp 24/7', 'Catálogo de productos', 'Libreta de clientes automática', 'Agendamiento de citas', 'Inventario básico', 'Notificaciones email'], cta: 'Activar WasapBot', popular: false },
   { name: 'Estándar', price: '390.000', features: ['Todo lo del Básico', 'Panel de pedidos', 'Inventario avanzado', 'Reportes de ventas', 'Broadcasts masivos', 'Soporte prioritario'], cta: 'Activar WasapBot', popular: true },
-  { name: 'Pro', price: '690.000', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado', 'Múltiples agentes IA', 'Gestor dedicado'], cta: 'Hablar con ventas', popular: false },
+  { name: 'Pro', price: '690.000', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes', 'Múltiples agentes IA', 'Gestor dedicado'], cta: 'Hablar con ventas', popular: false },
 ];
 
 // ── Iconos de línea (sin emojis tipo caricatura) ─────────────────────────────
@@ -58,12 +58,13 @@ const POPUP_ITEMS = [
   { type: 'calendar',  t: 'Agenda citas automáticamente' },
   { type: 'clipboard', t: 'Catálogo con fotos, precios y descripciones' },
   { type: 'box',       t: 'Inventario y control de stock en tiempo real' },
+  { type: 'briefcase', t: 'Libreta de clientes automática' },
   { type: 'cart',      t: 'Pedidos por WhatsApp con confirmación automática' },
   { type: 'chart',     t: 'Reportes diarios de ventas y actividad' },
   { type: 'bell',      t: 'Alertas de stock mínimo por email' },
   { type: 'megaphone', t: 'Broadcasts masivos a todos tus clientes' },
   { type: 'globe',     t: 'Página web profesional incluida (Plan Pro)' },
-  { type: 'briefcase', t: 'CRM inteligente de clientes (Plan Pro)' },
+  { type: 'briefcase', t: 'CRM avanzado de clientes (Plan Pro)' },
 ];
 
 function PopupBienvenida({ onClose }) {
@@ -94,6 +95,7 @@ function PopupBienvenida({ onClose }) {
         @keyframes popIn { from { opacity:0; transform:scale(0.92) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.35; transform:scale(.8); } }
+        @keyframes slideInCard { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
         .popup-box { animation: popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) both; }
         .popup-item { animation: fadeUp 0.3s ease both; }
         .popup-sound-btn:hover { background: rgba(37,211,102,0.2) !important; border-color: rgba(37,211,102,0.5) !important; }
@@ -205,6 +207,27 @@ function PopupBienvenida({ onClose }) {
           <p style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 18, fontWeight: 300 }}>
             Un solo bot en WhatsApp reemplaza horas de trabajo manual. Desde $189.000/mes.
           </p>
+        </div>
+
+        {/* Mini demo — "Libreta de clientes automática" en acción */}
+        <div style={{ padding: '0 22px 14px' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.18)',
+            borderRadius: 12, padding: '10px 12px',
+            animation: 'slideInCard 0.4s 0.3s ease both',
+          }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#25D366' }}>
+              M
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: '#F0F0F0' }}>María · 312 345 6789</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Preguntó por el tinte rubio cenizo</div>
+            </div>
+            <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, fontWeight: 700, color: '#25D366', background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)', borderRadius: 99, padding: '3px 8px', flexShrink: 0, whiteSpace: 'nowrap', animation: 'fadeUp 0.3s 0.7s ease both' }}>
+              ✓ Agregado a tu libreta
+            </span>
+          </div>
         </div>
 
         {/* Items — lo que incluye */}
@@ -561,9 +584,9 @@ export default function Landing() {
 
           <div id="planes-scroll-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 16, overflow: 'hidden', marginBottom: 32 }}>
             {[
-              { plan: 'Básico', precio: '$189K/mes', color: '#25D366', items: ['Bot WhatsApp IA 24/7', 'Catálogo con fotos', 'Agendamiento automático', 'Inventario básico'] },
+              { plan: 'Básico', precio: '$189K/mes', color: '#25D366', items: ['Bot WhatsApp IA 24/7', 'Catálogo con fotos', 'Libreta de clientes automática', 'Agendamiento automático', 'Inventario básico'] },
               { plan: 'Estándar', precio: '$390K/mes', color: '#2563EB', popular: true, items: ['Todo lo del Básico', 'Panel de pedidos', 'Reportes de ventas', 'Broadcasts masivos'] },
-              { plan: 'Pro', precio: '$690K/mes', color: '#A78BFA', items: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado'] },
+              { plan: 'Pro', precio: '$690K/mes', color: '#A78BFA', items: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes'] },
             ].map((p, i) => (
               <Link key={i} href="/wasapbot/activar">
                 <div style={{ background: '#0A0D12', padding: '24px 20px', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}
@@ -866,13 +889,5 @@ export default function Landing() {
         </div>
       </footer>
     </>
-  );
-}
-
-export function Logo({ size = 20 }) {
-  return (
-    <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: size + 2, color: '#E8E8E8' }}>
-      agenc<span style={{ color: '#FF6B00', fontSize: size + 5 }}>IA</span>me
-    </div>
   );
 }
