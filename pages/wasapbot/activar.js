@@ -1,4 +1,4 @@
-// pages/wasapbot/activar.js — v10: paso 3 con QR + codigo por numero
+// pages/wasapbot/activar.js — v11: fix pairing-code (usa /iniciar-pairing, no /sesion/iniciar)
 import { useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -186,17 +186,23 @@ export default function WasapBotActivar() {
   };
 
   // ── Método Código (sin segundo dispositivo) ──
+  // IMPORTANTE: usa /sesion/:id/iniciar-pairing (modo "codigo por numero"),
+  // NO /sesion/iniciar (ese crea el socket en modo QR y WhatsApp nunca
+  // registra la solicitud de vinculacion -> no aparece la casilla en el celular)
   const solicitarCodigo = async () => {
     const tel = telefonoCodigo.replace(/\D/g,'');
-    if (tel.length < 10) { setError('Escribe tu numero de WhatsApp completo con codigo de pais (ej: 573001234567)'); return; }
+    if (tel.length < 11) { setError('Escribe tu numero de WhatsApp completo CON codigo de pais y sin el +. Ej: 573001234567'); return; }
     setError(''); setSolicitandoCodigo(true);
     try {
-      // Primero iniciar sesion
-      await fetch(WA_SERVER+'/sesion/iniciar',{method:'POST',
+      // 1. Crear/reiniciar la sesion en modo "codigo por numero"
+      const ip  = await fetch(WA_SERVER+'/sesion/'+empresaId+'/iniciar-pairing',{
+        method:'POST',
         headers:{'Content-Type':'application/json','x-server-secret':WA_SECRET},
-        body:JSON.stringify({empresaId})});
-      await new Promise(r=>setTimeout(r,2000));
-      // Luego solicitar pairing code
+      });
+      const ipd = await ip.json().catch(()=>({}));
+      if (!ip.ok || !ipd.ok) throw new Error(ipd.error || 'No se pudo iniciar la sesion de vinculacion');
+
+      // 2. Pedir el codigo de 8 digitos para ese numero
       const r = await fetch(WA_SERVER+'/sesion/'+empresaId+'/pairing-code',{
         method:'POST',
         headers:{'Content-Type':'application/json','x-server-secret':WA_SECRET},
@@ -691,16 +697,16 @@ export default function WasapBotActivar() {
                         placeholder="57 300 123 4567"/>
                     </div>
                     <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginBottom:24,fontWeight:300}}>
-                      Incluye el codigo de pais sin el +. Colombia: 57, seguido del numero de 10 digitos.
+                      Incluye el codigo de pais sin el +. Colombia: 57, seguido del numero de 10 digitos. Ej: 573001234567
                     </p>
 
                     {/* Pasos visuales */}
                     <div style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.06)',borderRadius:12,padding:'14px 16px',marginBottom:24}}>
                       <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.35)',textTransform:'uppercase',letterSpacing:1,marginBottom:12}}>Qué va a pasar</div>
                       {[
-                        {n:'1', t:'Presionas el botón y escribimos tu número a WhatsApp', color:'#60A5FA'},
-                        {n:'2', t:'WhatsApp te envía un código de 8 dígitos por mensaje', color:'#60A5FA'},
-                        {n:'3', t:'Lo escribes aquí y tu bot queda conectado', color:'#25D366'},
+                        {n:'1', t:'Presionas el botón y preparamos la vinculacion con tu numero', color:'#60A5FA'},
+                        {n:'2', t:'Te mostramos un codigo de 8 digitos aqui en pantalla', color:'#60A5FA'},
+                        {n:'3', t:'Vas a WhatsApp → Dispositivos vinculados → "Vincular con numero de telefono" y escribes el codigo', color:'#25D366'},
                       ].map((s,i)=>(
                         <div key={i} style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:i<2?10:0}}>
                           <div style={{width:22,height:22,borderRadius:7,background:'rgba('+((s.color==='#25D366')?'37,211,102':'96,165,250')+',.12)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:800,color:s.color,flexShrink:0,marginTop:1}}>{s.n}</div>
@@ -711,8 +717,8 @@ export default function WasapBotActivar() {
 
                     <button className="bmain" onClick={solicitarCodigo} disabled={solicitandoCodigo||!telefonoCodigo.trim()}>
                       {solicitandoCodigo
-                        ?<><span style={{width:17,height:17,border:'2.5px solid rgba(255,255,255,.3)',borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite',display:'inline-block',flexShrink:0}}/>Enviando solicitud...</>
-                        :<>Enviar codigo a mi WhatsApp<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg></>}
+                        ?<><span style={{width:17,height:17,border:'2.5px solid rgba(255,255,255,.3)',borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite',display:'inline-block',flexShrink:0}}/>Preparando vinculacion...</>
+                        :<>Generar codigo de 8 digitos<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg></>}
                     </button>
                   </div>
                 ) : (
@@ -722,7 +728,7 @@ export default function WasapBotActivar() {
                     {/* Codigo en grande */}
                     <div style={{marginBottom:32}}>
                       <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,.4)',marginBottom:16,fontWeight:300}}>
-                        WhatsApp te envio este codigo. Abré WhatsApp y busca el mensaje de <strong style={{color:'#EFF4FF'}}>WhatsApp</strong>:
+                        Este es tu codigo de vinculacion. Ve a <strong style={{color:'#EFF4FF'}}>WhatsApp en tu celular</strong> e ingresalo donde se indica abajo:
                       </div>
 
                       <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:16,flexWrap:'wrap'}}>
@@ -746,10 +752,10 @@ export default function WasapBotActivar() {
                     <div style={{...CARD,textAlign:'left',marginBottom:24}}>
                       <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'rgba(255,255,255,.5)',marginBottom:14,textTransform:'uppercase',letterSpacing:1.2}}>Donde ingresar el codigo</div>
                       {[
-                        'Abre WhatsApp en tu celular',
-                        'Ve a Ajustes → Dispositivos vinculados',
-                        'Toca "Vincular con numero de telefono"',
-                        'Ingresa el codigo de 8 digitos que aparece arriba',
+                        'Abre WhatsApp en el celular del numero que escribiste',
+                        'Ve a Ajustes (⚙️) → Dispositivos vinculados',
+                        'Toca "Vincular un dispositivo" y luego "Vincular con numero de telefono" (abajo del QR)',
+                        'Escribe el mismo numero y luego el codigo de 8 digitos de arriba',
                       ].map((t,i)=>(
                         <div key={i} style={{display:'flex',gap:14,alignItems:'flex-start',marginBottom:i<3?12:0}}>
                           <div style={{width:24,height:24,borderRadius:8,background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366',flexShrink:0,marginTop:1}}>{i+1}</div>
