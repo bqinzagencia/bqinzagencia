@@ -93,6 +93,7 @@ function PopupBienvenida({ onClose }) {
       <style>{`
         @keyframes popIn { from { opacity:0; transform:scale(0.92) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.35; transform:scale(.8); } }
         .popup-box { animation: popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) both; }
         .popup-item { animation: fadeUp 0.3s ease both; }
         .popup-sound-btn:hover { background: rgba(37,211,102,0.2) !important; border-color: rgba(37,211,102,0.5) !important; }
@@ -118,6 +119,41 @@ function PopupBienvenida({ onClose }) {
           </video>
           {/* Overlay gradiente — solo abajo, para que el badge se lea sin oscurecer el video */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(10,13,18,0.9) 100%)', pointerEvents: 'none' }}/>
+
+          {/* Badge "Inventario en vivo" — aprovecha el espacio oscuro IZQUIERDO del video */}
+          <div style={{
+            position: 'absolute', top: 12, left: 12, zIndex: 5,
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)',
+            borderRadius: 99, padding: '4px 9px',
+          }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#25D366', flexShrink: 0, animation: 'pulseDot 1.6s ease infinite' }}/>
+            <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, fontWeight: 700, color: '#25D366', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
+              Inventario en vivo
+            </span>
+          </div>
+
+          {/* Mini-chat "¿Cómo va el inventario?" — aprovecha el espacio oscuro DERECHO del video */}
+          <div style={{
+            position: 'absolute', top: 40, right: 8, maxWidth: 102, zIndex: 5,
+            display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end',
+          }}>
+            <div style={{
+              background: 'rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.85)',
+              borderRadius: '10px 10px 10px 3px', padding: '5px 9px',
+              fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, lineHeight: 1.3, fontWeight: 500,
+            }}>
+              ¿Cómo va el inventario?
+            </div>
+            <div style={{
+              background: '#25D366', color: '#06140C',
+              borderRadius: '10px 10px 3px 10px', padding: '5px 9px',
+              fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, lineHeight: 1.35, fontWeight: 700, textAlign: 'right',
+            }}>
+              📦 8 unidades<br/>⚠️ 3 con stock bajo
+            </div>
+          </div>
+
           {/* Badge WasapBot sobre el video */}
           <div style={{ position: 'absolute', bottom: 10, left: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
