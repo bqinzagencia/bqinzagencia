@@ -1,5 +1,6 @@
 // pages/api/whatsapp-baileys.js
 // Flujo completo: chat + pedidos + inventario del día + filtro anti-charlatanes
+// + resumen del dia para el dueño (numero telefonoDueno en doc empresas/{id})
 import { db as adminDb } from '../../lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import OpenAI from 'openai';
@@ -27,6 +28,9 @@ const CONFIRMA_RE   = /\b(si|sí|confirmar|confirmo|correcto|listo|dale|va|ok|en
 const CANCELA_RE    = /\b(cancelar|cancela|olvidalo|olvídalo|salir|no gracias)\b/i;
 const VER_PEDIDO_RE = /\b(ver (mi )?pedido|resumen|total|cuanto (es|sale|vale|cuesta)|mi pedido|que llevo|que tengo)\b/i;
 
+// Frases del DUEÑO para pedir el resumen del día (no consumen tokens de IA)
+const RESUMEN_RE = /\b(resumen (del|de) (d[ií]a|hoy)|c[oó]mo va(n)? (el negocio|las ventas|el inventario|hoy)|reporte (del )?d[ií]a|c[uú]anto (vend[ií]|llevamos|hemos vendido)|ventas de hoy)\b/i;
+
 async function getMenuDisponible(empresaId) {
   const diaKey = hoyKey();
   try {
@@ -42,6 +46,75 @@ async function getMenuDisponible(empresaId) {
     return { items, tieneInventario: false, diaKey };
   } catch {}
   return { items: [], tieneInventario: false, diaKey };
+}
+
+// ── Resumen del día para el dueño ─────────────────────────────
+// Devuelve { inicio, fin } como Date en UTC correspondientes a las
+// 00:00 y 24:00 de "hoy" en horario de Bogotá (UTC-5 fijo, sin horario de verano).
+function inicioFinDiaBogota() {
+  const ahoraCol = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  const y = ahoraCol.getFullYear(), m = ahoraCol.getMonth(), d = ahoraCol.getDate();
+  const inicio = new Date(Date.UTC(y, m, d, 5, 0, 0));     // 00:00 Bogotá = 05:00 UTC
+  const fin    = new Date(Date.UTC(y, m, d + 1, 5, 0, 0)); // 00:00 Bogotá del día siguiente
+  return { inicio, fin };
+}
+
+async function generarResumenDia(empresaId, nombreEmpresa, diaKey) {
+  const { inicio, fin } = inicioFinDiaBogota();
+
+  // 1. Ventas / pedidos de hoy
+  let totalVentas = 0, numPedidos = 0;
+  try {
+    const pedidosSnap = await adminDb.collection('empresas').doc(empresaId).collection('pedidos')
+      .where('creadoEn', '>=', inicio).where('creadoEn', '<', fin).get();
+    for (const doc of pedidosSnap.docs) {
+      const p = doc.data();
+      if (p.estado === 'cancelado') continue;
+      totalVentas += Number(p.total || 0);
+      numPedidos++;
+    }
+  } catch (e) { console.error('generarResumenDia pedidos:', e.message); }
+
+  // 2. Citas agendadas para hoy
+  let numCitas = 0;
+  try {
+    const citasSnap = await adminDb.collection('empresas').doc(empresaId).collection('citas')
+      .where('fechaHora', '>=', inicio).where('fechaHora', '<', fin).get();
+    for (const doc of citasSnap.docs) {
+      const c = doc.data();
+      if (['pendiente','confirmada','completada'].includes(c.estado)) numCitas++;
+    }
+  } catch (e) { console.error('generarResumenDia citas:', e.message); }
+
+  // 3. Stock bajo (solo si el negocio maneja inventario diario)
+  let stockBajo = [];
+  try {
+    const menuSnap = await adminDb.collection('empresas').doc(empresaId).collection('menuDia').doc(diaKey).get();
+    if (menuSnap.exists) {
+      stockBajo = (menuSnap.data().items || [])
+        .filter(it => typeof it.stockActual === 'number' && it.stockActual <= 3 && it.activo !== false);
+    }
+  } catch (e) { console.error('generarResumenDia stock:', e.message); }
+
+  let txt = `📊 *Resumen de hoy — ${nombreEmpresa}*\n\n`;
+
+  if (numPedidos > 0) {
+    txt += `💰 Ventas: $${fmtP(totalVentas)} COP en ${numPedidos} pedido${numPedidos===1?'':'s'}.\n`;
+  } else {
+    txt += `💰 Aún no hay pedidos registrados hoy.\n`;
+  }
+
+  if (numCitas > 0) {
+    txt += `📅 Citas agendadas para hoy: ${numCitas}.\n`;
+  }
+
+  if (stockBajo.length > 0) {
+    txt += `\n⚠️ *Stock bajo:*\n` + stockBajo.map(it => `• ${it.nombre} — quedan ${it.stockActual}`).join('\n');
+  } else {
+    txt += `\n✅ Sin alertas de stock bajo.`;
+  }
+
+  return txt;
 }
 
 async function descontarInventario(empresaId, pedidoItems, diaKey) {
@@ -151,6 +224,17 @@ export default async function handler(req, res) {
         }
       } catch {}
       return res.json({ respuesta: respConfig, imagenes: [] });
+    }
+
+    // ── 2.5. Resumen del día para el DUEÑO ───────────────────
+    // Si quien escribe es el numero registrado en empresa.telefonoDueno
+    // y el mensaje pide un resumen, respondemos con datos reales de
+    // Firestore sin pasar por GPT (no consume tokens).
+    const telefonoDueno = String(empresa.telefonoDueno || '').replace(/\D/g, '');
+    const numeroLimpio  = String(numeroCliente || '').replace(/\D/g, '');
+    if (telefonoDueno && numeroLimpio === telefonoDueno && RESUMEN_RE.test(texto)) {
+      const resumenTxt = await generarResumenDia(empresaId, nombreEmpresa, hoyKey());
+      return res.json({ respuesta: resumenTxt, imagenes: [] });
     }
 
     // ── 3. Menú disponible ───────────────────────────────────
