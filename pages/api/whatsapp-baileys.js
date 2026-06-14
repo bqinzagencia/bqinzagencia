@@ -22,12 +22,8 @@ export default async function handler(req, res) {
     if (!empresaSnap.exists) return res.status(404).json({ error: 'Empresa no encontrada' });
     const empresa = empresaSnap.data();
 
-    // Solo bloquear si la cuenta esta bloqueada explicitamente
-    if (empresa.estado === 'bloqueado') {
-      return res.json({ respuesta: null });
-    }
+    if (empresa.estado === 'bloqueado') return res.json({ respuesta: null });
 
-    // Verificar trial
     if (empresa.trialHasta) {
       const hasta = empresa.trialHasta?.toDate ? empresa.trialHasta.toDate() : new Date(empresa.trialHasta);
       if (new Date() > hasta) {
@@ -50,18 +46,15 @@ export default async function handler(req, res) {
 
     if (contactoQuery.empty) {
       const nuevoContacto = await contactosRef.add({
-        telefono: numeroCliente,
-        nombre: numeroCliente,
-        canal: 'whatsapp',
-        fuente: 'whatsapp-baileys',
-        estado: 'nuevo',
-        creadoEn: FieldValue.serverTimestamp(),
+        telefono: numeroCliente, nombre: numeroCliente,
+        canal: 'whatsapp', fuente: 'whatsapp-baileys',
+        estado: 'nuevo', creadoEn: FieldValue.serverTimestamp(),
       });
       contactoId = nuevoContacto.id;
     } else {
-      const doc = contactoQuery.docs[0];
-      contactoId = doc.id;
-      nombreCliente = doc.data().nombre || numeroCliente;
+      const docSnap = contactoQuery.docs[0];
+      contactoId = docSnap.id;
+      nombreCliente = docSnap.data().nombre || numeroCliente;
     }
 
     const historialKey = `${empresaId}_${numeroCliente}`;
@@ -70,17 +63,35 @@ export default async function handler(req, res) {
     historial.push({ role: 'user', content: texto });
     if (historial.length > 8) historial.splice(0, historial.length - 8);
 
-    let systemPrompt = `Eres el asistente virtual de ${empresa.nombreEmpresa}, negocio de ${empresa.industria || 'servicios'} en ${empresa.ciudad || 'Espana'}.
+    // Verificar si tiene base de conocimiento configurada
+    const tieneConocimiento = conocimiento && (
+      conocimiento.servicios?.some(s => s.nombre) ||
+      conocimiento.info?.descripcionNegocio
+    );
+
+    let systemPrompt;
+
+    if (!tieneConocimiento) {
+      // Sin base de conocimiento: respuesta generica sin inventar nada
+      systemPrompt = `Eres el asistente virtual de ${empresa.nombreEmpresa}.
+Atendes por WhatsApp. El negocio aun no ha configurado su informacion.
+INSTRUCCIONES:
+- Saluda amablemente mencionando el nombre del negocio: ${empresa.nombreEmpresa}
+- NO inventes servicios, precios ni informacion del negocio
+- Indica que pronto un agente les dara toda la informacion
+- Se muy breve, amable y profesional
+- Idioma: espanol`;
+    } else {
+      systemPrompt = `Eres el asistente virtual de ${empresa.nombreEmpresa}, negocio de ${empresa.industria || 'servicios'} en ${empresa.ciudad || 'Espana'}.
 Atendes por WhatsApp al cliente ${nombreCliente}.
 INSTRUCCIONES:
 - Responde de forma amigable, profesional y concisa (maximo 3 parrafos)
 - Usa emojis con moderacion
-- Si quiere agendar, pide nombre, servicio y horario
+- Si quiere agendar, pide nombre, servicio y horario preferido
 - Da precios exactos si los tienes
-- No inventes informacion
+- NO inventes informacion que no este en la base de conocimiento
 - Idioma: espanol`;
 
-    if (conocimiento) {
       if (conocimiento.servicios?.length > 0) {
         const svcs = conocimiento.servicios.filter(s => s.nombre)
           .map(s => `- ${s.nombre}${s.precio ? ': ' + s.precio + 'EUR' : ''}${s.duracion ? ' (' + s.duracion + ' min)' : ''}${s.descripcion ? ' - ' + s.descripcion : ''}`)
