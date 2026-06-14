@@ -8,14 +8,14 @@ const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
 
 const INDUSTRIAS = [
-  { value:'restaurante', label:'Restaurante',    emoji:'🍽️', msg:['Hola, cual es el menu de hoy?','Hoy tenemos Bandeja paisa $22.000, Sancocho $18.000 y Cazuela de mariscos $28.000. Te hago el pedido ahora?'] },
-  { value:'barbero',     label:'Barbería',       emoji:'💈', msg:['Quiero reservar turno para manana','Manana tenemos disponible 9am, 11am y 3pm. Cual prefieres y con que barbero?'] },
-  { value:'taller',      label:'Taller',         emoji:'🔧', msg:['Cuanto cuesta el mantenimiento?','Cambio de aceite + filtro desde $45.000. Agendamos revision para hoy?'] },
-  { value:'veterinaria', label:'Veterinaria',    emoji:'🐾', msg:['Necesito vacunar a mi perro','Con gusto. Que raza y edad tiene? Te indico el paquete de vacunas y el precio.'] },
-  { value:'peluqueria',  label:'Peluquería',     emoji:'✂️', msg:['Tienen cita para tinte?','Claro! Tenemos disponible hoy a las 3pm y manana en la manana. Cual prefieres?'] },
-  { value:'contador',    label:'Contaduría',     emoji:'📊', msg:['Necesito declaracion de renta','Con gusto te ayudo. Eres persona natural o juridica? Cuales son tus ingresos anuales?'] },
-  { value:'reposteria',  label:'Repostería',     emoji:'🎂', msg:['Quiero pedir una torta para el sabado','Para cuantas personas y que sabor? Te cotizo de inmediato con fotos de disenos.'] },
-  { value:'fotografia',  label:'Fotografía',     emoji:'📷', msg:['Cuanto vale la fotografia de boda?','Paquetes desde $2.800.000. Incluye 2 fotografos, 8 horas y 300 fotos editadas. Cuando es tu boda?'] },
+  { value:'restaurante', label:'Restaurante',    emoji:'🍽️', msg:['¿Cómo va el negocio hoy?','Hoy vendiste $340.000 en 14 pedidos. Bandeja paisa fue lo más pedido — quedan solo 3 porciones, prepara más para mañana.'] },
+  { value:'barbero',     label:'Barbería',       emoji:'💈', msg:['Resumen del día','9 cortes hoy ($315.000). Mañana tienes 6 citas confirmadas y 2 espacios libres en la tarde.'] },
+  { value:'taller',      label:'Taller',         emoji:'🔧', msg:['¿Cómo va el inventario de repuestos?','Hoy se usaron 4 filtros de aceite. Quedan solo 2 en stock — te recomiendo pedir más antes del viernes.'] },
+  { value:'veterinaria', label:'Veterinaria',    emoji:'🐾', msg:['Resumen del día','5 consultas hoy ($180.000). Stock de vacuna antirrábica: quedan 3 dosis, pide más pronto.'] },
+  { value:'peluqueria',  label:'Peluquería',     emoji:'✂️', msg:['¿Cómo van las ventas de hoy?','7 citas atendidas, $245.000. El tinte rubio cenizo esta casi agotado — queda 1 unidad.'] },
+  { value:'contador',    label:'Contaduría',     emoji:'📊', msg:['Resumen de la semana','12 clientes atendidos esta semana. 3 declaraciones pendientes por entregar antes del viernes.'] },
+  { value:'reposteria',  label:'Repostería',     emoji:'🎂', msg:['¿Cómo van las ventas de hoy?','Vendiste 8 tortas ($640.000). Te quedan solo 2kg de harina — alerta de stock bajo.'] },
+  { value:'fotografia',  label:'Fotografía',     emoji:'📷', msg:['¿Cómo va el mes?','3 sesiones agendadas esta semana, $8.400.000 en cotizaciones enviadas. 1 sesión por confirmar pago.'] },
 ];
 
 const STATS = [
@@ -258,7 +258,12 @@ export default function WasapBotLanding() {
         </div>
 
         {/* PHONE MOCKUP */}
-        <div className="wb-phone">
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+          <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(37,211,102,0.08)',border:'1px solid rgba(37,211,102,0.25)',borderRadius:100,padding:'5px 14px'}}>
+            <span style={{width:6,height:6,borderRadius:'50%',background:'#25D366',animation:'pulse-g 2s infinite'}}/>
+            <span style={{fontSize:11,fontWeight:700,color:'#25D366'}}>Así te avisa WasapBot a ti, el dueño</span>
+          </div>
+          <div className="wb-phone">
           {/* WhatsApp header */}
           <div style={{background:'#075E54',padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
             <div style={{width:36,height:36,borderRadius:'50%',background:'#128C7E',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>
@@ -314,6 +319,7 @@ export default function WasapBotLanding() {
                 ))}
               </div>
             </div>
+          </div>
           </div>
         </div>
       </section>
@@ -387,8 +393,8 @@ export default function WasapBotLanding() {
             </div>
             <div style={{flex:1,minWidth:200}}>
               <div style={{fontSize:12,fontWeight:700,color:'#25D366',marginBottom:4,textTransform:'uppercase',letterSpacing:1}}>{cur.label}</div>
-              <div style={{fontSize:13,color:'rgba(255,255,255,0.5)',fontStyle:'italic'}}>Cliente: "{cur.msg[0]}"</div>
-              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',marginTop:4}}>Bot: "{cur.msg[1].slice(0,80)}..."</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.5)',fontStyle:'italic'}}>Tú preguntas: "{cur.msg[0]}"</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',marginTop:4}}>WasapBot responde: "{cur.msg[1].slice(0,90)}..."</div>
             </div>
             <button onClick={()=>router.push('/wasapbot/activar')} style={{background:'linear-gradient(135deg,#25D366,#1DA851)',color:'#fff',border:'none',borderRadius:10,padding:'10px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',flexShrink:0}}>
               Activar para {cur.label}
