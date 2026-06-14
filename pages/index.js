@@ -96,7 +96,7 @@ function PopupBienvenida({ onClose }) {
             autoPlay muted loop playsInline
             style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
           >
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"/>
+            <source src="/bienvenida.mp4" type="video/mp4"/>
           </video>
           {/* Overlay gradiente */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(10,13,18,0.9) 100%)' }}/>
