@@ -1,7 +1,9 @@
+// superadmin — carga sin orderBy para evitar error de indice Firestore
+// FIX: ordenar en memoria en vez de en Firestore
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { auth, db } from '../../../lib/firebase';
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const SUPERADMIN_UID = 'hs8aIu8mt6TLOlhda6DMR2s9Ir72';
@@ -29,9 +31,7 @@ const ICONS = {
   chevronDown: "M6 9l6 6 6-6",
   bar: "M18 20V10M12 20V4M6 20v-6",
   grid: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
-  list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
   close: "M18 6L6 18M6 6l12 12",
-  activate: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z",
 };
 
 export default function Superadmin() {
@@ -65,9 +65,19 @@ export default function Superadmin() {
   async function cargarEmpresas() {
     setCargando(true);
     try {
-      const snap = await getDocs(query(collection(db, 'empresas'), orderBy('creadoEn', 'desc')));
-      setEmpresas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    } catch { showToast('Error cargando datos', 'error'); }
+      // Sin orderBy para evitar error de indice — ordenamos en memoria
+      const snap = await getDocs(collection(db, 'empresas'));
+      const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      lista.sort((a, b) => {
+        const ta = a.creadoEn?.toMillis?.() || (a.creadoEn?.seconds || 0) * 1000;
+        const tb = b.creadoEn?.toMillis?.() || (b.creadoEn?.seconds || 0) * 1000;
+        return tb - ta;
+      });
+      setEmpresas(lista);
+    } catch (e) {
+      console.error('Error cargando empresas:', e);
+      showToast('Error cargando datos', 'error');
+    }
     setCargando(false);
   }
 
@@ -76,7 +86,7 @@ export default function Superadmin() {
       await updateDoc(doc(db, 'empresas', id), { estado, updatedAt: new Date() });
       setEmpresas(prev => prev.map(e => e.id === id ? { ...e, estado } : e));
       showToast(`Cuenta ${estado === 'activo' ? 'activada' : 'bloqueada'}`);
-    } catch { showToast('Error al cambiar estado', 'error'); }
+    } catch (e) { console.error(e); showToast('Error al cambiar estado', 'error'); }
   }
 
   async function cambiarPlan(id, plan) {
@@ -84,7 +94,7 @@ export default function Superadmin() {
       await updateDoc(doc(db, 'empresas', id), { plan, updatedAt: new Date() });
       setEmpresas(prev => prev.map(e => e.id === id ? { ...e, plan } : e));
       showToast(`Plan cambiado a ${plan}`);
-    } catch { showToast('Error al cambiar plan', 'error'); }
+    } catch (e) { console.error(e); showToast('Error al cambiar plan', 'error'); }
   }
 
   async function eliminarEmpresa(id) {
@@ -93,7 +103,7 @@ export default function Superadmin() {
       setEmpresas(prev => prev.filter(e => e.id !== id));
       setConfirmar(null); setDetalle(null);
       showToast('Empresa eliminada');
-    } catch { showToast('Error al eliminar', 'error'); }
+    } catch (e) { console.error(e); showToast('Error al eliminar', 'error'); }
   }
 
   const stats = {
@@ -123,25 +133,20 @@ export default function Superadmin() {
     { label: 'Bloqueados', value: stats.bloqueados, color: '#ef4444', icon: ICONS.block },
     { label: 'Pendientes', value: stats.pendientes, color: '#f59e0b', icon: ICONS.clock },
     { label: 'WhatsApp activos', value: stats.whatsappActivos, color: '#25d366', icon: ICONS.whatsapp },
-    { label: 'Ingreso estimado', value: `${stats.ingresoEstimado}€/mes`, color: '#a78bfa', icon: ICONS.dollar },
+    { label: 'Ingreso estimado', value: `${stats.ingresoEstimado}EUR/mes`, color: '#a78bfa', icon: ICONS.dollar },
   ];
 
   return (
     <div style={s.page}>
       {toast && <div style={{...s.toast, background: toast.type==='error'?'#7f1d1d':'#14532d'}}>{toast.msg}</div>}
-
       <div style={s.header}>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <div style={s.logo}>BQinzAgencIA</div>
           <span style={s.badge}>SUPERADMIN</span>
         </div>
         <div style={{display:'flex',gap:10}}>
-          <button onClick={cargarEmpresas} style={s.refreshBtn}>
-            <Icon d={ICONS.refresh} size={14}/> Actualizar
-          </button>
-          <button onClick={() => auth.signOut().then(() => router.push('/'))} style={s.logout}>
-            <Icon d={ICONS.logout} size={14}/> Cerrar sesión
-          </button>
+          <button onClick={cargarEmpresas} style={s.refreshBtn}><Icon d={ICONS.refresh} size={14}/> Actualizar</button>
+          <button onClick={() => auth.signOut().then(() => router.push('/'))} style={s.logout}><Icon d={ICONS.logout} size={14}/> Cerrar sesion</button>
         </div>
       </div>
 
@@ -164,25 +169,19 @@ export default function Superadmin() {
         </div>
 
         <div style={s.tabs}>
-          {[
-            {key:'usuarios', label:'Usuarios', icon:ICONS.users},
-            {key:'estadisticas', label:'Estadísticas', icon:ICONS.bar},
-            {key:'crm', label:'CRM', icon:ICONS.grid},
-          ].map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{...s.tab,...(tab===t.key?s.tabActive:{})}}>
+          {[{key:'usuarios',label:'Usuarios',icon:ICONS.users},{key:'estadisticas',label:'Estadisticas',icon:ICONS.bar},{key:'crm',label:'CRM',icon:ICONS.grid}].map(t=>(
+            <button key={t.key} onClick={()=>setTab(t.key)} style={{...s.tab,...(tab===t.key?s.tabActive:{})}}>
               <Icon d={t.icon} size={14} color={tab===t.key?'white':'#6b7280'}/> {t.label}
             </button>
           ))}
         </div>
 
-        {tab === 'usuarios' && (
+        {tab==='usuarios' && (
           <>
             <div style={s.filtrosRow}>
               <div style={{position:'relative',flex:2,minWidth:200}}>
-                <div style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}>
-                  <Icon d={ICONS.search} size={14} color="#6b7280"/>
-                </div>
-                <input placeholder="Buscar por email, empresa o teléfono..." value={busqueda} onChange={e=>setBusqueda(e.target.value)} style={{...s.search,paddingLeft:36}}/>
+                <div style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}><Icon d={ICONS.search} size={14} color="#6b7280"/></div>
+                <input placeholder="Buscar por email, empresa o telefono..." value={busqueda} onChange={e=>setBusqueda(e.target.value)} style={{...s.search,paddingLeft:36}}/>
               </div>
               <select value={filtroEstado} onChange={e=>setFiltroEstado(e.target.value)} style={s.filterSelect}>
                 <option value="todos">Todos los estados</option>
@@ -195,7 +194,7 @@ export default function Superadmin() {
                 {PLANES.map(p=><option key={p} value={p}>{p}</option>)}
               </select>
               <select value={ordenar} onChange={e=>setOrdenar(e.target.value)} style={s.filterSelect}>
-                <option value="reciente">Más recientes</option>
+                <option value="reciente">Mas recientes</option>
                 <option value="nombre">Por nombre</option>
                 <option value="plan">Por plan</option>
               </select>
@@ -204,11 +203,11 @@ export default function Superadmin() {
             <div style={s.tableWrap}>
               {cargando ? <div style={s.empty}>Cargando...</div> : filtradas.length===0 ? <div style={s.empty}>Sin resultados</div> : (
                 <table style={s.table}>
-                  <thead><tr>{['Empresa','Email','Teléfono','Plan','Estado','WhatsApp','Registro','Acciones'].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead>
+                  <thead><tr>{['Empresa','Email','Telefono','Plan','Estado','WhatsApp','Registro','Acciones'].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead>
                   <tbody>
                     {filtradas.map(e=>(
                       <tr key={e.id} style={s.tr}>
-                        <td style={s.td}><button onClick={()=>setDetalle(e)} style={s.linkBtn}>{e.nombreEmpresa||'—'}</button></td>
+                        <td style={s.td}><button onClick={()=>setDetalle(e)} style={s.linkBtn}>{e.nombreEmpresa||'Sin nombre'}</button></td>
                         <td style={s.td}>{e.email||'—'}</td>
                         <td style={s.td}>{e.telefono||'—'}</td>
                         <td style={s.td}>
@@ -229,22 +228,10 @@ export default function Superadmin() {
                         <td style={s.td}><span style={{color:'#6b7280',fontSize:12}}>{e.creadoEn?.toDate?e.creadoEn.toDate().toLocaleDateString('es-ES'):'—'}</span></td>
                         <td style={s.td}>
                           <div style={s.actions}>
-                            {e.estado!=='activo'&&(
-                              <button onClick={()=>cambiarEstado(e.id,'activo')} style={{...s.iconBtn,background:'#14532d'}} title="Activar">
-                                <Icon d={ICONS.check} size={13} color="white"/>
-                              </button>
-                            )}
-                            {e.estado!=='bloqueado'&&(
-                              <button onClick={()=>cambiarEstado(e.id,'bloqueado')} style={{...s.iconBtn,background:'#92400e'}} title="Bloquear">
-                                <Icon d={ICONS.block} size={13} color="white"/>
-                              </button>
-                            )}
-                            <button onClick={()=>setDetalle(e)} style={{...s.iconBtn,background:'#1e3a5f'}} title="Ver detalle">
-                              <Icon d={ICONS.eye} size={13} color="white"/>
-                            </button>
-                            <button onClick={()=>setConfirmar(e.id)} style={{...s.iconBtn,background:'#7f1d1d'}} title="Eliminar">
-                              <Icon d={ICONS.trash} size={13} color="white"/>
-                            </button>
+                            {e.estado!=='activo'&&<button onClick={()=>cambiarEstado(e.id,'activo')} style={{...s.iconBtn,background:'#14532d'}} title="Activar"><Icon d={ICONS.check} size={13} color="white"/></button>}
+                            {e.estado!=='bloqueado'&&<button onClick={()=>cambiarEstado(e.id,'bloqueado')} style={{...s.iconBtn,background:'#92400e'}} title="Bloquear"><Icon d={ICONS.block} size={13} color="white"/></button>}
+                            <button onClick={()=>setDetalle(e)} style={{...s.iconBtn,background:'#1e3a5f'}} title="Ver"><Icon d={ICONS.eye} size={13} color="white"/></button>
+                            <button onClick={()=>setConfirmar(e.id)} style={{...s.iconBtn,background:'#7f1d1d'}} title="Eliminar"><Icon d={ICONS.trash} size={13} color="white"/></button>
                           </div>
                         </td>
                       </tr>
@@ -256,7 +243,7 @@ export default function Superadmin() {
           </>
         )}
 
-        {tab === 'estadisticas' && (
+        {tab==='estadisticas' && (
           <div>
             <div style={s.statsGrid}>
               {PLANES.map(p=>({label:`Plan ${p}`,total:empresas.filter(e=>e.plan===p).length,activos:empresas.filter(e=>e.plan===p&&e.estado==='activo').length})).map(st=>(
@@ -267,62 +254,25 @@ export default function Superadmin() {
                 </div>
               ))}
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginTop:20}}>
-              <div style={s.statCard}>
-                <h3 style={{color:'white',marginBottom:16,fontSize:15,fontWeight:600}}>Distribución por estado</h3>
-                {[{label:'Activos',value:stats.activos,color:'#22c55e'},{label:'Bloqueados',value:stats.bloqueados,color:'#ef4444'},{label:'Pendientes',value:stats.pendientes,color:'#f59e0b'}].map(item=>(
-                  <div key={item.label} style={{marginBottom:12}}>
-                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
-                      <span style={{color:'#d1d5db',fontSize:13}}>{item.label}</span>
-                      <span style={{color:item.color,fontSize:13,fontWeight:600}}>{item.value}</span>
-                    </div>
-                    <div style={{background:'#1f2937',borderRadius:4,height:5}}>
-                      <div style={{background:item.color,height:5,borderRadius:4,width:`${stats.total?(item.value/stats.total*100):0}%`}}/>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={s.statCard}>
-                <h3 style={{color:'white',marginBottom:16,fontSize:15,fontWeight:600}}>Resumen financiero</h3>
-                {[
-                  {label:'Ingreso mensual estimado',value:`${stats.ingresoEstimado}€`,color:'#a78bfa'},
-                  {label:'Cuentas de pago',value:empresas.filter(e=>e.plan!=='starter'&&e.estado==='activo').length,color:'#FF6B00'},
-                  {label:'Cuentas gratuitas',value:empresas.filter(e=>e.plan==='starter').length,color:'#6b7280'},
-                  {label:'WhatsApp conectados',value:stats.whatsappActivos,color:'#25d366'},
-                ].map(item=>(
-                  <div key={item.label} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid #1f2937'}}>
-                    <span style={{color:'#9ca3af',fontSize:13}}>{item.label}</span>
-                    <span style={{color:item.color,fontWeight:600}}>{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
-        {tab === 'crm' && (
+        {tab==='crm' && (
           <div style={s.tableWrap}>
             <table style={s.table}>
-              <thead><tr>{['Empresa','Email','Plan','Conversaciones','Leads','Agentes','WhatsApp','Estado','Acciones'].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead>
+              <thead><tr>{['Empresa','Email','Plan','Estado','WhatsApp','Acciones'].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead>
               <tbody>
                 {empresas.map(e=>(
                   <tr key={e.id} style={s.tr}>
                     <td style={s.td}><button onClick={()=>setDetalle(e)} style={s.linkBtn}>{e.nombreEmpresa||'—'}</button></td>
                     <td style={s.td}>{e.email||'—'}</td>
                     <td style={s.td}><span style={{...s.pill,background:PLAN_COLOR[e.plan]||'#374151'}}>{e.plan||'starter'}</span></td>
-                    <td style={{...s.td,textAlign:'center'}}>{e.conversacionesTotales||0}</td>
-                    <td style={{...s.td,textAlign:'center'}}>{e.leadsTotal||0}</td>
-                    <td style={{...s.td,textAlign:'center'}}>{e.agentesActivos||0}</td>
-                    <td style={s.td}><span style={{...s.pill,background:e.whatsapp?.status==='connected'?'#14532d':'#1f2937'}}>{e.whatsapp?.status==='connected'?'Conectado':'No'}</span></td>
                     <td style={s.td}><span style={{...s.pill,background:e.estado==='activo'?'#14532d':e.estado==='bloqueado'?'#7f1d1d':'#1f2937'}}>{e.estado||'pendiente'}</span></td>
+                    <td style={s.td}><span style={{...s.pill,background:e.whatsapp?.status==='connected'?'#14532d':'#1f2937'}}>{e.whatsapp?.status==='connected'?'Conectado':'No'}</span></td>
                     <td style={s.td}>
                       <div style={s.actions}>
-                        <button onClick={()=>setDetalle(e)} style={{...s.iconBtn,background:'#1e3a5f'}} title="Ver">
-                          <Icon d={ICONS.eye} size={13} color="white"/>
-                        </button>
-                        <button onClick={()=>setConfirmar(e.id)} style={{...s.iconBtn,background:'#7f1d1d'}} title="Eliminar">
-                          <Icon d={ICONS.trash} size={13} color="white"/>
-                        </button>
+                        <button onClick={()=>setDetalle(e)} style={{...s.iconBtn,background:'#1e3a5f'}}><Icon d={ICONS.eye} size={13} color="white"/></button>
+                        <button onClick={()=>setConfirmar(e.id)} style={{...s.iconBtn,background:'#7f1d1d'}}><Icon d={ICONS.trash} size={13} color="white"/></button>
                       </div>
                     </td>
                   </tr>
@@ -338,24 +288,16 @@ export default function Superadmin() {
           <div style={s.modal} onClick={e=>e.stopPropagation()}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
               <h3 style={{color:'white',margin:0,fontSize:17}}>{detalle.nombreEmpresa||'Sin nombre'}</h3>
-              <button onClick={()=>setDetalle(null)} style={{background:'none',border:'none',color:'#6b7280',cursor:'pointer',display:'flex'}}>
-                <Icon d={ICONS.close} size={18} color="#6b7280"/>
-              </button>
+              <button onClick={()=>setDetalle(null)} style={{background:'none',border:'none',color:'#6b7280',cursor:'pointer'}}><Icon d={ICONS.close} size={18} color="#6b7280"/></button>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:20}}>
               {[
-                {label:'Email',value:detalle.email},
-                {label:'Teléfono',value:detalle.telefono},
-                {label:'Plan',value:detalle.plan},
-                {label:'Estado',value:detalle.estado},
-                {label:'Ciudad',value:detalle.ciudad},
-                {label:'Industria',value:detalle.industria},
-                {label:'Agentes activos',value:detalle.agentesActivos||0},
-                {label:'Conversaciones',value:detalle.conversacionesTotales||0},
-                {label:'Leads total',value:detalle.leadsTotal||0},
+                {label:'Email',value:detalle.email},{label:'Telefono',value:detalle.telefono},
+                {label:'Plan',value:detalle.plan},{label:'Estado',value:detalle.estado},
+                {label:'Ciudad',value:detalle.ciudad},{label:'Industria',value:detalle.industria},
                 {label:'WhatsApp',value:detalle.whatsapp?.status||'desconectado'},
                 {label:'Registro',value:detalle.creadoEn?.toDate?detalle.creadoEn.toDate().toLocaleDateString('es-ES'):'—'},
-                {label:'UID',value:detalle.id?.slice(0,14)+'...'},
+                {label:'UID',value:detalle.id?.slice(0,16)+'...'},
               ].map(item=>(
                 <div key={item.label} style={{background:'#0d0f12',borderRadius:8,padding:'10px 14px'}}>
                   <div style={{color:'#6b7280',fontSize:11,marginBottom:3,textTransform:'uppercase',letterSpacing:0.5}}>{item.label}</div>
@@ -364,19 +306,9 @@ export default function Superadmin() {
               ))}
             </div>
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              {detalle.estado!=='activo'&&(
-                <button onClick={()=>{cambiarEstado(detalle.id,'activo');setDetalle({...detalle,estado:'activo'});}} style={{...s.actionBtn,background:'#14532d'}}>
-                  <Icon d={ICONS.check} size={14} color="white"/> Activar cuenta
-                </button>
-              )}
-              {detalle.estado!=='bloqueado'&&(
-                <button onClick={()=>{cambiarEstado(detalle.id,'bloqueado');setDetalle({...detalle,estado:'bloqueado'});}} style={{...s.actionBtn,background:'#92400e'}}>
-                  <Icon d={ICONS.block} size={14} color="white"/> Bloquear cuenta
-                </button>
-              )}
-              <button onClick={()=>{setConfirmar(detalle.id);setDetalle(null);}} style={{...s.actionBtn,background:'#7f1d1d'}}>
-                <Icon d={ICONS.trash} size={14} color="white"/> Eliminar empresa
-              </button>
+              {detalle.estado!=='activo'&&<button onClick={()=>{cambiarEstado(detalle.id,'activo');setDetalle({...detalle,estado:'activo'});}} style={{...s.actionBtn,background:'#14532d'}}><Icon d={ICONS.check} size={14} color="white"/> Activar</button>}
+              {detalle.estado!=='bloqueado'&&<button onClick={()=>{cambiarEstado(detalle.id,'bloqueado');setDetalle({...detalle,estado:'bloqueado'});}} style={{...s.actionBtn,background:'#92400e'}}><Icon d={ICONS.block} size={14} color="white"/> Bloquear</button>}
+              <button onClick={()=>{setConfirmar(detalle.id);setDetalle(null);}} style={{...s.actionBtn,background:'#7f1d1d'}}><Icon d={ICONS.trash} size={14} color="white"/> Eliminar</button>
             </div>
           </div>
         </div>
@@ -385,10 +317,10 @@ export default function Superadmin() {
       {confirmar && (
         <div style={s.overlay}>
           <div style={{...s.modal,maxWidth:360}}>
-            <h3 style={{color:'white',marginBottom:8}}>¿Eliminar esta empresa?</h3>
-            <p style={{color:'#9ca3af',marginBottom:24,fontSize:14}}>Acción irreversible. Se borrarán todos sus datos.</p>
+            <h3 style={{color:'white',marginBottom:8}}>Eliminar esta empresa?</h3>
+            <p style={{color:'#9ca3af',marginBottom:24,fontSize:14}}>Accion irreversible. Se borraran todos sus datos.</p>
             <div style={{display:'flex',gap:10}}>
-              <button onClick={()=>eliminarEmpresa(confirmar)} style={{...s.actionBtn,background:'#7f1d1d'}}>Confirmar eliminación</button>
+              <button onClick={()=>eliminarEmpresa(confirmar)} style={{...s.actionBtn,background:'#7f1d1d'}}>Confirmar</button>
               <button onClick={()=>setConfirmar(null)} style={{...s.actionBtn,background:'#374151'}}>Cancelar</button>
             </div>
           </div>
@@ -431,5 +363,5 @@ const s = {
   empty:{color:'#6b7280',textAlign:'center',padding:'48px 0'},
   overlay:{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000},
   modal:{background:'#111318',border:'1px solid #1f2937',borderRadius:16,padding:'28px',maxWidth:600,width:'90%',maxHeight:'85vh',overflowY:'auto'},
-  toast:{position:'fixed',bottom:24,right:24,color:'white',padding:'12px 20px',borderRadius:10,fontSize:14,fontWeight:500,zIndex:9999,boxShadow:'0 4px 20px rgba(0,0,0,0.4)'},
+  toast:{position:'fixed',bottom:24,right:24,color:'white',padding:'12px 20px',borderRadius:10,fontSize:14,fontWeight:500,zIndex:9999},
 };
