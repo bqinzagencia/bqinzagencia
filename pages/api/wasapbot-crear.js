@@ -8,6 +8,26 @@ export default async function handler(req, res) {
   const { nombre, industria, descripcion, email, horario, ciudad, producto, ownerUid } = req.body;
   if (!nombre || !industria || !email) return res.status(400).json({ error: 'Faltan datos requeridos' });
 
+  // Validar formato de email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!emailRegex.test(email.trim())) {
+    return res.status(400).json({ error: 'El correo no tiene un formato válido' });
+  }
+
+  // Bloquear dominios falsos o desechables
+  const dominiosFalsos = [
+    'tucorreo.com', 'correo.com', 'email.com', 'test.com', 'prueba.com',
+    'ejemplo.com', 'example.com', 'fake.com', 'nomail.com', 'noemail.com',
+    'sinmail.com', 'temporal.com', 'temp.com', 'mimail.com', 'micorreo.com',
+    'tuemail.com', 'miemail.com', 'correofalso.com', 'mailinator.com',
+    'guerrillamail.com', 'throwaway.email', 'yopmail.com', 'trashmail.com',
+    'tempmail.com', 'sharklasers.com', 'spam4.me', 'dispostable.com',
+  ];
+  const dominio = email.trim().split('@')[1]?.toLowerCase();
+  if (dominiosFalsos.includes(dominio)) {
+    return res.status(400).json({ error: 'Por favor usa un correo real. No se permiten correos temporales o de prueba.' });
+  }
+
   try {
     const empresaRef = adminDb.collection('empresas').doc();
     const empresaId  = empresaRef.id;

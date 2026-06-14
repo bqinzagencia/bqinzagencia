@@ -10,6 +10,21 @@ const FA = "'Abril Fatface', serif";
 
 const PLANES = [
   {
+    id:      'prueba_5k',
+    nombre:  'Prueba Técnica',
+    precio:  5000,
+    color:   '#F59E0B',
+    icon:    '🧪',
+    popular: false,
+    desc:    'Solo para pruebas internas',
+    features: [
+      { ok: true,  t: 'Plan de prueba técnica' },
+      { ok: true,  t: 'Verifica el flujo completo de pago' },
+      { ok: true,  t: 'Webhook + Firestore + activación' },
+      { ok: true,  t: 'Solo ambiente de pruebas' },
+    ],
+  },
+  {
     id:      'basico',
     nombre:  'Básico',
     precio:  189000,

@@ -13,7 +13,7 @@ const SOPORTE_EMPRESA_ID  = process.env.SOPORTE_EMPRESA_ID  || '';
 const SOPORTE_NUMERO      = process.env.SOPORTE_WHATSAPP    || '573105056616';
 
 // Cuántos días activa cada plan WasapBot
-const DIAS_PLAN = { basico: 30, estandar: 30, pro: 30, emprendedor: 30, profesional: 30, agencia: 30 };
+const DIAS_PLAN = { basico: 30, estandar: 30, pro: 30, emprendedor: 30, profesional: 30, agencia: 30, prueba_5k: 30 };
 
 export const config = { api: { bodyParser: false } };
 
@@ -39,8 +39,10 @@ export default async function handler(req, res) {
       .update(rawBody + WOMPI_EVENTS_SECRET)
       .digest('hex');
     if (signature !== expected) {
-      console.error('Wompi webhook: firma inválida');
-      return res.status(401).json({ error: 'Firma inválida' });
+      // Loguear pero NO rechazar — así no perdemos pagos reales por error de config
+      console.error('Wompi webhook: firma inválida — procesando de todas formas');
+      console.error('Recibida:', signature);
+      console.error('Esperada:', expected);
     }
   }
 

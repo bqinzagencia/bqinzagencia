@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import {
   registerUser, crearEmpresa, getEmpresa, getEmpresasDeUsuario,
   loginWithGoogle, loginWithGithub, loginWithMicrosoft,
+  enviarVerificacionEmail,
   auth
 } from '../../lib/firebase';
 import { INDUSTRIAS } from '../../lib/utils';
@@ -151,6 +152,10 @@ export default function Register() {
     setLoading(true);
     try {
       const cred = await registerUser(form.email, form.password);
+      // Enviamos el correo de verificacion de Firebase en segundo plano —
+      // no añade pasos al registro, pero deja constancia (emailVerified=false)
+      // si el correo es falso o no se confirma.
+      enviarVerificacionEmail(cred.user).catch(() => {});
       const datosEmpresa = {
         email: form.email,
         nombreEmpresa: form.nombreEmpresa,
@@ -161,7 +166,7 @@ export default function Register() {
       };
       await crearEmpresa(cred.user.uid, datosEmpresa);
       setEmpresa({ ...datosEmpresa }); // contexto inmediato — evita spinner
-      toast.success('¡Bienvenido a agencIAme! 🎉');
+      toast.success('¡Bienvenido a agencIAme! 🎉 Te enviamos un correo para verificar tu cuenta.');
       router.push('/dashboard');
     } catch (err) {
       const msgs = {

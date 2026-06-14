@@ -15,7 +15,8 @@ const inter = Inter({
   preload: true,
 });
 
-const ModalBienvenida = dynamic(() => import('../components/ModalBienvenida'), { ssr: false });
+const ModalBienvenida       = dynamic(() => import('../components/ModalBienvenida'), { ssr: false });
+const VerificarEmailBanner  = dynamic(() => import('../components/VerificarEmailBanner'), { ssr: false });
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function App({ Component, pageProps }) {
             error:   { iconTheme: { primary: '#EF4444', secondary: '#0F1623' } },
           }}
         />
+        <VerificarEmailBanner />
         <Component {...pageProps} />
         {esPaginaPrincipal && <ModalBienvenida />}
       </AuthProvider>

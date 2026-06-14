@@ -17,6 +17,19 @@ const WOMPI_PUB = process.env.NEXT_PUBLIC_WOMPI_PUB_KEY || '';
 
 const PLANES = [
   {
+    id:      'prueba_5k',
+    nombre:  'Prueba Técnica',
+    precio:  5000,
+    sub:     'Solo para pruebas internas',
+    color:   '#F59E0B',
+    features: [
+      'Plan de prueba técnica',
+      'Verifica el flujo completo de pago',
+      'Webhook + Firestore + activación',
+      'Solo ambiente de pruebas',
+    ],
+  },
+  {
     id:      'emprendedor',
     nombre:  'Emprendedor',
     precio:  189000,

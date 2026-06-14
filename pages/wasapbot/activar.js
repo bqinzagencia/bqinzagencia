@@ -135,6 +135,29 @@ export default function WasapBotActivar() {
     if (!nombre.trim()) { setError('Escribe el nombre de tu negocio'); return; }
     if (!industria)     { setError('Selecciona el tipo de negocio'); return; }
     if (!email.trim())  { setError('Escribe tu correo electronico'); return; }
+
+    // Validar formato de correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(email.trim())) {
+      setError('El correo no tiene un formato válido. Ej: tunombre@gmail.com');
+      return;
+    }
+
+    // Bloquear dominios falsos o de prueba
+    const dominiosFalsos = [
+      'tucorreo.com', 'correo.com', 'email.com', 'test.com', 'prueba.com',
+      'ejemplo.com', 'example.com', 'fake.com', 'nomail.com', 'noemail.com',
+      'sinmail.com', 'temporal.com', 'temp.com', 'mimail.com', 'micorreo.com',
+      'tuemail.com', 'miemail.com', 'correofalso.com', 'mailinator.com',
+      'guerrillamail.com', 'throwaway.email', 'yopmail.com', 'trashmail.com',
+      'tempmail.com', 'sharklasers.com', 'spam4.me', 'dispostable.com',
+    ];
+    const dominio = email.trim().split('@')[1]?.toLowerCase();
+    if (dominiosFalsos.includes(dominio)) {
+      setError('Por favor usa un correo real (Gmail, Outlook, tu empresa, etc.). Necesitamos poder contactarte.');
+      return;
+    }
+
     setError(''); setLoading(true);
     try {
       const r = await fetch('/api/wasapbot-crear',{method:'POST',headers:{'Content-Type':'application/json'},

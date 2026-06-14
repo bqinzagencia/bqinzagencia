@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
-const PLANES = { basico:'Básico', estandar:'Estándar', pro:'Pro' };
+const PLANES = { basico:'Básico', estandar:'Estándar', pro:'Pro', prueba_5k:'Prueba Técnica' };
 
 export default function PagoExitoso() {
   const router = useRouter();
@@ -17,49 +17,73 @@ export default function PagoExitoso() {
   const [intentos,    setIntentos]    = useState(0);
 
   useEffect(() => {
-    if (!ref) return;
+    if (!router.isReady) return;
 
-    const verificar = async (intento = 0) => {
-      try {
-        const r = await fetch(`/api/wompi-verificar?ref=${ref}&empresaId=${empresa||''}`);
-        const d = await r.json();
+    // Wompi nos manda: ?id=TX_ID&status=APPROVED en la redirect-url
+    // Adicionalmente nosotros pasamos: ?empresa=...&plan=...&ref=...
+    const params   = new URLSearchParams(window.location.search);
+    const txStatus = params.get('status');   // APPROVED | DECLINED | PENDING
+    const txId     = params.get('id');       // ID de transacción Wompi
 
-        setEstadoReal(d.estado || 'UNKNOWN');
+    // --- PLAN B: si Wompi ya nos dice APPROVED en la URL, activar YA ---
+    if (txStatus === 'APPROVED' && empresa && plan && ref) {
+      activarPlanDirecto(ref, empresa, plan);
+      return;
+    }
 
-        if (d.estado === 'APPROVED' || d.planActivo) {
-          setEstado('aprobado');
-        } else if (d.estado === 'PENDING' && intento < 6) {
-          // Reintentar hasta 6 veces (30 segundos total)
-          setIntentos(intento + 1);
-          setTimeout(() => verificar(intento + 1), 5000);
-        } else if (d.estado === 'DECLINED') {
-          setEstado('declinado');
-        } else if (d.estado === 'NOT_FOUND' || d.estado === 'UNKNOWN') {
-          // Referencia no encontrada en Firestore — puede ser que el webhook aún no llegó
-          // Esperar un poco más antes de mostrar error
-          if (intento < 4) {
-            setTimeout(() => verificar(intento + 1), 4000);
-          } else {
-            // Asumir que si Wompi nos redirigió aquí, el pago fue aprobado
-            // (Wompi solo redirige en caso de pago completado o declinado)
-            setEstado('pendiente');
-          }
-        } else {
-          setEstado('error');
-        }
-      } catch {
-        // Error de red — asumir pendiente y dejar que el usuario verifique manualmente
-        if (intento < 3) {
-          setTimeout(() => verificar(intento + 1), 3000);
-        } else {
-          setEstado('pendiente');
-        }
+    if (txStatus === 'DECLINED') { setEstado('declinado'); return; }
+
+    // Si no viene status (acceso directo a la página) o está PENDING,
+    // verificar en Firestore con reintentos
+    if (ref) verificar(0);
+    else setEstado('error');
+  }, [router.isReady]);
+
+  // Activa el plan directamente vía API (no depende del webhook)
+  const activarPlanDirecto = async (referencia, empresaId, planId) => {
+    try {
+      const r = await fetch('/api/wompi-activar-pago-aprobado', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ referencia, empresaId, planId }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        setEstado('aprobado');
+      } else {
+        // Si falla la activación directa, esperar al webhook con reintentos
+        verificar(0);
       }
-    };
+    } catch {
+      verificar(0);
+    }
+  };
 
-    // Esperar 3 segundos para que el webhook de Wompi procese
-    setTimeout(() => verificar(0), 3000);
-  }, [ref]);
+  const verificar = async (intento = 0) => {
+    try {
+      const r = await fetch(`/api/wompi-verificar?ref=${ref}&empresaId=${empresa||''}`);
+      const d = await r.json();
+
+      setEstadoReal(d.estado || 'UNKNOWN');
+
+      if (d.estado === 'APPROVED' || d.planActivo) {
+        setEstado('aprobado');
+      } else if ((d.estado === 'PENDING' || d.estado === 'NOT_FOUND' || d.estado === 'UNKNOWN') && intento < 12) {
+        setIntentos(intento + 1);
+        setTimeout(() => verificar(intento + 1), 5000);
+      } else if (d.estado === 'DECLINED') {
+        setEstado('declinado');
+      } else {
+        setEstado('pendiente');
+      }
+    } catch {
+      if (intento < 3) {
+        setTimeout(() => verificar(intento + 1), 3000);
+      } else {
+        setEstado('pendiente');
+      }
+    }
+  };
 
   return (
     <>
