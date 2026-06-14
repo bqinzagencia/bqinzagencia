@@ -172,8 +172,18 @@ export default async function handler(req, res) {
           body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 350, temperature: 0.72, messages: [{ role: 'system', content: systemPrompt }, ...historialActual] }),
         });
 
-        if (!openaiRes.ok) { console.error('[WA] OpenAI error'); continue; }
-        const reply = (await openaiRes.json()).choices?.[0]?.message?.content?.trim();
+        if (!openaiRes.ok) {
+          const errTxt = await openaiRes.text();
+          console.error('[WA] OpenAI HTTP error:', openaiRes.status, errTxt);
+          // Fallback: respuesta genérica en lugar del mensaje de error
+          const fallback = `¡Hola! Soy el asistente de ${empresa.nombreEmpresa || 'la empresa'}. Ahora mismo estoy actualizando mi sistema. Por favor, llámanos al ${empresa.telefono || '+34 674 421 919'} y te atendemos enseguida. 📞`;
+          await sendWhatsAppMessage(waId, fallback, phoneNumberId);
+          continue;
+        }
+
+        const openaiData = await openaiRes.json();
+        console.log('[WA] OpenAI response status:', openaiData.error || 'ok');
+        const reply = openaiData.choices?.[0]?.message?.content?.trim();
         if (!reply) continue;
 
         await guardarMensaje(db, empresa.id, waId, 'assistant', reply, agente.nombre);
