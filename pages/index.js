@@ -354,6 +354,7 @@ export default function Landing() {
         @keyframes slideUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         @keyframes pulseWA { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)} 70%{box-shadow:0 0 0 10px rgba(37,211,102,0)} }
+        @keyframes float { 0%,100%{transform:translateY(-50%)} 50%{transform:translateY(calc(-50% - 14px))} }
 
         .planes-swipe-hint { display: none; }
 
@@ -371,6 +372,7 @@ export default function Landing() {
           .lnd-hero-ctas a, .lnd-hero-ctas button { width: 100% !important; text-align: center !important; display: block !important; }
           .lnd-hero-proof { margin-top: 28px !important; flex-wrap: wrap !important; gap: 10px !important; }
           .lnd-hero-stats { display: none !important; }
+          .lnd-hero-robot { display: none !important; }
           .lnd-hero-badge { padding: 6px 12px !important; margin-bottom: 20px !important; }
           .lnd-ind-header { padding: 60px 22px 40px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .lnd-ind-grid { grid-template-columns: 1fr 1fr !important; }
@@ -560,6 +562,10 @@ export default function Landing() {
             </div>
           ))}
         </div>
+
+        {/* Robot flotando, espacio derecho del hero */}
+        <img className="lnd-hero-robot" src="/agenciame-logo.png" alt="agencIAme robot IA"
+          style={{ position: 'absolute', right: 60, top: '50%', transform: 'translateY(-50%)', width: 320, height: 320, borderRadius: 28, objectFit: 'cover', boxShadow: '0 30px 90px rgba(0,0,0,0.6), 0 0 80px rgba(37,211,102,0.12)', animation: 'float 6s ease-in-out infinite' }} />
       </section>
 
       {/* ── WASAPBOT SECTION — visible en móvil al cerrar popup ── */}
