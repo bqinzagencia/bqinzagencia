@@ -564,8 +564,8 @@ export default function Landing() {
         </div>
 
         {/* Robot flotando, espacio derecho del hero */}
-        <img className="lnd-hero-robot" src="/agenciame-logo.png" alt="agencIAme robot IA"
-          style={{ position: 'absolute', right: 60, top: '50%', transform: 'translateY(-50%)', width: 320, height: 320, borderRadius: 28, objectFit: 'cover', boxShadow: '0 30px 90px rgba(0,0,0,0.6), 0 0 80px rgba(37,211,102,0.12)', animation: 'float 6s ease-in-out infinite' }} />
+        <img className="lnd-hero-robot" src="/agenciame-robot-final.png" alt="agencIAme robot IA"
+          style={{ position: 'absolute', right: 110, top: '50%', transform: 'translateY(-50%)', width: 380, height: 'auto', objectFit: 'contain', opacity: 0.55, animation: 'float 6s ease-in-out infinite', pointerEvents: 'none' }} />
       </section>
 
       {/* ── WASAPBOT SECTION — visible en móvil al cerrar popup ── */}
