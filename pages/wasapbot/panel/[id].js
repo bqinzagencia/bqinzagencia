@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { getConfigIndustria } from '../../../lib/wasapbotConfig';
+import { getConfigIndustria, DIAS_SEMANA, horarioSemanalDefault } from '../../../lib/wasapbotConfig';
 import { auth } from '../../../lib/firebase';
 import { signOut } from 'firebase/auth';
 import dynamic from 'next/dynamic';
@@ -114,6 +114,9 @@ export default function WasapBotPanel() {
   const [itemsEdit,      setItemsEdit]      = useState([]);
   const [savingCat,      setSavingCat]      = useState(false);
   const [saveMsg,        setSaveMsg]        = useState('');
+  const [horarioSemanal, setHorarioSemanal] = useState(horarioSemanalDefault());
+  const [savingHorario,  setSavingHorario]  = useState(false);
+  const [horarioMsg,     setHorarioMsg]     = useState('');
   const [updatingCita,   setUpdatingCita]   = useState(null);
   const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
   const [guiasVistas,    setGuiasVistas]    = useState({});
@@ -158,6 +161,10 @@ export default function WasapBotPanel() {
       setConvs(d.convs||[]);
       setConocimiento(d.conocimiento||{});
       setItemsEdit((d.conocimiento?.servicios||[]).map(s=>({...s})));
+      const semanalGuardado = d.conocimiento?.horarios?.semanal;
+      if (semanalGuardado) {
+        setHorarioSemanal(prev => ({ ...prev, ...semanalGuardado }));
+      }
       const hoy=new Date(); hoy.setHours(0,0,0,0);
       const sem=new Date(); sem.setDate(sem.getDate()-7);
       const list=d.convs||[];
@@ -272,6 +279,61 @@ export default function WasapBotPanel() {
       else setSaveMsg('Error: '+(d.error||''));
     } catch{setSaveMsg('Error de conexión');}
     setSavingCat(false); setTimeout(()=>setSaveMsg(''),3000);
+  };
+
+  const guardarHorario = async () => {
+    setSavingHorario(true); setHorarioMsg('');
+    try {
+      const r = await fetch('/api/wasapbot-horario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({empresaId:id,horarioSemanal})});
+      const d = await r.json();
+      if (d.ok) {
+        setHorarioMsg('✓ Horario guardado');
+        setConocimiento(prev=>({...prev,horarios:{...(prev?.horarios||{}),semanal:horarioSemanal}}));
+      } else {
+        setHorarioMsg('Error: '+(d.error||''));
+      }
+    } catch { setHorarioMsg('Error de conexión'); }
+    setSavingHorario(false); setTimeout(()=>setHorarioMsg(''),3000);
+  };
+
+  const toggleDiaAbierto = (diaKey) => {
+    setHorarioSemanal(prev => ({
+      ...prev,
+      [diaKey]: { ...prev[diaKey], abierto: !prev[diaKey]?.abierto, franjas: prev[diaKey]?.franjas?.length ? prev[diaKey].franjas : [{de:'08:00',a:'18:00'}] },
+    }));
+  };
+
+  const actualizarFranja = (diaKey, idx, campo, valor) => {
+    setHorarioSemanal(prev => {
+      const franjas = (prev[diaKey]?.franjas||[]).map((f,i)=>i===idx?{...f,[campo]:valor}:f);
+      return { ...prev, [diaKey]: { ...prev[diaKey], franjas } };
+    });
+  };
+
+  const agregarFranja = (diaKey) => {
+    setHorarioSemanal(prev => ({
+      ...prev,
+      [diaKey]: { ...prev[diaKey], franjas: [...(prev[diaKey]?.franjas||[]), {de:'08:00',a:'18:00'}] },
+    }));
+  };
+
+  const eliminarFranja = (diaKey, idx) => {
+    setHorarioSemanal(prev => ({
+      ...prev,
+      [diaKey]: { ...prev[diaKey], franjas: (prev[diaKey]?.franjas||[]).filter((_,i)=>i!==idx) },
+    }));
+  };
+
+  const copiarHorarioATodos = (diaKey) => {
+    const origen = horarioSemanal[diaKey];
+    if (!origen) return;
+    setHorarioSemanal(prev => {
+      const next = {...prev};
+      DIAS_SEMANA.forEach(d => {
+        if (d.key !== diaKey) next[d.key] = { abierto: origen.abierto, franjas: origen.franjas.map(f=>({...f})) };
+      });
+      return next;
+    });
   };
 
   const cerrarSesion = async () => {
@@ -639,7 +701,7 @@ export default function WasapBotPanel() {
                   <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300,margin:0}}>El bot usará esta información para responder a tus clientes.</p>
                 </div>
                 {!editando?(
-                  <button data-tour="hub-catalogo-btn" onClick={()=>{setItemsEdit(servicios.length>0?servicios.map(s=>({...s})):[{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}]);setEditando(true);}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                  <button data-tour="hub-catalogo-btn" onClick={()=>{setItemsEdit(servicios.length>0?servicios.map(s=>({...s})):[{nombre:'',precio:'',descripcion:'',categoria:'',foto:'',duracionMin:''}]);setEditando(true);}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.25)',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>
                     {servicios.length>0?'✏️ Editar':'+ Agregar primer '+cfg.labelItem.toLowerCase()}
                   </button>
                 ):(
@@ -661,6 +723,7 @@ export default function WasapBotPanel() {
                         <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>{s.nombre||'Sin nombre'}</div>
                         {s.descripcion&&<div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:6,lineHeight:1.4}}>{s.descripcion}</div>}
                         {s.precio&&<div style={{fontFamily:FA,fontSize:16,color:'#25D366'}}>${Number(String(s.precio).replace(/\D/g,'')).toLocaleString('es-CO')||s.precio}</div>}
+                        {s.duracionMin&&<div style={{fontFamily:F,fontSize:10,color:'#4B6080',marginTop:4}}>⏱️ {s.duracionMin} min</div>}
                       </div>
                     </div>
                   ))}
@@ -735,9 +798,18 @@ export default function WasapBotPanel() {
                           </select>
                         </div>
                       )}
+                      {cfg.tieneDuracion&&(
+                        <div style={{marginTop:10}}>
+                          <label style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:0.8,color:'#4B6080',display:'block',marginBottom:4}}>⏱️ Duración (minutos)</label>
+                          <input className="cat-inp" style={{...INP,maxWidth:140}} type="number" min="5" step="5" value={item.duracionMin||''}
+                            placeholder="Ej: 30"
+                            onChange={e=>setItemsEdit(prev=>prev.map((it,i)=>i===idx?{...it,duracionMin:e.target.value}:it))}/>
+                          <div style={{fontFamily:F,fontSize:10,color:'rgba(255,255,255,0.25)',marginTop:4}}>El bot usará este tiempo para calcular qué horarios puede ofrecer sin solapar con otras citas.</div>
+                        </div>
+                      )}
                     </div>
                   ))}
-                  <button onClick={()=>setItemsEdit(prev=>[...prev,{nombre:'',precio:'',descripcion:'',categoria:'',foto:''}])}
+                  <button onClick={()=>setItemsEdit(prev=>[...prev,{nombre:'',precio:'',descripcion:'',categoria:'',foto:'',duracionMin:''}])}
                     style={{width:'100%',background:'none',border:'1px dashed rgba(255,255,255,0.1)',borderRadius:10,padding:'11px',fontFamily:F,fontSize:13,color:'#4B6080',cursor:'pointer',marginTop:4}}>
                     + Agregar {cfg.labelItem.toLowerCase()}
                   </button>
@@ -837,6 +909,48 @@ export default function WasapBotPanel() {
                   </button>
                   {connected&&<button onClick={async()=>{await fetch(`${WA}/sesion/${id}/desconectar`,{method:'POST',headers:{'x-server-secret':SECRET}});setStatus('disconnected');}} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Desconectar</button>}
                 </div>
+              </div>
+              <div style={{...CARD,marginBottom:14}}>
+                <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>Horario de atención semanal</div>
+                <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:14,lineHeight:1.5,fontWeight:300}}>
+                  {cfg.tieneCitas
+                    ? 'El bot usará estos horarios para saber cuándo agendar citas sin solaparlas.'
+                    : 'El bot informará estos horarios a tus clientes cuando pregunten.'}
+                </p>
+                {DIAS_SEMANA.map(dia=>{
+                  const dh = horarioSemanal[dia.key] || { abierto:false, franjas:[{de:'08:00',a:'18:00'}] };
+                  const franjas = dh.franjas?.length ? dh.franjas : [{de:'08:00',a:'18:00'}];
+                  return (
+                    <div key={dia.key} style={{borderBottom:'1px solid rgba(255,255,255,0.05)',padding:'10px 0'}}>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:dh.abierto?8:0}}>
+                        <label style={{display:'flex',alignItems:'center',gap:9,cursor:'pointer'}}>
+                          <input type="checkbox" checked={!!dh.abierto} onChange={()=>toggleDiaAbierto(dia.key)} style={{width:15,height:15,cursor:'pointer',accentColor:'#25D366'}}/>
+                          <span style={{fontFamily:F,fontSize:13,fontWeight:600,color:dh.abierto?'#EFF4FF':'#4B6080'}}>{dia.label}</span>
+                        </label>
+                        {!dh.abierto
+                          ? <span style={{fontFamily:F,fontSize:11,color:'#4B6080'}}>Cerrado</span>
+                          : <button onClick={()=>copiarHorarioATodos(dia.key)} style={{background:'none',border:'none',fontFamily:F,fontSize:10,color:'#25D366',cursor:'pointer',textDecoration:'underline'}}>Copiar a todos los días</button>}
+                      </div>
+                      {dh.abierto&&(
+                        <div style={{display:'flex',flexDirection:'column',gap:6,paddingLeft:24}}>
+                          {franjas.map((f,i)=>(
+                            <div key={i} style={{display:'flex',alignItems:'center',gap:8}}>
+                              <input type="time" value={f.de||'08:00'} onChange={e=>actualizarFranja(dia.key,i,'de',e.target.value)} style={{...INP,width:'auto',padding:'6px 8px'}}/>
+                              <span style={{fontFamily:F,fontSize:12,color:'#4B6080'}}>a</span>
+                              <input type="time" value={f.a||'18:00'} onChange={e=>actualizarFranja(dia.key,i,'a',e.target.value)} style={{...INP,width:'auto',padding:'6px 8px'}}/>
+                              {franjas.length>1&&<button onClick={()=>eliminarFranja(dia.key,i)} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.15)',borderRadius:6,padding:'4px 9px',fontFamily:F,fontSize:11,cursor:'pointer'}}>✕</button>}
+                            </div>
+                          ))}
+                          <button onClick={()=>agregarFranja(dia.key)} style={{alignSelf:'flex-start',background:'none',border:'1px dashed rgba(255,255,255,0.1)',borderRadius:6,padding:'4px 10px',fontFamily:F,fontSize:11,color:'#4B6080',cursor:'pointer',marginTop:2}}>+ Agregar otro horario (jornada partida)</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {horarioMsg&&<div style={{marginTop:12,fontFamily:F,fontSize:12,color:horarioMsg.startsWith('✓')?'#25D366':'#EF4444'}}>{horarioMsg}</div>}
+                <button onClick={guardarHorario} disabled={savingHorario} style={{marginTop:14,background:'#25D366',color:'#fff',border:'none',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',opacity:savingHorario?0.7:1}}>
+                  {savingHorario?'Guardando...':'Guardar horario'}
+                </button>
               </div>
               <div style={CARD}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:14}}>Tu negocio</div>

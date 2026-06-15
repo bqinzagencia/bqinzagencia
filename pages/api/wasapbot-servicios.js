@@ -25,10 +25,8 @@ export default async function handler(req, res) {
         servicios:      servicios || [],
         tipoCatalogo:   tipoCatalogo || 'servicios',
         permitePedidos: permitePedidos || false,
-        horarios:       { general: horario || '' },
-        info: {
-          preguntasFrecuentes: preguntasArr,
-        },
+        'horarios.general': horario || '',
+        'info.preguntasFrecuentes': preguntasArr,
         actualizadoEn: FieldValue.serverTimestamp(),
       }, { merge: true });
 

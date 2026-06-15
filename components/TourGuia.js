@@ -92,16 +92,21 @@ export default function TourGuia({ storageKey, pasos = [], activo = true }) {
   if (!visible || !actual) return BotonAyuda;
 
   const ANCHO = 320;
+  const ALTO_EST = 190; // altura aproximada de la burbuja, para no salirnos de pantalla
   const win = { w: window.innerWidth, h: window.innerHeight };
-  let bubbleStyle = { position: 'fixed', zIndex: 9999, width: Math.min(ANCHO, win.w - 32) };
+  const anchoBurbuja = Math.min(ANCHO, win.w - 32);
+  let bubbleStyle = { position: 'fixed', zIndex: 9999, width: anchoBurbuja };
 
   if (rect) {
     const espacioAbajo = win.h - (rect.top + rect.height);
-    const arriba = espacioAbajo < 220 && rect.top > 220;
-    const left = Math.min(Math.max(rect.left, 16), win.w - Math.min(ANCHO, win.w - 32) - 16);
+    const arriba = espacioAbajo < ALTO_EST && rect.top > ALTO_EST;
+    const left = Math.min(Math.max(rect.left, 16), win.w - anchoBurbuja - 16);
     bubbleStyle.left = left;
-    if (arriba) bubbleStyle.bottom = win.h - rect.top + 14;
-    else bubbleStyle.top = rect.top + rect.height + 14;
+    if (arriba) {
+      bubbleStyle.bottom = Math.min(Math.max(win.h - rect.top + 14, 16), win.h - ALTO_EST);
+    } else {
+      bubbleStyle.top = Math.min(Math.max(rect.top + rect.height + 14, 16), win.h - ALTO_EST);
+    }
   } else {
     bubbleStyle.left = '50%';
     bubbleStyle.top = '50%';

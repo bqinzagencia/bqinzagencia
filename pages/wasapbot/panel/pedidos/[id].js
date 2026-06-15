@@ -269,6 +269,7 @@ export default function PedidosPanel() {
       )}
 
       {/* Filtros */}
+      {!sinPlan&&<>
       <div data-tour="ped-filtros" style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
         {[
           {key:'todos',      label:'Todos'},
@@ -383,6 +384,7 @@ export default function PedidosPanel() {
           })}
         </div>
       )}
+      </>}
     </div>
 
     <TourGuia

@@ -57,6 +57,7 @@ export default function InventarioPanel() {
   const [catalogo,   setCatalogo]   = useState([]);
   const [plantillas, setPlantillas] = useState([]);
   const [empresa,    setEmpresa]    = useState(null);
+  const [sinPlan,    setSinPlan]    = useState(false);
   const [loading,    setLoading]    = useState(true);
   const [savingMsg,  setSavingMsg]  = useState('');
   const [editItems,  setEditItems]  = useState([]);
@@ -74,7 +75,14 @@ export default function InventarioPanel() {
 
   const cargarEmpresa = useCallback(async()=>{
     if(!id)return;
-    try{const r=await fetch(`/api/wasapbot-panel?id=${id}`);const d=await r.json();if(d.ok)setEmpresa(d.empresa);}catch{}
+    try{
+      const r=await fetch(`/api/wasapbot-panel?id=${id}`);
+      const d=await r.json();
+      if(d.ok){
+        setEmpresa(d.empresa);
+        if(!d.empresa?.planActivo) setSinPlan(true);
+      }
+    }catch{}
   },[id]);
 
   const cargarMenuDia = useCallback(async(f)=>{
@@ -227,6 +235,25 @@ export default function InventarioPanel() {
     </nav>
 
     <div style={{maxWidth:960,margin:'0 auto',padding:'20px'}}>
+
+      {/* Candado si no hay plan */}
+      {sinPlan&&(
+        <div style={{background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)',borderRadius:16,padding:'48px 24px',textAlign:'center'}}>
+          <div style={{fontSize:52,marginBottom:16}}>🔒</div>
+          <div style={{fontFamily:FA,fontSize:26,color:'#EFF4FF',marginBottom:8,fontWeight:400}}>Función premium</div>
+          <div style={{fontFamily:F,fontSize:14,color:'rgba(255,255,255,.4)',lineHeight:1.8,marginBottom:28,maxWidth:400,margin:'0 auto 28px'}}>
+            El menú del día y las plantillas requieren un plan activo. Activa tu plan para que el bot muestre automáticamente lo que está disponible cada día.
+          </div>
+          <a href={`/wasapbot/planes?id=${id}&nombre=${encodeURIComponent(empresa?.nombreEmpresa||'')}`}
+            style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'14px 36px',fontFamily:F,fontSize:15,fontWeight:700,textDecoration:'none',boxShadow:'0 6px 24px rgba(245,158,11,.35)'}}>
+            ⚡ Activar mi plan →
+          </a>
+          <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginTop:12}}>Desde $189.000/mes · Sin contratos · Cancela cuando quieras</div>
+        </div>
+      )}
+
+      {!sinPlan&&(<>
+
       <div data-tour="inv-fecha" style={{display:'flex',alignItems:'center',gap:12,marginBottom:18,flexWrap:'wrap'}}>
         <input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} style={{...INP,padding:'7px 12px',cursor:'pointer'}}/>
         <span style={{fontFamily:F,fontSize:13,color:'#25D366',fontWeight:600}}>{fmtFecha(fecha)}{fecha===hoyStr()?' (hoy)':''}</span>
@@ -390,6 +417,8 @@ export default function InventarioPanel() {
           )}
         </div>
       )}
+
+      </>)}
     </div>
 
     {modalPlant&&(<div className="mbo" onClick={e=>{if(e.target===e.currentTarget)setModalPlant(false);}}>
