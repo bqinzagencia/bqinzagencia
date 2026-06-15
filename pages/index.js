@@ -465,6 +465,12 @@ export default function Landing() {
               {item}
             </a>
           ))}
+          <Link href="/wasapbot/login"
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#aaa', fontSize: 13, fontWeight: 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#E8E8E8'}
+            onMouseLeave={e => e.currentTarget.style.color = '#aaa'}>
+            Ingresar
+          </Link>
         </div>
         <div className="lnd-nav-cta">
           {!loading && (user ? (
