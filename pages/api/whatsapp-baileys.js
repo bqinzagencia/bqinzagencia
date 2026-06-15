@@ -6,6 +6,8 @@ import { FieldValue } from 'firebase-admin/firestore';
 import OpenAI from 'openai';
 import { enviarEmailCita, enviarEmailSoporte, enviarEmailPedido } from '../../lib/emailWasapbot';
 import { evaluarMensaje } from '../../lib/filtroMensajes';
+import { getConfigIndustria, horarioSemanalDefault } from '../../lib/wasapbotConfig';
+import { verificarDisponibilidad, horariosDisponibles, normalizarFecha, formatearHora12, horarioSemanalATexto } from '../../lib/disponibilidad';
 
 const openai         = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const SERVER_SECRET  = process.env.SERVER_SECRET    || 'agenciame2026secreto_nexoia';
@@ -353,6 +355,7 @@ export default async function handler(req, res) {
     let horarioTexto = '';
     const conocimiento = await adminDb.collection('empresas').doc(empresaId).collection('config').doc('conocimiento').get().then(s=>s.exists?s.data():null).catch(()=>null);
     if (conocimiento?.horarios?.general) horarioTexto = conocimiento.horarios.general;
+    else if (conocimiento?.horarios?.semanal) horarioTexto = horarioSemanalATexto(conocimiento.horarios.semanal);
     else if (conocimiento?.horarios) {
       const dias = Object.entries(conocimiento.horarios).filter(([,v])=>v?.activo).map(([d,v])=>`${d}: ${v.desde||'?'}-${v.hasta||'?'}`);
       if (dias.length) horarioTexto = dias.join(', ');
@@ -428,15 +431,54 @@ ${conocimiento?.info?.direccion?`DIRECCIÓN: ${conocimiento.info.direccion}`:''}
       try {
         const c = JSON.parse(citaMatch[1]);
         const nomCita = c.nombre||nombreCliente||`WhatsApp ${numeroCliente}`;
-        await adminDb.collection('empresas').doc(empresaId).collection('citas').add({
-          nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta',
-          fechaHora:parsearFechaHora(c.fecha,c.hora), fecha:c.fecha||'', hora:c.hora||'',
-          estado:'pendiente', canal:'whatsapp', fuente:'whatsapp-bot', notas:'Agendado por WasapBot',
-          contactoId, creadoEn:FieldValue.serverTimestamp(),
-          // Flags para recordatorios (Plan Pro) y seguimiento post-servicio (Estandar/Pro)
-          recordatorioEnviado:false, seguimientoEnviado:false, completadoEn:null,
-        });
-        await enviarEmailCita({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fecha:c.fecha||'?', hora:c.hora||'?', empresaId });
+        const cfgInd  = getConfigIndustria(empresa.industria || 'otro');
+
+        if (cfgInd.tieneCitas) {
+          // ── Verificar disponibilidad real antes de agendar (evita solapamientos) ──
+          const horarioSemanal   = conocimiento?.horarios?.semanal || horarioSemanalDefault();
+          const duracionServicio = buscarDuracionServicio(conocimiento?.servicios, c.servicio);
+          const fechaKeySolicitada = normalizarFecha(c.fecha);
+
+          let ocupados = [];
+          if (fechaKeySolicitada) {
+            const ocupSnap = await adminDb.collection('empresas').doc(empresaId).collection('citas')
+              .where('fechaKey','==',fechaKeySolicitada).get();
+            ocupados = ocupSnap.docs
+              .map(d=>d.data())
+              .filter(o=>['pendiente','confirmada'].includes(o.estado))
+              .map(o=>({ hora:o.hora, duracionMin:o.duracionMin }));
+          }
+
+          const disp = verificarDisponibilidad({ horarioSemanal, fecha:c.fecha, hora:c.hora, duracionMin:duracionServicio, ocupados });
+
+          if (disp.disponible) {
+            await adminDb.collection('empresas').doc(empresaId).collection('citas').add({
+              nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta',
+              fechaHora:parsearFechaHora(c.fecha,c.hora), fecha:c.fecha||'', hora:c.hora||'',
+              fechaKey:disp.fechaKey, duracionMin:duracionServicio,
+              estado:'pendiente', canal:'whatsapp', fuente:'whatsapp-bot', notas:'Agendado por WasapBot',
+              contactoId, creadoEn:FieldValue.serverTimestamp(),
+              // Flags para recordatorios (Plan Pro) y seguimiento post-servicio (Estandar/Pro)
+              recordatorioEnviado:false, seguimientoEnviado:false, completadoEn:null,
+            });
+            await enviarEmailCita({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fecha:c.fecha||'?', hora:c.hora||'?', empresaId });
+          } else {
+            // No se crea la cita — se reemplaza la respuesta de la IA por una
+            // que informa al cliente y ofrece horarios alternativos reales.
+            respuestaLimpia = mensajeNoDisponible(disp, { horarioSemanal, fecha:c.fecha, duracionMin:duracionServicio, ocupados, nombreCliente:c.nombre });
+          }
+        } else {
+          // Industrias sin agenda de citas (ej. restaurante/tienda con pedidos):
+          // comportamiento anterior, sin chequeo de disponibilidad.
+          await adminDb.collection('empresas').doc(empresaId).collection('citas').add({
+            nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta',
+            fechaHora:parsearFechaHora(c.fecha,c.hora), fecha:c.fecha||'', hora:c.hora||'',
+            estado:'pendiente', canal:'whatsapp', fuente:'whatsapp-bot', notas:'Agendado por WasapBot',
+            contactoId, creadoEn:FieldValue.serverTimestamp(),
+            recordatorioEnviado:false, seguimientoEnviado:false, completadoEn:null,
+          });
+          await enviarEmailCita({ emailNegocio, nombreNegocio:nombreEmpresa, nombreCliente:nomCita, telefono:numeroCliente, servicio:c.servicio||'Consulta', fecha:c.fecha||'?', hora:c.hora||'?', empresaId });
+        }
       } catch (e) { console.error('cita error:', e.message); }
     }
 
@@ -452,6 +494,56 @@ ${conocimiento?.info?.direccion?`DIRECCIÓN: ${conocimiento.info.direccion}`:''}
     console.error('whatsapp-baileys error:', err);
     return res.status(500).json({ error: err.message });
   }
+}
+
+// ── Disponibilidad de citas ───────────────────────────────────
+// Busca la duracion (minutos) configurada para el servicio detectado por la IA.
+// Hace match exacto primero y luego por inclusion (en ambos sentidos), ya que
+// el nombre que dice el cliente/IA puede no coincidir 100% con el del catalogo.
+function buscarDuracionServicio(servicios, nombreServicio) {
+  const DEFAULT_DURACION = 30;
+  if (!Array.isArray(servicios) || !nombreServicio) return DEFAULT_DURACION;
+  const target = String(nombreServicio).toLowerCase().trim();
+  if (!target) return DEFAULT_DURACION;
+
+  let match = servicios.find(s => String(s?.nombre||'').toLowerCase().trim() === target);
+  if (!match) {
+    match = servicios.find(s => {
+      const n = String(s?.nombre||'').toLowerCase().trim();
+      return n && (n.includes(target) || target.includes(n));
+    });
+  }
+  const dur = parseInt(match?.duracionMin, 10);
+  return (dur > 0) ? dur : DEFAULT_DURACION;
+}
+
+// Construye el mensaje que se envia al cliente cuando el horario solicitado
+// NO esta disponible (cerrado / fuera de horario / ya ocupado), ofreciendo
+// alternativas reales calculadas con horariosDisponibles().
+function mensajeNoDisponible(disp, { horarioSemanal, fecha, duracionMin, ocupados, nombreCliente }) {
+  const saludo = nombreCliente ? `${nombreCliente}, ` : '';
+
+  if (disp.motivo === 'fecha_invalida' || disp.motivo === 'hora_invalida') {
+    return `Disculpa, no entendí bien la fecha u hora 🙏 ¿Podrías indicarme el día (ej: 20/06) y la hora que prefieres?`;
+  }
+  if (disp.motivo === 'cerrado') {
+    return `${saludo}ese día no abrimos 🙏 ¿Te gustaría agendar para otro día?`;
+  }
+
+  const libres = horariosDisponibles({ horarioSemanal, fecha, duracionMin, ocupados }).slice(0, 6);
+  const listaLibres = libres.map(formatearHora12).join(', ');
+
+  if (disp.motivo === 'ocupado') {
+    return libres.length > 0
+      ? `${saludo}ese horario ya está ocupado 😕. Para ese día tengo disponible: ${listaLibres}. ¿Cuál te queda mejor?`
+      : `${saludo}ese horario ya está ocupado y no quedan más espacios disponibles ese día 😕. ¿Quieres que busquemos otro día?`;
+  }
+  if (disp.motivo === 'fuera_horario') {
+    return libres.length > 0
+      ? `${saludo}ese horario está fuera de nuestra atención 🙏. Ese día tengo disponible: ${listaLibres}. ¿Cuál te queda mejor?`
+      : `${saludo}ese horario está fuera de nuestra atención y no quedan espacios libres ese día 🙏. ¿Quieres agendar para otro día?`;
+  }
+  return `Disculpa, no pude agendar ese horario 🙏 ¿Podríamos intentar con otro día u hora?`;
 }
 
 function extraerNombre(texto) {
