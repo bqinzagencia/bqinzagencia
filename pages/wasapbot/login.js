@@ -143,15 +143,20 @@ export default function WasapBotLogin() {
 
       <style dangerouslySetInnerHTML={{__html:`
         *{box-sizing:border-box;margin:0;padding:0}
-        body{background:#04080C;color:#EFF4FF;font-family:${F};min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+        body{background:#04080C;color:#EFF4FF;font-family:${F};min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;overflow-x:hidden}
         input{outline:none;transition:border-color 0.2s}
         input:focus{border-color:rgba(37,211,102,0.5)!important}
         input::placeholder{color:#222}
         .g-btn:hover{background:#0E1A12!important;border-color:rgba(37,211,102,0.4)!important}
         .sbm-btn:hover{opacity:0.9;transform:translateY(-1px)}
+        @keyframes loginFloat { 0%,100%{transform:translateY(-50%)} 50%{transform:translateY(calc(-50% - 14px))} }
+        .login-robot { position:fixed; right:4%; top:50%; transform:translateY(-50%); width:380px; height:auto; opacity:0.35; pointer-events:none; animation:loginFloat 6s ease-in-out infinite; z-index:0; }
+        @media(max-width:900px){ .login-robot{ display:none; } }
       `}}/>
 
-      <div style={{width:'100%',maxWidth:420}}>
+      <img className="login-robot" src="/agenciame-robot-final.png" alt="" />
+
+      <div style={{width:'100%',maxWidth:420,position:'relative',zIndex:1}}>
         {/* Logo */}
         <div style={{textAlign:'center',marginBottom:40}}>
           <Link href="/wasapbot">
