@@ -138,7 +138,7 @@ export default function ChatBotPanel() {
                 {[
                   {label:'Chats hoy',   val:stats.hoy,   color:'#2563EB'},
                   {label:'Total chats', val:stats.total, color:'#EFF4FF'},
-                  {label:'Tokens usados',val:(chatbot.tokensUsados||0).toLocaleString(),color:'#A78BFA'},
+                  {label:'Créditos IA',val:(chatbot.tokensUsados||0).toLocaleString(),color:'#A78BFA'},
                 ].map((s,i)=>(
                   <div key={i} style={CARD}>
                     <div style={{fontFamily:F,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:'#4B6080',marginBottom:8}}>{s.label}</div>
@@ -152,7 +152,7 @@ export default function ChatBotPanel() {
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:16}}>Consumo del plan</div>
                 {[
                   {label:'Conversaciones',val:`${stats.total} / ${plan.convs>0?plan.convs:'ilimitadas'}`,pct:pctConvs},
-                  {label:'Tokens IA',val:`${(chatbot.tokensUsados||0).toLocaleString()} / ${plan.tokens.toLocaleString()}`,pct:pctTok},
+                  {label:'Créditos IA',val:`${(chatbot.tokensUsados||0).toLocaleString()} / ${plan.tokens.toLocaleString()}`,pct:pctTok},
                 ].map((b,i)=>(
                   <div key={i} style={{marginBottom:14}}>
                     <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>

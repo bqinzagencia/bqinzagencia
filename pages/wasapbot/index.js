@@ -424,7 +424,7 @@ export default function WasapBotLanding() {
               </div>
               <div style={{fontSize:12,color:'rgba(255,255,255,0.25)',marginBottom:6}}>COP / mes</div>
               <div style={{display:'flex',gap:10,marginBottom:24}}>
-                <span style={{background:plan.color+'15',color:plan.color,border:`1px solid ${plan.color}30`,borderRadius:100,padding:'3px 10px',fontSize:11,fontWeight:600}}>{plan.tokens} tokens</span>
+                <span style={{background:plan.color+'15',color:plan.color,border:`1px solid ${plan.color}30`,borderRadius:100,padding:'3px 10px',fontSize:11,fontWeight:600}}>{plan.tokens} créditos IA</span>
                 <span style={{background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.3)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:100,padding:'3px 10px',fontSize:11}}>{plan.convs}</span>
               </div>
               {plan.features.map((f,i)=>(

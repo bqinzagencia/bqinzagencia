@@ -571,7 +571,7 @@ export default function WasapBotPanel() {
               {/* Consumo */}
               <div style={CARD}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:16}}>Consumo del plan</div>
-                {[{label:'Conversaciones',val:stats.total,max:plan.convs,pct:pctConvs},{label:'Tokens IA',val:stats.tokensUsados,max:plan.tokens,pct:pctTokens,fmt:true}].map((b,i)=>(
+                {[{label:'Conversaciones',val:stats.total,max:plan.convs,pct:pctConvs},{label:'Créditos IA',val:stats.tokensUsados,max:plan.tokens,pct:pctTokens,fmt:true}].map((b,i)=>(
                   <div key={i} style={{marginBottom:i===0?14:0}}>
                     <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
                       <span style={{fontFamily:F,fontSize:12,color:'#8A9BB5'}}>{b.label}</span>
