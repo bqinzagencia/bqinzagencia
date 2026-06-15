@@ -204,14 +204,8 @@ export default function AsesorWasapbot({ empresa }) {
           {/* Header */}
           <div style={{background:'linear-gradient(135deg,rgba(255,107,0,0.15),rgba(255,107,0,0.05))',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid rgba(255,107,0,0.12)',flexShrink:0}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <div style={{width:36,height:36,borderRadius:11,background:'linear-gradient(135deg,#FF6B00,#FF9500)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-                  <rect x="7" y="11" width="18" height="13" rx="4" fill="white" opacity="0.95"/>
-                  <rect x="11" y="7" width="10" height="6" rx="3" fill="white" opacity="0.75"/>
-                  <circle cx="12.5" cy="17.5" r="2" fill="#FF6B00"/>
-                  <circle cx="19.5" cy="17.5" r="2" fill="#FF6B00"/>
-                  <path d="M12.5 22 Q16 24.5 19.5 22" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-                </svg>
+              <div style={{width:36,height:36,borderRadius:11,background:'linear-gradient(135deg,#FF6B00,#FF9500)',display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
+                <img src="/agenciame-robot-final.png" alt="" style={{width:30,height:30,objectFit:'contain'}}/>
               </div>
               <div>
                 <div style={{fontFamily:FA,fontSize:13,color:'#EFF4FF'}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me · Soporte</div>
@@ -281,13 +275,7 @@ export default function AsesorWasapbot({ empresa }) {
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         ) : (
-          <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
-            <rect x="7" y="11" width="18" height="13" rx="4" fill="white" opacity="0.95"/>
-            <rect x="11" y="7" width="10" height="6" rx="3" fill="white" opacity="0.75"/>
-            <circle cx="12.5" cy="17.5" r="2" fill="#FF6B00"/>
-            <circle cx="19.5" cy="17.5" r="2" fill="#FF6B00"/>
-            <path d="M12.5 22 Q16 24.5 19.5 22" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-          </svg>
+          <img src="/agenciame-robot-final.png" alt="agencIAme" style={{width:38,height:38,objectFit:'contain'}}/>
         )}
         <div className={`aw-label${hover&&!open?' show':''}`}>
           <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#EFF4FF'}}>Soporte IA</div>
