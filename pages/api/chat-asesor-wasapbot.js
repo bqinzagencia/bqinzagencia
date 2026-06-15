@@ -1,5 +1,9 @@
 // pages/api/chat-asesor-wasapbot.js
-// Endpoint que conecta el chat del asesor con la IA de Anthropic
+// Endpoint que conecta el chat del asesor con la IA (OpenAI)
+
+import OpenAI from 'openai';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -9,8 +13,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Faltan mensajes' });
   }
 
-  const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
-  if (!ANTHROPIC_KEY) {
+  const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+  if (!OPENAI_KEY) {
     return res.status(500).json({ error: 'API key no configurada' });
   }
 
@@ -54,29 +58,22 @@ REGLAS IMPORTANTES:
 - NO escales por preguntas simples de uso del panel`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type':      'application/json',
-        'x-api-key':         ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model:      'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        system:     systemPrompt,
-        messages:   mensajes,
-      }),
+    const msgs = [
+      { role: 'system', content: systemPrompt },
+      ...mensajes.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content,
+      })),
+    ];
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 300,
+      temperature: 0.6,
+      messages: msgs,
     });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      console.error('Anthropic error:', err);
-      return res.status(502).json({ error: 'Error del servicio de IA', respuesta: 'Tuve un problema tecnico. Puedes contactarme directamente por WhatsApp al 310-505-6616.' });
-    }
-
-    const data = await response.json();
-    const respuesta = data.content?.[0]?.text || 'Lo siento, no pude procesar tu mensaje.';
+    const respuesta = completion.choices[0]?.message?.content || 'Lo siento, no pude procesar tu mensaje.';
 
     return res.json({ ok: true, respuesta });
   } catch (err) {
