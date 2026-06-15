@@ -110,7 +110,7 @@ export default function AsesorWasapbot({ empresa }) {
       const resp = await fetch('/api/chat-asesor-wasapbot', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mensajes: historial, empresa }),
+        body: JSON.stringify({ mensajes: historial, empresaId: empresa?.id }),
       });
 
       const data = await resp.json();
