@@ -72,6 +72,24 @@ export default function AsesorWasapbot({ empresa }) {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
 
+  // En celular, el chat se abre a pantalla completa y desactivamos la
+  // rotacion horizontal del panel mientras esta abierto: el teclado nativo
+  // del celular esta atado a la orientacion fisica real, no a la rotacion CSS,
+  // y al combinarlas se descuadra todo.
+  useEffect(() => {
+    document.documentElement.classList.toggle('aw-chat-open', open);
+    return () => document.documentElement.classList.remove('aw-chat-open');
+  }, [open]);
+
+  // Si el teclado cambia el tamano del area visible, mantener el ultimo
+  // mensaje y el campo de texto visibles por encima del teclado.
+  useEffect(() => {
+    if (!open || typeof window === 'undefined' || !window.visualViewport) return;
+    const onResize = () => bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+    window.visualViewport.addEventListener('resize', onResize);
+    return () => window.visualViewport.removeEventListener('resize', onResize);
+  }, [open]);
+
   const enviar = async () => {
     const texto = input.trim();
     if (!texto || cargando) return;
@@ -162,7 +180,23 @@ export default function AsesorWasapbot({ empresa }) {
         .aw-inp::placeholder{color:rgba(255,255,255,.25)}
         .aw-send{background:linear-gradient(135deg,#FF6B00,#FF9500);color:#fff;border:none;border-radius:9px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s}
         .aw-send:disabled{opacity:0.4;cursor:not-allowed}
-        @media(max-width:480px){.aw-fab{bottom:20px;right:16px;width:50px;height:50px}.aw-panel{right:12px;bottom:82px;width:calc(100vw - 24px);max-height:420px}.aw-label{display:none}}
+        @media(max-width:480px){.aw-fab{bottom:20px;right:16px;width:50px;height:50px}.aw-label{display:none}}
+
+        /* Mientras el chat esta abierto en celular, desactivar la rotacion
+           horizontal del panel (ver useEffect arriba: el teclado nativo va
+           atado a la orientacion fisica real, no a esta rotacion CSS). */
+        html.aw-chat-open{transform:none!important;position:static!important;width:auto!important;height:auto!important;top:auto!important;left:auto!important}
+
+        /* En celular, el chat ocupa toda la pantalla (como WhatsApp/Intercom).
+           100dvh se ajusta solo cuando aparece el teclado, asi el campo de
+           texto siempre queda visible arriba de el. */
+        @media(max-width:600px){
+          .aw-panel{
+            position:fixed;top:0;left:0;right:0;bottom:auto;
+            width:100%;max-width:none;border-radius:0;
+            height:100vh;height:100dvh;max-height:none;
+          }
+        }
       `}}/>
 
       {open && (
