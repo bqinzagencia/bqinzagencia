@@ -47,7 +47,7 @@ function Guia({ texto, icono=Ic.Lightbulb, visible=true }) {
 const BIENVENIDA_ICONO = {
   '🍽️': Ic.ClipboardList, '📦': Ic.Package,    '🛒': Ic.ShoppingCart, '📱': Ic.Smartphone,
   '🔧': Ic.Settings,      '📅': Ic.Calendar,   '💈': Ic.Edit,          '🐾': Ic.Compass,
-  '🎂': Ic.Tag,           '🏪': Ic.Home,        '💊': Ic.Plus,          '🧠': Ic.Lightbulb,
+  '✂️': Ic.Edit,           '🎂': Ic.Tag,           '🏪': Ic.Home,        '💊': Ic.Plus,          '🧠': Ic.Lightbulb,
   '📷': Ic.Camera,        '📊': Ic.BarChart,    '🚛': Ic.ArrowUpRight,  '💪': Ic.TrendingUp,
   '🏥': Ic.FileText,      '📚': Ic.ClipboardList,'💻': Ic.Hash,          '🏠': Ic.MapPin,
   '💼': Ic.DollarSign,
@@ -563,7 +563,7 @@ export default function WasapBotPanel() {
                         <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.3)'}}>{ar.desc}</div>
                       </div>
                     </Link>
-                  ))}
+                  );})}
                 </div>
               )}
 

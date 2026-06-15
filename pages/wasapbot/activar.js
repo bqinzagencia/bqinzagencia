@@ -95,7 +95,6 @@ export default function WasapBotActivar() {
   const [industria, setIndustria]    = useState('');
   const [descripcion,setDescripcion] = useState('');
   const [email, setEmail]            = useState('');
-  const [horario, setHorario]        = useState('');
   const [ciudad, setCiudad]          = useState('');
   const [busq, setBusq]              = useState('');
   const [catFiltro, setCatFiltro]    = useState('Todos');
@@ -239,7 +238,7 @@ export default function WasapBotActivar() {
     setError(''); setLoading(true);
     try {
       const r = await fetch('/api/wasapbot-crear',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nombre,industria,descripcion,email,horario,ciudad,producto:'wasapbot',ownerUid:auth.currentUser?.uid||null})});
+        body:JSON.stringify({nombre,industria,descripcion,email,ciudad,producto:'wasapbot',ownerUid:auth.currentUser?.uid||null})});
       const d = await r.json();
       if (!d.ok) throw new Error(d.error);
       setEmpresaId(d.empresaId);
@@ -259,7 +258,7 @@ export default function WasapBotActivar() {
       const iv = items.filter(it=>it.nombre.trim());
       const pf = preguntas.filter(p=>p.trim()).map(p=>({pregunta:p,respuesta:''}));
       await fetch('/api/wasapbot-servicios',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({empresaId,servicios:iv,horario,preguntas:pf,
+        body:JSON.stringify({empresaId,servicios:iv,preguntas:pf,
           tipoCatalogo:cfg?.tipoCatalogo||'servicios',permitePedidos:cfg?.permitePedidos||false})});
       setStep(3);
     } catch(e) { setError(e.message); }
