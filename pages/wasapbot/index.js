@@ -204,7 +204,10 @@ export default function WasapBotLanding() {
 
       {/* ── NAV ── */}
       <nav className={`wb-nav${scrolled?' scrolled':''}`}>
-        <Link href="/"><span style={{fontFamily:FA,fontSize:18}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span></Link>
+        <Link href="/" style={{display:'flex',alignItems:'center',gap:8}}>
+          <img src="/agenciame-logo.png" alt="agencIAme" style={{width:32,height:32,borderRadius:8,objectFit:'cover'}}/>
+          <span style={{fontFamily:FA,fontSize:18}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span>
+        </Link>
         <div className="wb-nav-links" style={{display:'flex',gap:32,alignItems:'center'}}>
           {[['#features','Funciones'],['#precios','Precios'],['#faqs','FAQ']].map(([h,l])=>(
             <a key={h} href={h}>{l}</a>
@@ -232,9 +235,12 @@ export default function WasapBotLanding() {
             <span style={{fontSize:12,fontWeight:700,color:'#25D366'}}>+200 negocios activos en Colombia</span>
           </div>
 
-          <h1 style={{fontFamily:FA,fontSize:'clamp(44px,5.5vw,72px)',fontWeight:400,lineHeight:1.0,letterSpacing:'-2px',marginBottom:22,color:'#F0F0F0'}}>
-            Tu WhatsApp<br/><span style={{color:'#25D366'}}>trabaja solo.</span>
-          </h1>
+          <div style={{display:'flex',alignItems:'center',gap:18,marginBottom:22}}>
+            <img src="/agenciame-logo.png" alt="agencIAme robot" style={{width:84,height:84,borderRadius:18,objectFit:'cover',flexShrink:0,animation:'float 5s ease-in-out infinite',boxShadow:'0 12px 40px rgba(37,211,102,0.18)'}}/>
+            <h1 style={{fontFamily:FA,fontSize:'clamp(40px,5vw,68px)',fontWeight:400,lineHeight:1.0,letterSpacing:'-2px',color:'#F0F0F0',margin:0}}>
+              Tu WhatsApp<br/><span style={{color:'#25D366'}}>trabaja solo.</span>
+            </h1>
+          </div>
 
           <p style={{fontSize:17,color:'rgba(255,255,255,0.4)',lineHeight:1.85,fontWeight:300,marginBottom:36,maxWidth:460}}>
             Configura un agente de IA entrenado con la info de tu negocio. Responde clientes, agenda citas y vende productos — mientras tú descansas.
@@ -266,8 +272,8 @@ export default function WasapBotLanding() {
           <div className="wb-phone">
           {/* WhatsApp header */}
           <div style={{background:'#075E54',padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
-            <div style={{width:36,height:36,borderRadius:'50%',background:'#128C7E',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>
-              {cur.emoji}
+            <div style={{width:36,height:36,borderRadius:'50%',overflow:'hidden',flexShrink:0,border:'2px solid rgba(255,255,255,0.2)'}}>
+              <img src="/agenciame-logo.png" alt="WasapBot" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
             </div>
             <div>
               <div style={{fontSize:13,fontWeight:700,color:'#fff'}}>Bot {cur.label}</div>
@@ -342,6 +348,7 @@ export default function WasapBotLanding() {
       {/* ── FUNCIONES ── */}
       <section id="features" className="wb-section" style={{padding:'80px 64px',maxWidth:1240,margin:'0 auto'}}>
         <div style={{textAlign:'center',marginBottom:56}}>
+          <img src="/agenciame-logo.png" alt="agencIAme robot" style={{width:64,height:64,borderRadius:14,objectFit:'cover',margin:'0 auto 18px'}}/>
           <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:14}}>Funciones</p>
           <h2 style={{fontFamily:FA,fontSize:'clamp(32px,4vw,52px)',fontWeight:400,letterSpacing:'-1.5px',color:'#F0F0F0',marginBottom:14}}>
             Todo lo que necesita<br/>tu negocio en WhatsApp
@@ -527,7 +534,10 @@ export default function WasapBotLanding() {
 
       {/* FOOTER */}
       <footer style={{borderTop:'1px solid var(--border)',padding:'32px 64px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:16}}>
-        <Link href="/"><span style={{fontFamily:FA,fontSize:16}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span></Link>
+        <Link href="/" style={{display:'flex',alignItems:'center',gap:8}}>
+          <img src="/agenciame-logo.png" alt="agencIAme" style={{width:28,height:28,borderRadius:6,objectFit:'cover'}}/>
+          <span style={{fontFamily:FA,fontSize:16}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span>
+        </Link>
         <div style={{display:'flex',gap:24,fontSize:12,color:'rgba(255,255,255,0.2)'}}>
           <Link href="/wasapbot">WasapBot</Link>
           <Link href="/chatbot">ChatBot</Link>
