@@ -897,6 +897,10 @@ export default function Landing() {
         </div>
         <div style={{ borderTop: '1px solid #1A1A1A', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#555', fontSize: 12 }} className="lnd-footer-copy">
           <span>© 2026 agenc<span style={{ color: '#FF6B00' }}>IA</span>me by NexoTI · Todos los derechos reservados</span>
+          <div style={{display:'flex',gap:20}}>
+            <Link href="/legal/terminos" style={{color:'#666'}}>Términos y Condiciones</Link>
+            <Link href="/legal/privacidad" style={{color:'#666'}}>Política de Privacidad</Link>
+          </div>
           <span>Hecho con amor en Cali, Colombia 🇨🇴</span>
         </div>
       </footer>

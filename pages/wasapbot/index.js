@@ -541,8 +541,8 @@ export default function WasapBotLanding() {
         <div style={{display:'flex',gap:24,fontSize:12,color:'rgba(255,255,255,0.55)'}}>
           <Link href="/wasapbot">WasapBot</Link>
           <Link href="/chatbot">ChatBot</Link>
-          <Link href="/blog">Blog</Link>
-          <Link href="/auth/register">Dashboard</Link>
+          <Link href="/legal/terminos">Términos</Link>
+          <Link href="/legal/privacidad">Privacidad</Link>
         </div>
         <div style={{fontSize:11,color:'rgba(255,255,255,0.35)'}}>© 2026 NexoTI · Cali, Colombia</div>
       </footer>
