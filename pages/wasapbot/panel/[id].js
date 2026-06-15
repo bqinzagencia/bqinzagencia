@@ -410,6 +410,22 @@ export default function WasapBotPanel() {
       <style dangerouslySetInnerHTML={{__html:`
         body{margin:0;background:#06090D;color:#EFF4FF;font-family:${F};overflow-x:hidden}
         *{box-sizing:border-box}a{text-decoration:none;color:inherit}
+
+        /* En celular (vertical), forzar vista horizontal: el panel no se
+           navega bien en vertical. Rota toda la pagina 90 grados.
+           Solo aplica en esta pantalla (este <style> vive en este componente). */
+        @media screen and (max-width: 600px) and (orientation: portrait) {
+          html{
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            width: 100vh;
+            height: 100vw;
+            overflow-x: hidden;
+            position: absolute;
+            top: 100%;
+            left: 0;
+          }
+        }
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes pulse-g{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)}70%{box-shadow:0 0 0 10px rgba(37,211,102,0)}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
