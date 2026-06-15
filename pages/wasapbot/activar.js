@@ -523,15 +523,9 @@ export default function WasapBotActivar() {
               <label style={LBL}>Descripcion del negocio</label>
               <textarea className="wi" style={{...INP,resize:'vertical',minHeight:90,lineHeight:1.7}} value={descripcion} onChange={e=>setDescripcion(e.target.value)}
                 placeholder={ph.descripcion||'Ej: Somos un salon de belleza familiar con 10 anos de experiencia...'}/>
-              <div className="two-col" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginTop:14}}>
-                <div>
-                  <label style={LBL}>Ciudad</label>
-                  <input className="wi" style={INP} value={ciudad} onChange={e=>setCiudad(e.target.value)} placeholder="Cali, Bogota, Medellin..."/>
-                </div>
-                <div>
-                  <label style={LBL}>Horario de atencion</label>
-                  <input className="wi" style={INP} value={horario} onChange={e=>setHorario(e.target.value)} placeholder={ph.horario||'Lun-Vie 8am-6pm'}/>
-                </div>
+              <div style={{marginTop:14}}>
+                <label style={LBL}>Ciudad</label>
+                <input className="wi" style={INP} value={ciudad} onChange={e=>setCiudad(e.target.value)} placeholder="Cali, Bogota, Medellin..."/>
               </div>
             </div>
 

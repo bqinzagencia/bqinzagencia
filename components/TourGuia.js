@@ -146,7 +146,9 @@ export default function TourGuia({ storageKey, pasos = [], activo = true }) {
         borderRadius: 14, padding: 18, boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <span style={{ fontSize: 18 }}>{actual.icono || '💡'}</span>
+          {typeof actual.icono === 'function'
+            ? <actual.icono size={18} style={{color:'#25D366'}}/>
+            : <span style={{ fontSize: 18 }}>{actual.icono || '💡'}</span>}
           <span style={{ fontFamily: FA, fontSize: 16, color: '#EFF4FF' }}>{actual.titulo}</span>
         </div>
         <div style={{ fontFamily: F, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 14 }}>
