@@ -75,18 +75,24 @@ export default function TourGuia({ storageKey, pasos = [], activo = true }) {
 
   if (!listo || pasos.length === 0) return null;
 
+  // Se ubica apilado JUSTO ARRIBA del boton naranja de soporte (AsesorWasapbot,
+  // que esta en bottom:28/right:28, 56px, z-index 9997) para que ambos queden
+  // visibles y alineados en la misma columna, sin que el chat lo tape.
   const BotonAyuda = (
-    <button onClick={reiniciar} title="Ver guía de este panel"
-      style={{
-        position: 'fixed', bottom: 20, right: 20, zIndex: 9990,
-        width: 46, height: 46, borderRadius: '50%',
-        background: '#25D366', color: '#fff', border: 'none',
-        fontSize: 20, fontWeight: 800, cursor: 'pointer',
-        boxShadow: '0 6px 20px rgba(37,211,102,0.4)', fontFamily: F,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-      ?
-    </button>
+    <>
+      <style dangerouslySetInnerHTML={{__html:`
+        @keyframes tgIn{from{opacity:0;transform:scale(0.7) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .tg-fab{position:fixed;bottom:96px;right:33px;z-index:9990;width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;font-family:${F};font-size:19px;font-weight:800;box-shadow:0 6px 20px rgba(37,211,102,0.4);transition:transform 0.2s;animation:tgIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.3s both}
+        .tg-fab:hover{transform:scale(1.1)}
+        .tg-label{position:absolute;right:58px;top:50%;transform:translateY(-50%);background:#0C0F14;border:1px solid rgba(37,211,102,0.3);border-radius:10px;padding:7px 13px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.18s;box-shadow:0 8px 24px rgba(0,0,0,0.5);font-family:${F};font-size:12px;font-weight:700;color:#EFF4FF}
+        .tg-fab:hover .tg-label{opacity:1}
+        @media(max-width:480px){.tg-fab{bottom:78px;right:20px;width:42px;height:42px;font-size:17px}.tg-label{display:none}}
+      `}}/>
+      <button className="tg-fab" onClick={reiniciar} title="Ver guía de este panel">
+        ?
+        <span className="tg-label">Ver guía</span>
+      </button>
+    </>
   );
 
   if (!visible || !actual) return BotonAyuda;
