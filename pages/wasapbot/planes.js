@@ -247,13 +247,16 @@ export default function PlanesWasapbot() {
 
   const fmtP = (n) => Number(n).toLocaleString('es-CO');
 
-  // Determinar qué planes mostrar según si es upgrade
-  const planesAMostrar = esUpgrade
+  // Qué planes mostrar según si es upgrade. El plan "prueba_5k" es solo
+  // para pruebas internas de Alexander (verificar el flujo de pago) y
+  // NUNCA debe mostrarse a clientes reales — se excluye siempre.
+  const planesAMostrar = (esUpgrade
     ? PLANES.filter(p => {
         const orden = { basico: 1, estandar: 2, pro: 3 };
         return orden[p.id] > (orden[planActual] || 0);
       })
-    : PLANES;
+    : PLANES
+  ).filter(p => p.id !== 'prueba_5k');
 
   return (
     <>
