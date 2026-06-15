@@ -163,8 +163,8 @@ export default function AsesorWasapbot({ empresa }) {
         @keyframes aw-panel{from{opacity:0;transform:scale(0.94) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
         @keyframes aw-msg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes aw-dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
-        .aw-fab{position:fixed;bottom:28px;right:28px;z-index:9997;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#FF6B00,#FF9500);display:flex;align-items:center;justify-content:center;animation:aw-in 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.5s both,aw-pulse 2.5s ease-in-out 2s infinite;transition:transform 0.2s}
-        .aw-fab:hover{transform:scale(1.1)!important}
+        .aw-fab{position:fixed;bottom:28px;right:28px;z-index:9997;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;animation:aw-in 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.5s both;transition:transform 0.2s;filter:drop-shadow(0 4px 16px rgba(37,211,102,0.25))}
+        .aw-fab:hover{transform:scale(1.12)!important}
         .aw-badge{position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#25D366;border:2.5px solid #06090D}
         .aw-label{position:absolute;right:68px;top:50%;transform:translateY(-50%);background:#0C0F14;border:1px solid rgba(255,107,0,0.3);border-radius:10px;padding:7px 13px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.18s;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
         .aw-label.show{opacity:1}
@@ -275,7 +275,7 @@ export default function AsesorWasapbot({ empresa }) {
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         ) : (
-          <img src="/agenciame-robot-final.png" alt="agencIAme" style={{width:38,height:38,objectFit:'contain'}}/>
+          <img src="/agenciame-robot-final.png" alt="agencIAme" style={{width:54,height:54,objectFit:'contain'}}/>
         )}
         <div className={`aw-label${hover&&!open?' show':''}`}>
           <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#EFF4FF'}}>Soporte IA</div>

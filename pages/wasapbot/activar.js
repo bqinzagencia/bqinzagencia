@@ -450,7 +450,10 @@ export default function WasapBotActivar() {
           <div className="aup">
             <div style={{marginBottom:40}}>
               <p style={{fontFamily:F,fontSize:12,fontWeight:700,color:'rgba(37,211,102,.8)',letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>PASO 1 DE 4</p>
-              <h1 style={{fontFamily:FA,fontSize:50,fontWeight:400,letterSpacing:'-2.5px',color:'#F5F5F5',marginBottom:12,lineHeight:1.02}}>Cuentanos sobre<br/>tu negocio</h1>
+              <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}>
+                <img src="/agenciame-robot-final.png" alt="" style={{width:52,height:52,objectFit:'contain',opacity:0.45,flexShrink:0}}/>
+                <h1 style={{fontFamily:FA,fontSize:50,fontWeight:400,letterSpacing:'-2.5px',color:'#F5F5F5',lineHeight:1.02,margin:0}}>Cuentanos sobre<br/>tu negocio</h1>
+              </div>
               <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,.33)',fontWeight:300,lineHeight:1.75,maxWidth:480}}>Configuramos tu bot automaticamente con el vocabulario y la personalidad de tu industria.</p>
             </div>
 
@@ -616,7 +619,10 @@ export default function WasapBotActivar() {
           <div className="aup">
             <div style={{marginBottom:36}}>
               <p style={{fontFamily:F,fontSize:12,fontWeight:700,color:'rgba(37,211,102,.8)',letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>PASO 2 DE 4</p>
-              <h1 style={{fontFamily:FA,fontSize:46,fontWeight:400,letterSpacing:'-2px',color:'#F5F5F5',marginBottom:12,lineHeight:1.02}}>{cfg.labelCatalogo}</h1>
+              <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}>
+                <img src="/agenciame-robot-final.png" alt="" style={{width:52,height:52,objectFit:'contain',opacity:0.45,flexShrink:0}}/>
+                <h1 style={{fontFamily:FA,fontSize:46,fontWeight:400,letterSpacing:'-2px',color:'#F5F5F5',lineHeight:1.02,margin:0}}>{cfg.labelCatalogo}</h1>
+              </div>
               <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,.33)',fontWeight:300,lineHeight:1.75,maxWidth:500}}>
                 Agrega tus {cfg.labelCatalogo.toLowerCase()} — el bot los presentara cuando un cliente pregunte.
                 {cfg.permitePedidos&&<span style={{color:'rgba(37,211,102,.85)',fontWeight:500}}> Los clientes podran hacer pedidos por WhatsApp.</span>}
@@ -721,6 +727,7 @@ export default function WasapBotActivar() {
           <div className="aup">
             <div style={{textAlign:'center',marginBottom:40}}>
               <p style={{fontFamily:F,fontSize:12,fontWeight:700,color:'rgba(37,211,102,.8)',letterSpacing:2,textTransform:'uppercase',marginBottom:18}}>PASO 3 DE 4</p>
+              <img src="/agenciame-robot-final.png" alt="" style={{width:52,height:52,objectFit:'contain',opacity:0.45,margin:'0 auto 12px'}}/>
               <h1 style={{fontFamily:FA,fontSize:44,fontWeight:400,letterSpacing:'-2px',color:'#F5F5F5',marginBottom:12,lineHeight:1.02}}>Conecta tu WhatsApp</h1>
               <p style={{fontFamily:F,fontSize:15,color:'rgba(255,255,255,.32)',fontWeight:300,lineHeight:1.75,maxWidth:500,margin:'0 auto'}}>
                 Elige cómo conectar según tu situación. Ambas opciones funcionan igual de bien.
