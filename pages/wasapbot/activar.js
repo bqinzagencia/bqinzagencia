@@ -402,10 +402,10 @@ export default function WasapBotActivar() {
           </span>
         </Link>
         <div style={{display:'flex',alignItems:'center',gap:18}}>
-          <Link href="/wasapbot/login" style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.4)',fontWeight:600}}>
+          <Link href="/wasapbot/login" style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.65)',fontWeight:600}}>
             Ingresar
           </Link>
-          <Link href="/wasapbot" style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.3)',display:'flex',alignItems:'center',gap:5}}>
+          <Link href="/wasapbot" style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.55)',display:'flex',alignItems:'center',gap:5}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
             Volver
           </Link>

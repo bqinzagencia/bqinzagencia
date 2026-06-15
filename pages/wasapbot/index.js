@@ -142,7 +142,7 @@ export default function WasapBotLanding() {
           transition:background 0.3s;
         }
         .wb-nav.scrolled { background:rgba(4,8,12,0.96); }
-        .wb-nav-links a { font-size:13px; color:rgba(255,255,255,0.45); transition:color 0.15s; }
+        .wb-nav-links a { font-size:13px; color:rgba(255,255,255,0.7); transition:color 0.15s; }
         .wb-nav-links a:hover { color:#EFF4FF; }
 
         /* CTA buttons */
@@ -538,13 +538,13 @@ export default function WasapBotLanding() {
           <img src="/agenciame-logo.png" alt="agencIAme" style={{width:28,height:28,borderRadius:6,objectFit:'cover'}}/>
           <span style={{fontFamily:FA,fontSize:16}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span>
         </Link>
-        <div style={{display:'flex',gap:24,fontSize:12,color:'rgba(255,255,255,0.2)'}}>
+        <div style={{display:'flex',gap:24,fontSize:12,color:'rgba(255,255,255,0.55)'}}>
           <Link href="/wasapbot">WasapBot</Link>
           <Link href="/chatbot">ChatBot</Link>
           <Link href="/blog">Blog</Link>
           <Link href="/auth/register">Dashboard</Link>
         </div>
-        <div style={{fontSize:11,color:'rgba(255,255,255,0.12)'}}>© 2026 NexoTI · Cali, Colombia</div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,0.35)'}}>© 2026 NexoTI · Cali, Colombia</div>
       </footer>
     </>
   );

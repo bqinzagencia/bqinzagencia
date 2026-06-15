@@ -459,9 +459,9 @@ export default function Landing() {
           {['Empresas', 'Funciones', 'Precios', 'WasapBot'].map(item => (
             <a key={item}
               href={item === 'WasapBot' ? '/wasapbot' : '#' + item.toLowerCase()}
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: item === 'WasapBot' ? '#25D366' : '#555', fontSize: 13, fontWeight: item === 'WasapBot' ? 600 : 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: item === 'WasapBot' ? '#25D366' : '#aaa', fontSize: 13, fontWeight: item === 'WasapBot' ? 600 : 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
               onMouseEnter={e => e.target.style.color = '#E8E8E8'}
-              onMouseLeave={e => e.target.style.color = item === 'WasapBot' ? '#25D366' : '#555'}>
+              onMouseLeave={e => e.target.style.color = item === 'WasapBot' ? '#25D366' : '#aaa'}>
               {item}
             </a>
           ))}
@@ -471,7 +471,7 @@ export default function Landing() {
             <Link href="/wasapbot"><button className="btn-wa" style={{ padding: '9px 22px', fontSize: 13 }}>Mi WasapBot →</button></Link>
           ) : (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <Link href="/wasapbot/login"><span style={{ color: '#555', fontSize: 13, cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#555'}>Ingresar</span></Link>
+              <Link href="/wasapbot/login"><span style={{ color: '#aaa', fontSize: 13, cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#aaa'}>Ingresar</span></Link>
               <Link href="/wasapbot/activar"><button className="btn-wa" style={{ padding: '9px 22px', fontSize: 13 }}>Crear mi bot →</button></Link>
             </div>
           ))}
@@ -860,12 +860,12 @@ export default function Landing() {
             <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 26, color: '#E8E8E8', marginBottom: 20 }}>
               agenc<span style={{ color: '#FF6B00', fontSize: 30 }}>IA</span>me
             </div>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 13, lineHeight: 1.8, maxWidth: 300, fontWeight: 300 }}>
+            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#888', fontSize: 13, lineHeight: 1.8, maxWidth: 300, fontWeight: 300 }}>
               La IA que atiende, agenda y vende por tu negocio. Plataforma colombiana de automatización con inteligencia artificial.
             </p>
             <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>Cali, Colombia</span>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 12 }}>soportesistemas@soporteia.net</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#666', fontSize: 12 }}>Cali, Colombia</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#666', fontSize: 12 }}>soportesistemas@soporteia.net</span>
             </div>
           </div>
           {[
@@ -874,13 +874,13 @@ export default function Landing() {
             { title: 'Empresa', links: ['Sobre nosotros', 'Soporte', 'Términos', 'Privacidad'] },
           ].map((col, i) => (
             <div key={i}>
-              <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 3, color: '#1C1C1C', marginBottom: 28 }}>{col.title}</h4>
+              <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 3, color: '#666', marginBottom: 28 }}>{col.title}</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {col.links.map((link, j) => (
                   <li key={j}>
-                    <a href="/wasapbot/activar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1C1C1C', fontSize: 13, fontWeight: 300, transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.target.style.color = '#555'}
-                      onMouseLeave={e => e.target.style.color = '#1C1C1C'}>
+                    <a href="/wasapbot/activar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#777', fontSize: 13, fontWeight: 300, transition: 'color 0.2s' }}
+                      onMouseEnter={e => e.target.style.color = '#ccc'}
+                      onMouseLeave={e => e.target.style.color = '#777'}>
                       {link}
                     </a>
                   </li>
@@ -889,7 +889,7 @@ export default function Landing() {
             </div>
           ))}
         </div>
-        <div style={{ borderTop: '1px solid #0E0E0E', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#141414', fontSize: 12 }} className="lnd-footer-copy">
+        <div style={{ borderTop: '1px solid #1A1A1A', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#555', fontSize: 12 }} className="lnd-footer-copy">
           <span>© 2026 agenc<span style={{ color: '#FF6B00' }}>IA</span>me by NexoTI · Todos los derechos reservados</span>
           <span>Hecho con amor en Cali, Colombia 🇨🇴</span>
         </div>
