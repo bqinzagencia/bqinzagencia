@@ -15,12 +15,22 @@ const inter = Inter({
   preload: true,
 });
 
-const ModalBienvenida       = dynamic(() => import('../components/ModalBienvenida'), { ssr: false });
-const VerificarEmailBanner  = dynamic(() => import('../components/VerificarEmailBanner'), { ssr: false });
+const ModalBienvenida       = dynamic(() => import('../components/ModalBienvenida'),      { ssr: false });
+const VerificarEmailBanner  = dynamic(() => import('../components/VerificarEmailBanner'),  { ssr: false });
+const AsesorWasapbot        = dynamic(() => import('../components/AsesorWasapbot'),        { ssr: false });
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
   const esPaginaPrincipal = router.pathname === '/';
+
+  // Páginas donde NO mostrar el chatbot global (tiene el suyo propio o no aplica)
+  const sinChatbot = [
+    '/wasapbot/panel',
+    '/dashboard',
+    '/legal/terminos',
+    '/legal/privacidad',
+  ];
+  const mostrarChatbot = !sinChatbot.some(p => router.pathname.startsWith(p));
 
   return (
     // Aplica la clase + variable CSS a toda la app
@@ -43,6 +53,7 @@ export default function App({ Component, pageProps }) {
         <VerificarEmailBanner />
         <Component {...pageProps} />
         {esPaginaPrincipal && <ModalBienvenida />}
+        {mostrarChatbot && <AsesorWasapbot modo="ventas" />}
       </AuthProvider>
     </div>
   );
