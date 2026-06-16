@@ -565,7 +565,7 @@ export default function Landing() {
             <div className="slide-up d3" style={{ marginTop: 22 }}>
               <Link href="/wasapbot/activar">
                 <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 700, color: G, cursor: 'pointer', borderBottom: `1px solid rgba(37,211,102,0.4)`, paddingBottom: 2 }}>
-                  Desde $189.000/mes · Sin contratos →
+                  Desde $249.000/mes · Sin contratos →
                 </span>
               </Link>
             </div>
@@ -622,9 +622,9 @@ export default function Landing() {
 
           <div id="planes-scroll-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 16, overflow: 'hidden', marginBottom: 32 }}>
             {[
-              { plan: 'Básico', precio: '$189K/mes', color: '#25D366', items: ['Bot WhatsApp IA 24/7', 'Catálogo con fotos', 'Libreta de clientes automática', 'Agendamiento automático', 'Inventario básico'] },
-              { plan: 'Estándar', precio: '$390K/mes', color: '#2563EB', popular: true, items: ['Todo lo del Básico', 'Panel de pedidos', 'Reportes de ventas', 'Broadcasts masivos'] },
-              { plan: 'Pro', precio: '$690K/mes', color: '#A78BFA', items: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes'] },
+              { plan: 'Básico', precio: '$249K/mes', color: '#25D366', items: ['Bot WhatsApp IA 24/7', 'Lista de clientes automática', 'Catálogo de productos', 'Agendamiento de citas', 'Inventario básico'] },
+              { plan: 'Estándar', precio: '$450K/mes', color: '#2563EB', popular: true, items: ['Todo lo del Básico', 'Panel de pedidos', 'Reportes diarios de ventas', 'Broadcasts masivos'] },
+              { plan: 'Pro', precio: '$790K/mes', color: '#A78BFA', items: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes'] },
             ].map((p, i) => (
               <Link key={i} href="/wasapbot/activar">
                 <div style={{ background: '#0A0D12', padding: '24px 20px', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}
