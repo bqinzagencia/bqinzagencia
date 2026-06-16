@@ -337,6 +337,13 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
         .aw-send{background:linear-gradient(135deg,#FF6B00,#FF9500);color:#fff;border:none;border-radius:9px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s}
         .aw-send:disabled{opacity:0.4;cursor:not-allowed}
         @media(max-width:480px){.aw-fab{bottom:20px;right:16px;width:50px;height:50px}.aw-label{display:none}}
+        @media(max-width:600px){
+          .aw-panel{
+            position:fixed;top:0;left:0;right:0;bottom:auto;
+            width:100%;max-width:none;border-radius:0;
+            height:100vh;height:100dvh;max-height:none;
+          }
+        }
 
         /* Mientras el chat esta abierto en celular, desactivar la rotacion
            horizontal del panel (ver useEffect arriba: el teclado nativo va

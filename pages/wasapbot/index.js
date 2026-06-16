@@ -457,14 +457,14 @@ export default function WasapBotLanding() {
           ))}
         </div>
 
-        {/* Garantia */}
+        {/* Soporte colombiano */}
         <div style={{marginTop:40,background:'rgba(37,211,102,0.04)',border:'1px solid rgba(37,211,102,0.15)',borderRadius:16,padding:'20px 28px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
-          <div style={{width:44,height:44,borderRadius:10,background:'rgba(37,211,102,0.1)',border:'1px solid rgba(37,211,102,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div style={{width:44,height:44,borderRadius:10,background:'rgba(37,211,102,0.1)',border:'1px solid rgba(37,211,102,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22}}>
+            🇨🇴
           </div>
           <div>
-            <div style={{fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>Garantía de satisfacción</div>
-            <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300}}>Activa tu plan hoy. Si no estás satisfecho, te devolvemos el dinero. Sin preguntas.</div>
+            <div style={{fontSize:15,fontWeight:700,color:'#EFF4FF',marginBottom:3}}>Soporte colombiano incluido</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.35)',fontWeight:300}}>Sin contratos · Sin permanencia · Cancelas desde WhatsApp cuando quieras — sin formularios, sin llamadas.</div>
           </div>
         </div>
       </section>

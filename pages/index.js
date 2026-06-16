@@ -261,6 +261,29 @@ function PopupBienvenida({ onClose }) {
               Activar mi WasapBot →
             </div>
           </Link>
+
+          {/* Botón chatbot AIA dentro del popup */}
+          <div
+            onClick={() => {
+              onClose();
+              setTimeout(() => {
+                const fab = document.querySelector('.aw-fab');
+                if (fab) fab.click();
+              }, 400);
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.2)',
+              borderRadius: 12, padding: '11px 14px', cursor: 'pointer',
+            }}>
+            <img src="/agenciame-robot-final.png" alt="AIA" style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }}/>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#EFF4FF' }}>Hablar con AIA ahora</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>Tu asistente IA · Responde al instante</div>
+            </div>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#25D366', flexShrink: 0, boxShadow: '0 0 6px #25D366' }}/>
+          </div>
+
           <button onClick={onClose} style={{
             background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 12, padding: '11px',
