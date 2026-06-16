@@ -21,6 +21,262 @@ const Card = ({ label, value, sub, color='#EFF4FF' }) => (
   </div>
 );
 
+function PanelPruebas() {
+  const ADMIN_SECRET = 'nexoti2026admin';
+  const CARD   = '#111827';
+  const BORDER = 'rgba(255,255,255,0.07)';
+  const F      = "'Inter', system-ui, sans-serif";
+
+  const [empresas,      setEmpresas]      = useState([]);
+  const [cargandoEmps,  setCargandoEmps]  = useState(false);
+  const [empresaSel,    setEmpresaSel]    = useState(null);
+  const [planSel,       setPlanSel]       = useState('basico');
+  const [activando,     setActivando]     = useState(false);
+  const [log,           setLog]           = useState([]);
+  const [busqueda,      setBusqueda]      = useState('');
+
+  const PLANES_PRUEBA = [
+    { id:'basico',   label:'Básico',   precio:'$249.000/mes', color:'#25D366', features:['Bot WhatsApp 24/7','Lista clientes auto','Catálogo','Agenda','Inventario básico'] },
+    { id:'estandar', label:'Estándar', precio:'$450.000/mes', color:'#2563EB', features:['Todo Básico','Panel pedidos','Inventario avanzado','Reportes diarios','Broadcasts'] },
+    { id:'pro',      label:'Pro',      precio:'$790.000/mes', color:'#A78BFA', features:['Todo Estándar','Página web','CRM avanzado','Recordatorios citas','Múltiples agentes'] },
+  ];
+
+  const addLog = (msg, tipo='info') => {
+    const hora = new Date().toLocaleTimeString('es-CO');
+    setLog(prev => [{ hora, msg, tipo }, ...prev].slice(0, 20));
+  };
+
+  const cargarEmpresas = async () => {
+    setCargandoEmps(true);
+    try {
+      const r = await fetch('/api/wompi-activar-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: ADMIN_SECRET, empresaId: 'LISTAR' }),
+      });
+      const d = await r.json();
+      if (d.empresas) {
+        setEmpresas(d.empresas);
+        addLog(`✅ ${d.empresas.length} empresas cargadas`, 'ok');
+      }
+    } catch(e) {
+      addLog('❌ Error cargando empresas: ' + e.message, 'error');
+    }
+    setCargandoEmps(false);
+  };
+
+  const activarPlan = async () => {
+    if (!empresaSel) { addLog('⚠️ Selecciona una empresa primero', 'warn'); return; }
+    if (!confirm(`¿Activar plan "${planSel}" para "${empresaSel.nombre}"?\n\nEsto es una activación de PRUEBA interna.\nNo afecta el flujo real de pago de otros clientes.`)) return;
+
+    setActivando(true);
+    addLog(`⏳ Activando plan ${planSel} para ${empresaSel.nombre}...`, 'info');
+
+    try {
+      const r = await fetch('/api/wompi-activar-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret:    ADMIN_SECRET,
+          empresaId: empresaSel.id,
+          planId:    planSel,
+          referencia: `PRUEBA-${planSel.toUpperCase()}-${Date.now()}`,
+        }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        addLog(`✅ Plan "${planSel}" activado para "${empresaSel.nombre}"`, 'ok');
+        addLog(`🔗 Panel: /wasapbot/panel/${empresaSel.id}`, 'link');
+        // Actualizar estado local
+        setEmpresas(prev => prev.map(e => e.id === empresaSel.id ? {...e, planActivo: true, plan: planSel} : e));
+        setEmpresaSel(prev => ({...prev, planActivo: true, plan: planSel}));
+      } else {
+        addLog('❌ Error: ' + (d.error || 'Respuesta inesperada'), 'error');
+      }
+    } catch(e) {
+      addLog('❌ Error: ' + e.message, 'error');
+    }
+    setActivando(false);
+  };
+
+  const desactivarPlan = async () => {
+    if (!empresaSel) return;
+    if (!confirm(`¿Desactivar plan de "${empresaSel.nombre}"?`)) return;
+    setActivando(true);
+    addLog(`⏳ Desactivando plan de ${empresaSel.nombre}...`, 'info');
+    try {
+      const r = await fetch('/api/wompi-activar-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret:    ADMIN_SECRET,
+          empresaId: empresaSel.id,
+          planId:    'sin_plan',
+          referencia: `DESACTIVAR-${Date.now()}`,
+        }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        addLog(`✅ Plan desactivado para "${empresaSel.nombre}"`, 'ok');
+        setEmpresas(prev => prev.map(e => e.id === empresaSel.id ? {...e, planActivo: false, plan: 'sin_plan'} : e));
+        setEmpresaSel(prev => ({...prev, planActivo: false, plan: 'sin_plan'}));
+      }
+    } catch(e) {
+      addLog('❌ Error: ' + e.message, 'error');
+    }
+    setActivando(false);
+  };
+
+  const empsFiltradas = empresas.filter(e =>
+    (e.nombre||'').toLowerCase().includes(busqueda.toLowerCase()) ||
+    (e.email||'').toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const logColor = { ok:'#25D366', error:'#EF4444', warn:'#F59E0B', info:'#8A9BB5', link:'#60A5FA' };
+
+  return (
+    <div style={{ fontFamily:F }}>
+
+      {/* Header */}
+      <div style={{ background:'rgba(37,211,102,0.05)', border:'1px solid rgba(37,211,102,0.2)', borderRadius:14, padding:'16px 20px', marginBottom:20, display:'flex', alignItems:'center', gap:14 }}>
+        <div style={{ fontSize:28 }}>🧪</div>
+        <div>
+          <div style={{ fontSize:15, fontWeight:700, color:'#EFF4FF' }}>Panel de Pruebas Internas</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', marginTop:2 }}>Activa planes en empresas de prueba sin afectar el flujo real de pago de otros clientes. Solo tú puedes hacer esto desde aquí.</div>
+        </div>
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+
+        {/* Columna izquierda: seleccionar empresa */}
+        <div>
+          <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'18px 20px', marginBottom:16 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'#EFF4FF' }}>1. Selecciona la empresa de prueba</div>
+              <button onClick={cargarEmpresas} disabled={cargandoEmps}
+                style={{ background:'rgba(43,106,255,0.12)', border:'1px solid rgba(43,106,255,0.3)', borderRadius:8, padding:'6px 14px', color:'#6DA4FF', fontFamily:F, fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                {cargandoEmps ? 'Cargando...' : '🔄 Cargar empresas'}
+              </button>
+            </div>
+
+            {empresas.length > 0 && (
+              <>
+                <input
+                  placeholder="Buscar por nombre o email..."
+                  value={busqueda}
+                  onChange={e => setBusqueda(e.target.value)}
+                  style={{ width:'100%', background:'#0A0F1E', border:`1px solid ${BORDER}`, borderRadius:8, padding:'8px 12px', color:'#EFF4FF', fontFamily:F, fontSize:12, outline:'none', marginBottom:10, boxSizing:'border-box' }}
+                />
+                <div style={{ maxHeight:280, overflowY:'auto', display:'flex', flexDirection:'column', gap:6 }}>
+                  {empsFiltradas.map(e => (
+                    <div key={e.id} onClick={() => setEmpresaSel(e)}
+                      style={{ padding:'10px 12px', borderRadius:10, cursor:'pointer', border:`1px solid ${empresaSel?.id===e.id ? 'rgba(37,211,102,0.5)' : BORDER}`, background: empresaSel?.id===e.id ? 'rgba(37,211,102,0.08)' : 'rgba(255,255,255,0.02)', transition:'all 0.15s' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <div>
+                          <div style={{ fontSize:13, fontWeight:600, color:'#EFF4FF' }}>{e.nombre || 'Sin nombre'}</div>
+                          <div style={{ fontSize:10, color:'#4B6080', marginTop:2 }}>{e.email}</div>
+                        </div>
+                        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
+                          {e.planActivo
+                            ? <span style={{ fontSize:9, fontWeight:700, color:'#25D366', background:'rgba(37,211,102,0.1)', border:'1px solid rgba(37,211,102,0.25)', borderRadius:100, padding:'2px 8px' }}>ACTIVO ✓</span>
+                            : <span style={{ fontSize:9, fontWeight:700, color:'#6B7A99', background:'rgba(255,255,255,0.04)', border:`1px solid ${BORDER}`, borderRadius:100, padding:'2px 8px' }}>SIN PLAN</span>
+                          }
+                          {e.plan && e.plan !== 'sin_plan' && <span style={{ fontSize:9, color:'#8A9BB5' }}>{e.plan}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {empsFiltradas.length === 0 && <div style={{ fontSize:12, color:'#4B6080', textAlign:'center', padding:16 }}>Sin resultados</div>}
+                </div>
+              </>
+            )}
+            {empresas.length === 0 && <div style={{ fontSize:12, color:'#4B6080', textAlign:'center', padding:24 }}>Haz clic en "Cargar empresas" para comenzar</div>}
+          </div>
+        </div>
+
+        {/* Columna derecha: seleccionar plan y activar */}
+        <div>
+          <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'18px 20px', marginBottom:16 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:'#EFF4FF', marginBottom:14 }}>2. Elige el plan a probar</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
+              {PLANES_PRUEBA.map(p => (
+                <div key={p.id} onClick={() => setPlanSel(p.id)}
+                  style={{ padding:'12px 14px', borderRadius:10, cursor:'pointer', border:`1px solid ${planSel===p.id ? p.color+'66' : BORDER}`, background: planSel===p.id ? p.color+'0D' : 'rgba(255,255,255,0.02)', transition:'all 0.15s' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                    <span style={{ fontSize:13, fontWeight:700, color: planSel===p.id ? p.color : '#EFF4FF' }}>{p.label}</span>
+                    <span style={{ fontSize:11, color: planSel===p.id ? p.color : '#4B6080', fontWeight:600 }}>{p.precio}</span>
+                  </div>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                    {p.features.map((f,i) => (
+                      <span key={i} style={{ fontSize:9, color:'rgba(255,255,255,0.35)', background:'rgba(255,255,255,0.04)', border:`1px solid ${BORDER}`, borderRadius:100, padding:'2px 8px' }}>{f}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Empresa seleccionada */}
+            {empresaSel ? (
+              <div style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${BORDER}`, borderRadius:10, padding:'10px 14px', marginBottom:14 }}>
+                <div style={{ fontSize:10, color:'#4B6080', textTransform:'uppercase', letterSpacing:1, marginBottom:4 }}>Empresa seleccionada</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#EFF4FF' }}>{empresaSel.nombre}</div>
+                <div style={{ fontSize:11, color:'#4B6080' }}>{empresaSel.email}</div>
+                <div style={{ fontSize:11, color: empresaSel.planActivo ? '#25D366' : '#6B7A99', marginTop:4 }}>
+                  {empresaSel.planActivo ? `✓ Plan activo: ${empresaSel.plan}` : '⚠️ Sin plan activo'}
+                </div>
+              </div>
+            ) : (
+              <div style={{ background:'rgba(255,255,255,0.02)', border:`1px solid ${BORDER}`, borderRadius:10, padding:'10px 14px', marginBottom:14, fontSize:12, color:'#4B6080', textAlign:'center' }}>
+                ← Selecciona una empresa de la lista
+              </div>
+            )}
+
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={activarPlan} disabled={!empresaSel || activando}
+                style={{ flex:1, background: empresaSel ? 'linear-gradient(135deg,#25D366,#1DA851)' : 'rgba(255,255,255,0.05)', border:'none', borderRadius:10, padding:'12px', color: empresaSel ? '#fff' : '#4B6080', fontFamily:F, fontSize:13, fontWeight:700, cursor: empresaSel ? 'pointer' : 'not-allowed', transition:'all 0.2s' }}>
+                {activando ? '⏳ Activando...' : `✅ Activar plan ${planSel}`}
+              </button>
+              {empresaSel?.planActivo && (
+                <button onClick={desactivarPlan} disabled={activando}
+                  style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:10, padding:'12px 16px', color:'#EF4444', fontFamily:F, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                  Desactivar
+                </button>
+              )}
+            </div>
+
+            {empresaSel?.planActivo && (
+              <a href={`/wasapbot/panel/${empresaSel.id}`} target="_blank" rel="noreferrer"
+                style={{ display:'block', marginTop:10, textAlign:'center', fontSize:12, color:'#60A5FA', textDecoration:'none' }}>
+                🔗 Ir al panel de esta empresa →
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Log de actividad */}
+      {log.length > 0 && (
+        <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'16px 20px', marginTop:0 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:'#4B6080', textTransform:'uppercase', letterSpacing:1, marginBottom:12 }}>Log de actividad</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:6, maxHeight:200, overflowY:'auto' }}>
+            {log.map((l,i) => (
+              <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
+                <span style={{ fontSize:10, color:'#4B6080', flexShrink:0, marginTop:1 }}>{l.hora}</span>
+                <span style={{ fontSize:12, color: logColor[l.tipo] || '#8A9BB5', lineHeight:1.4 }}>{l.msg}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* PRUEBAS */}
+      {tab === 'pruebas' && (
+        <PanelPruebas />
+      )}
+
+    </div>
+  );
+}
+
 function WasapBotMetricas() {
   const F = "'Inter', system-ui, sans-serif";
   const CARD = '#111827';
@@ -277,7 +533,7 @@ export default function MetricasAdmin() {
 
       {/* Tabs */}
       <div style={{ display:'flex', gap:4, marginBottom:24, background:'#0D1420', padding:4, borderRadius:12, width:'fit-content' }}>
-        {['resumen','servicios','empresas','wasapbot','proyección'].map(t => (
+        {['resumen','servicios','empresas','wasapbot','proyección','pruebas'].map(t => (
           <button key={t} onClick={() => setTab(t)}
             style={{ background:tab===t?'#1E293B':'transparent', border:`1px solid ${tab===t?BORDER:'transparent'}`, borderRadius:8, padding:'7px 18px', color:tab===t?'#EFF4FF':'#6B7A99', fontFamily:F, fontSize:13, fontWeight:tab===t?600:400, cursor:'pointer', textTransform:'capitalize' }}>
             {t}
