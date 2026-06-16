@@ -141,6 +141,7 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
   const [cargando, setCargando] = useState(false);
   const [escalado, setEscalado] = useState(false);
   const [hover,    setHover]    = useState(false);
+  const [burbuja,  setBurbuja]  = useState(true);
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
 
@@ -249,13 +250,20 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
     <>
       <style dangerouslySetInnerHTML={{__html:`
         @keyframes aw-in{from{opacity:0;transform:scale(0.7) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
-        @keyframes aw-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,0,0.55),0 6px 24px rgba(255,107,0,0.35)}60%{box-shadow:0 0 0 12px rgba(255,107,0,0),0 6px 24px rgba(255,107,0,0.35)}}
+        @keyframes aw-pulse{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.6),0 0 0 0 rgba(37,211,102,0.3)}50%{box-shadow:0 0 0 12px rgba(37,211,102,0.15),0 0 0 24px rgba(37,211,102,0.05)}}
+        @keyframes aw-ring{0%,100%{transform:scale(1)}10%,30%{transform:scale(1.08)}20%{transform:scale(0.96)}}
+        @keyframes aw-bubble{0%{opacity:0;transform:translateY(8px) scale(0.9)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes aw-bubble-out{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(4px) scale(0.95)}}
         @keyframes aw-panel{from{opacity:0;transform:scale(0.94) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
         @keyframes aw-msg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes aw-dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
-        .aw-fab{position:fixed;bottom:28px;right:28px;z-index:9997;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;animation:aw-in 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.5s both;transition:transform 0.2s;filter:drop-shadow(0 4px 16px rgba(37,211,102,0.25))}
-        .aw-fab:hover{transform:scale(1.12)!important}
-        .aw-badge{position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#25D366;border:2.5px solid #06090D}
+        @keyframes aw-glow{0%,100%{filter:drop-shadow(0 0 6px rgba(37,211,102,0.4))}50%{filter:drop-shadow(0 0 18px rgba(37,211,102,0.7))}}
+        .aw-fab{position:fixed;bottom:28px;right:28px;z-index:9997;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;animation:aw-in 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.5s both,aw-pulse 2.5s ease-in-out 2s infinite,aw-glow 3s ease-in-out 2s infinite;transition:transform 0.2s}
+        .aw-fab:hover{transform:scale(1.12)!important;animation:aw-ring 0.5s ease,aw-glow 1s ease-in-out infinite!important}
+        .aw-badge{position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#25D366;border:2.5px solid #06090D;animation:aw-pulse 2s ease-in-out infinite}
+        .aw-bubble-msg{position:fixed;bottom:96px;right:92px;z-index:9996;background:#0C0F14;border:1px solid rgba(37,211,102,0.35);border-radius:16px 16px 4px 16px;padding:10px 16px;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 20px rgba(37,211,102,0.1);animation:aw-bubble 0.4s cubic-bezier(0.34,1.56,0.64,1) 2.5s both}
+        .aw-bubble-msg::after{content:'';position:absolute;bottom:-7px;right:18px;width:12px;height:12px;background:#0C0F14;border-right:1px solid rgba(37,211,102,0.35);border-bottom:1px solid rgba(37,211,102,0.35);transform:rotate(45deg)}
+        .aw-bubble-close{position:absolute;top:-8px;right:-8px;width:18px;height:18px;border-radius:50%;background:#1A1E26;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
         .aw-label{position:absolute;right:68px;top:50%;transform:translateY(-50%);background:#0C0F14;border:1px solid rgba(255,107,0,0.3);border-radius:10px;padding:7px 13px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.18s;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
         .aw-label.show{opacity:1}
         .aw-panel{position:fixed;bottom:96px;right:28px;z-index:9997;width:340px;background:#0C0F14;border:1px solid rgba(255,107,0,0.2);border-radius:20px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.75);animation:aw-panel 0.22s cubic-bezier(0.16,1,0.3,1) both;display:flex;flex-direction:column;max-height:500px}
@@ -357,8 +365,20 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
         </div>
       )}
 
+      {/* Burbuja "¿En qué te puedo ayudar?" */}
+      {burbuja && !open && (
+        <div className="aw-bubble-msg">
+          <button className="aw-bubble-close" onClick={e=>{e.stopPropagation();setBurbuja(false)}}>✕</button>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <div style={{width:7,height:7,borderRadius:'50%',background:'#25D366',flexShrink:0,boxShadow:'0 0 6px #25D366'}}/>
+            <span style={{fontFamily:F,fontSize:13,fontWeight:600,color:'#EFF4FF'}}>¿En qué te puedo ayudar? 👋</span>
+          </div>
+          <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.4)',margin:'4px 0 0',lineHeight:1.4}}>Soy AIA, tu asistente de agencIAme</p>
+        </div>
+      )}
+
       {/* FAB */}
-      <button className="aw-fab" onClick={()=>setOpen(o=>!o)} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}>
+      <button className="aw-fab" onClick={()=>{setOpen(o=>!o);setBurbuja(false)}} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}>
         <div className="aw-badge"/>
         {open ? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">

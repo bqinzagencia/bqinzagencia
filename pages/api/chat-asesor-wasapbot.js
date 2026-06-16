@@ -3,10 +3,10 @@
 
 import { db as adminDb } from '../../lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { SYSTEM_PROMPT } from '../../components/AsesorWasapbot';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const LIMITE_VISITANTE = 15;
 const LIMITE_SIN_PLAN  = 20;
@@ -50,22 +50,25 @@ export default async function handler(req, res) {
       return res.json({ ok: true, respuesta: MSG_LIMITE });
     }
 
-    // System prompt completo con info de ventas
+    // System prompt completo
     const systemPrompt = SYSTEM_PROMPT(empresa, modo);
 
-    const msgs = mensajes.map(m => ({
-      role: m.role === 'user' ? 'user' : 'assistant',
-      content: m.content,
-    }));
+    const msgs = [
+      { role: 'system', content: systemPrompt },
+      ...mensajes.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content,
+      })),
+    ];
 
-    const completion = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 400,
-      system: systemPrompt,
+      temperature: 0.6,
       messages: msgs,
     });
 
-    const respuesta = completion.content[0]?.text || 'Lo siento, no pude procesar tu mensaje.';
+    const respuesta = completion.choices[0]?.message?.content || 'Lo siento, no pude procesar tu mensaje.';
 
     // Registrar uso
     await usoRef.set({

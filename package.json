@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.2",
     "axios": "^1.17.0",
     "date-fns": "^3.6.0",
     "firebase": "^10.12.0",
