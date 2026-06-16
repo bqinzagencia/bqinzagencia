@@ -55,9 +55,9 @@ const FEATURES = [
 ];
 
 const PLANES = [
-  { id:'basico',   nombre:'Básico',   precio:189000,  tokens:'50.000',  convs:'~500/mes',  color:'#6B7280', features:['Bot WhatsApp 24/7','Catálogo de productos','Libreta de clientes automática','Panel de estadísticas','Soporte por WhatsApp'] },
-  { id:'estandar', nombre:'Estándar', precio:390000,  tokens:'150.000', convs:'~1.500/mes', color:'#2563EB', popular:true, features:['Todo lo del Básico','Sistema de pedidos','Hasta 1.500 conversaciones','Agendamiento automático','Reportes detallados','Soporte prioritario'] },
-  { id:'pro',      nombre:'Pro',      precio:690000,  tokens:'400.000', convs:'~4.000/mes', color:'#A78BFA', features:['Todo lo del Estándar','Hasta 4.000 conversaciones','Catálogo con fotos HD','Integración con tu web','Panel avanzado de analytics','CRM avanzado de clientes','Gestor dedicado'] },
+  { id:'basico',   nombre:'Básico',   precio:249000,  tokens:'50.000',  convs:'~500/mes',  color:'#6B7280', features:['Bot WhatsApp 24/7','Lista de clientes automática','Catálogo de productos','Agendamiento de citas','Inventario básico','Soporte por WhatsApp'] },
+  { id:'estandar', nombre:'Estándar', precio:450000,  tokens:'150.000', convs:'~1.500/mes', color:'#2563EB', popular:true, features:['Todo lo del Básico','Panel de pedidos del día','Inventario avanzado','Reportes diarios de ventas','Broadcasts masivos','Soporte prioritario'] },
+  { id:'pro',      nombre:'Pro',      precio:790000,  tokens:'400.000', convs:'~4.000/mes', color:'#A78BFA', features:['Todo lo del Estándar','Página web incluida','CRM avanzado de clientes','Recordatorios de citas','Múltiples agentes IA','Gestor dedicado NexoTI'] },
 ];
 
 const FAQS = [
@@ -487,7 +487,7 @@ export default function WasapBotLanding() {
               ['Activo en 10 minutos','✓','Días','Días'],
               ['Sin contrato mínimo','✓','6 meses','6 meses'],
               ['Catálogo con fotos','✓','✓','✓'],
-              ['Precio mensual','$189.000 COP','~$400.000 COP','~$520.000 COP'],
+              ['Precio mensual','$249.000 COP','~$400.000 COP','~$520.000 COP'],
             ].map(([feat,wb,int,wati],i)=>(
               <div key={i} style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',padding:'13px 20px',borderBottom:`1px solid var(--border)`,gap:8,alignItems:'center'}}>
                 <div style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>{feat}</div>
