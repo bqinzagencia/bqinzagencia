@@ -75,6 +75,7 @@ export default function ChatAgente() {
             ultimoMensajeTexto: data.reply.substring(0, 60),
             mensajeUsuario: userMsg.content,
             mensajeAgente: data.reply,
+            tokensUsados: data.tokensUsados || 0,
             citaGuardada: data.citaGuardada || null,
             ultimoMensaje: serverTimestamp(),
             creadoEn: serverTimestamp(),

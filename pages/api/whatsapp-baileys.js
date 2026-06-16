@@ -130,6 +130,7 @@ INSTRUCCIONES:
     });
 
     const respuesta = completion.choices[0]?.message?.content || '';
+    const tokensUsados = completion.usage?.total_tokens || 0;
     historial.push({ role: 'assistant', content: respuesta });
 
     const convRef = adminDb.collection('empresas').doc(empresaId).collection('conversaciones');
@@ -137,9 +138,11 @@ INSTRUCCIONES:
     await convRef.doc(convKey).set({
       nombreCliente, numeroCliente, canal: 'whatsapp',
       ultimoTexto: texto, ultimoMensaje: FieldValue.serverTimestamp(), contactoId,
+      tokensTotal: FieldValue.increment(tokensUsados),
+      mensajesTotal: FieldValue.increment(1),
     }, { merge: true });
     await convRef.doc(convKey).collection('mensajes').add({ rol: 'cliente', texto, creadoEn: FieldValue.serverTimestamp() });
-    await convRef.doc(convKey).collection('mensajes').add({ rol: 'agente', texto: respuesta, creadoEn: FieldValue.serverTimestamp() });
+    await convRef.doc(convKey).collection('mensajes').add({ rol: 'agente', texto: respuesta, tokensUsados, creadoEn: FieldValue.serverTimestamp() });
 
     return res.json({ respuesta });
 
