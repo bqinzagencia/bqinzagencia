@@ -27,7 +27,7 @@ const PLANES = [
   {
     id:      'basico',
     nombre:  'Básico',
-    precio:  189000,
+    precio:  249000,
     color:   '#25D366',
     icon:    '🤖',
     popular: false,
@@ -50,7 +50,7 @@ const PLANES = [
   {
     id:      'estandar',
     nombre:  'Estándar',
-    precio:  390000,
+    precio:  450000,
     color:   '#2563EB',
     icon:    '⚡',
     popular: true,
@@ -72,7 +72,7 @@ const PLANES = [
   {
     id:      'pro',
     nombre:  'Pro',
-    precio:  690000,
+    precio:  790000,
     color:   '#A78BFA',
     icon:    '🚀',
     popular: false,

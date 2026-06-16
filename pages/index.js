@@ -29,9 +29,9 @@ const INDUSTRIES = [
 ];
 
 const PLANES = [
-  { name: 'Básico', price: '189.000', features: ['Bot WhatsApp 24/7', 'Catálogo de productos', 'Libreta de clientes automática', 'Agendamiento de citas', 'Inventario básico', 'Notificaciones email'], cta: 'Activar WasapBot', popular: false },
-  { name: 'Estándar', price: '390.000', features: ['Todo lo del Básico', 'Panel de pedidos', 'Inventario avanzado', 'Reportes de ventas', 'Broadcasts masivos', 'Soporte prioritario'], cta: 'Activar WasapBot', popular: true },
-  { name: 'Pro', price: '690.000', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes', 'Múltiples agentes IA', 'Gestor dedicado'], cta: 'Hablar con ventas', popular: false },
+  { name: 'Básico', price: '249.000', features: ['Bot WhatsApp 24/7', 'Lista de clientes automática', 'Catálogo de productos', 'Agendamiento de citas', 'Inventario básico', 'Notificaciones email'], cta: 'Activar WasapBot', popular: false },
+  { name: 'Estándar', price: '450.000', features: ['Todo lo del Básico', 'Panel de pedidos', 'Inventario avanzado', 'Reportes de ventas', 'Broadcasts masivos', 'Soporte prioritario'], cta: 'Activar WasapBot', popular: true },
+  { name: 'Pro', price: '790.000', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes', 'Múltiples agentes IA', 'Gestor dedicado'], cta: 'Hablar con ventas', popular: false },
 ];
 
 // ── Iconos de línea (sin emojis tipo caricatura) ─────────────────────────────
@@ -205,7 +205,7 @@ function PopupBienvenida({ onClose }) {
             <span style={{ color: '#25D366' }}>piloto automático.</span>
           </h2>
           <p style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 18, fontWeight: 300 }}>
-            Un solo bot en WhatsApp reemplaza horas de trabajo manual. Desde $189.000/mes.
+          Un solo bot en WhatsApp administra tu negocio. Desde $249.000/mes.
           </p>
         </div>
 
@@ -522,8 +522,11 @@ export default function Landing() {
             </h1>
 
             {/* Sub */}
-            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 21, color: 'rgba(255,255,255,0.5)', maxWidth: 500, marginBottom: 52, lineHeight: 1.65, fontWeight: 300 }}>
-              La IA que atiende tus clientes, agenda citas y vende por ti — las 24 horas, los 7 días de la semana.
+            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 21, color: 'rgba(255,255,255,0.5)', maxWidth: 500, marginBottom: 8, lineHeight: 1.65, fontWeight: 300 }}>
+              No es un bot. Es tu administrador.
+            </p>
+            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, color: 'rgba(255,255,255,0.35)', maxWidth: 500, marginBottom: 52, lineHeight: 1.75, fontWeight: 300 }}>
+              Atiende, agenda, vende y controla tu negocio — todo desde WhatsApp, todo solo, las 24 horas.
             </p>
 
             {/* CTAs — todos apuntan a WasapBot */}

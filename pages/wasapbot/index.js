@@ -236,21 +236,28 @@ export default function WasapBotLanding() {
           </div>
 
           <div style={{display:'flex',alignItems:'center',gap:18,marginBottom:22}}>
-            <img src="/agenciame-logo.png" alt="agencIAme robot" style={{width:84,height:84,borderRadius:18,objectFit:'cover',flexShrink:0,animation:'float 5s ease-in-out infinite',boxShadow:'0 12px 40px rgba(37,211,102,0.18)'}}/>
-            <h1 style={{fontFamily:FA,fontSize:'clamp(40px,5vw,68px)',fontWeight:400,lineHeight:1.0,letterSpacing:'-2px',color:'#F0F0F0',margin:0}}>
-              Tu WhatsApp<br/><span style={{color:'#25D366'}}>trabaja solo.</span>
-            </h1>
+            <img src="/agenciame-robot-final.png" alt="agencIAme robot" style={{width:84,height:84,objectFit:'contain',flexShrink:0,animation:'float 5s ease-in-out infinite',filter:'drop-shadow(0 8px 24px rgba(37,211,102,0.25))',opacity:0.92}}/>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:'rgba(37,211,102,0.7)',letterSpacing:2,textTransform:'uppercase',marginBottom:6}}>El primer administrador de empresas</div>
+              <h1 style={{fontFamily:FA,fontSize:'clamp(36px,4.5vw,62px)',fontWeight:400,lineHeight:1.0,letterSpacing:'-2px',color:'#F0F0F0',margin:0}}>
+                que vive en<br/><span style={{color:'#25D366'}}>WhatsApp.</span>
+              </h1>
+            </div>
           </div>
 
-          <p style={{fontSize:17,color:'rgba(255,255,255,0.4)',lineHeight:1.85,fontWeight:300,marginBottom:36,maxWidth:460}}>
-            Configura un agente de IA entrenado con la info de tu negocio. Responde clientes, agenda citas y vende productos — mientras tú descansas.
+          <p style={{fontSize:15,color:'rgba(255,255,255,0.5)',lineHeight:1.85,fontWeight:300,marginBottom:12,maxWidth:460,fontStyle:'italic',borderLeft:'2px solid rgba(37,211,102,0.4)',paddingLeft:14}}>
+            No es un bot. Es tu administrador.
+          </p>
+
+          <p style={{fontSize:15,color:'rgba(255,255,255,0.35)',lineHeight:1.85,fontWeight:300,marginBottom:36,maxWidth:460}}>
+            Atiende, agenda, vende y controla tu negocio — todo desde WhatsApp, todo solo, las 24 horas.
           </p>
 
           <div className="wb-hero-btns" style={{display:'flex',alignItems:'center',gap:14,flexWrap:'wrap',marginBottom:40}}>
             <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{fontSize:16,padding:'15px 36px'}}>
               Activa tu plan ahora →
             </button>
-            <div style={{fontSize:13,color:'rgba(255,255,255,0.2)'}}>Desde $189.000/mes</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.2)'}}>Desde $249.000/mes</div>
           </div>
 
           <div style={{display:'flex',gap:24,flexWrap:'wrap'}}>
@@ -349,12 +356,12 @@ export default function WasapBotLanding() {
       <section id="features" className="wb-section" style={{padding:'80px 64px',maxWidth:1240,margin:'0 auto'}}>
         <div style={{textAlign:'center',marginBottom:56}}>
           <img src="/agenciame-logo.png" alt="agencIAme robot" style={{width:64,height:64,borderRadius:14,objectFit:'cover',margin:'0 auto 18px'}}/>
-          <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:14}}>Funciones</p>
+          <p style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:'#25D366',marginBottom:14}}>Lo que ningún otro bot hace</p>
           <h2 style={{fontFamily:FA,fontSize:'clamp(32px,4vw,52px)',fontWeight:400,letterSpacing:'-1.5px',color:'#F0F0F0',marginBottom:14}}>
-            Todo lo que necesita<br/>tu negocio en WhatsApp
+            No es un bot.<br/>Es tu administrador.
           </h2>
-          <p style={{fontSize:15,color:'rgba(255,255,255,0.3)',fontWeight:300,maxWidth:480,margin:'0 auto'}}>
-            Un agente de IA que trabaja por ti las 24 horas sin descanso.
+          <p style={{fontSize:15,color:'rgba(255,255,255,0.3)',fontWeight:300,maxWidth:520,margin:'0 auto'}}>
+            Mientras la competencia solo responde preguntas, WasapBot controla tu inventario, construye tu lista de clientes, gestiona tus pedidos y te reporta tus ventas cada mañana. Solo. Sin operadores. Sin apps extra.
           </p>
         </div>
         <div className="wb-feat-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
@@ -516,10 +523,13 @@ export default function WasapBotLanding() {
       {/* ── CTA FINAL ── */}
       <section style={{background:'linear-gradient(180deg,rgba(37,211,102,0.05) 0%,transparent 100%)',borderTop:'1px solid rgba(37,211,102,0.1)',padding:'80px 64px',textAlign:'center'}} className="wb-section">
         <h2 style={{fontFamily:FA,fontSize:'clamp(32px,4.5vw,60px)',fontWeight:400,letterSpacing:'-2px',marginBottom:16,color:'#F0F0F0'}}>
-          Empieza hoy.<br/><span style={{color:'#25D366'}}>Vende en piloto automatico.</span>
+          El primer administrador<br/>de empresas que vive<br/><span style={{color:'#25D366'}}>en WhatsApp.</span>
         </h2>
-        <p style={{fontSize:16,color:'rgba(255,255,255,0.3)',marginBottom:36,fontWeight:300}}>
-          Sin tarjeta de crédito. Sin contratos. Activo en 10 minutos.
+        <p style={{fontSize:15,color:'rgba(255,255,255,0.4)',marginBottom:8,fontWeight:300,fontStyle:'italic'}}>
+          No es un bot. Es tu administrador.
+        </p>
+        <p style={{fontSize:15,color:'rgba(255,255,255,0.3)',marginBottom:36,fontWeight:300}}>
+          Sin contratos · Sin tarjeta de crédito · Activo en 10 minutos.
         </p>
         <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap'}}>
           <button onClick={()=>router.push('/wasapbot/activar')} className="wb-cta-green" style={{fontSize:17,padding:'17px 48px'}}>
