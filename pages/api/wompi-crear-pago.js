@@ -1,14 +1,8 @@
-// pages/api/wompi-crear-pago.js
-// Crea una referencia de pago firmada para Wompi
-// Docs: https://docs.wompi.co/docs/en/widget-checkout-web
-
-import crypto from 'crypto';
-import { db as adminDb } from '../../lib/firebaseAdmin';
-import { FieldValue } from 'firebase-admin/firestore';
-
-const WOMPI_PRIV        = process.env.WOMPI_PRIV_KEY        || '';
-const WOMPI_INTEG_KEY   = process.env.WOMPI_INTEGRITY_KEY   || '';
-const WOMPI_PUB         = process.env.NEXT_PUBLIC_WOMPI_PUB_KEY || '';
+// ARCHIVO DESACTIVADO — Este proyecto usa Stripe (España/Europa)
+// Ver pages/api/stripe-crear-sesion.js
+export default function handler(req, res) {
+  return res.status(410).json({ error: 'Wompi no disponible en este proyecto. Usar Stripe.' });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();

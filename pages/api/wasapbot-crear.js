@@ -76,12 +76,12 @@ export default async function handler(req, res) {
 
     // Notificar a Alexander por WhatsApp cuando se registra una nueva empresa
     try {
-      const WA_SERVER   = process.env.WHATSAPP_SERVER_URL || 'https://agenciame-whatsapp-server-production.up.railway.app';
-      const WA_SECRET   = process.env.SERVER_SECRET       || 'agenciame2026secreto_nexoia';
+      const WA_SERVER   = process.env.WHATSAPP_SERVER_URL || 'REEMPLAZAR_URL_RAILWAY';
+      const WA_SECRET   = process.env.SERVER_SECRET       || 'REEMPLAZAR_SECRET';
       const SOPORTE_ID  = process.env.SOPORTE_EMPRESA_ID  || '';
-      const SOPORTE_NUM = process.env.SOPORTE_WHATSAPP    || '573105056616';
+      const SOPORTE_NUM = process.env.SOPORTE_WHATSAPP    || 'REEMPLAZAR_NUMERO';
 
-      const mensaje = `🆕 *Nueva empresa registrada — agencIAme*\n\n*Negocio:* ${nombre}\n*Industria:* ${industria}\n*Email:* ${email}\n*Ciudad:* ${ciudad || 'no especificada'}\n*ID:* ${empresaId}\n\n⚠️ Aún sin plan activo — pendiente de pago`;
+      const mensaje = `🆕 *Nueva empresa registrada — bqinzagencia*\n\n*Negocio:* ${nombre}\n*Industria:* ${industria}\n*Email:* ${email}\n*Ciudad:* ${ciudad || 'no especificada'}\n*ID:* ${empresaId}\n\n⚠️ Aún sin plan activo — pendiente de pago`;
 
       if (SOPORTE_ID) {
         await fetch(`${WA_SERVER}/enviar`, {

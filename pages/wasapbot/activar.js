@@ -527,7 +527,7 @@ export default function WasapBotActivar() {
                 placeholder={ph.descripcion||'Ej: Somos un salon de belleza familiar con 10 anos de experiencia...'}/>
               <div style={{marginTop:14}}>
                 <label style={LBL}>Ciudad</label>
-                <input className="wi" style={INP} value={ciudad} onChange={e=>setCiudad(e.target.value)} placeholder="Cali, Bogota, Medellin..."/>
+                <input className="wi" style={INP} value={ciudad} onChange={e=>setCiudad(e.target.value)} placeholder="Madrid, Barcelona, Valencia, Sevilla..."/>
               </div>
             </div>
 
@@ -881,10 +881,10 @@ export default function WasapBotActivar() {
                       <input className="wi" style={{...INP,paddingLeft:30}} type="tel"
                         value={telefonoCodigo}
                         onChange={e=>setTelefonoCodigo(e.target.value.replace(/\D/g,''))}
-                        placeholder="57 300 123 4567"/>
+                        placeholder="34 6XX XXX XXX"/>
                     </div>
                     <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginBottom:24,fontWeight:300}}>
-                      Incluye el codigo de pais sin el +. Colombia: 57, seguido del numero de 10 digitos. Ej: 573001234567
+                      Incluye el código de país sin el +. España: 34, seguido del número de 9 dígitos. Ej: 346001234567
                     </p>
 
                     {/* Pasos visuales */}

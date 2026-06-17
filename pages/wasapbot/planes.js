@@ -27,11 +27,11 @@ const PLANES = [
   {
     id:      'basico',
     nombre:  'Básico',
-    precio:  249000,
+    precio:  49,
     color:   '#25D366',
     icon:    '🤖',
     popular: false,
-    desc:    'Ideal para arrancar',
+    desc:    'Ideal para empezar',
     features: [
       { ok: true,  t: 'Bot WhatsApp responde con IA 24/7' },
       { ok: true,  t: 'Libreta de clientes automática' },
@@ -50,7 +50,7 @@ const PLANES = [
   {
     id:      'estandar',
     nombre:  'Estándar',
-    precio:  450000,
+    precio:  89,
     color:   '#2563EB',
     icon:    '⚡',
     popular: true,
@@ -72,7 +72,7 @@ const PLANES = [
   {
     id:      'pro',
     nombre:  'Pro',
-    precio:  790000,
+    precio:  149,
     color:   '#A78BFA',
     icon:    '🚀',
     popular: false,
@@ -179,20 +179,10 @@ export default function PlanesWasapbot() {
   const iniciarPago = async (plan) => {
     if (!empresaId) { setError('No se encontró el ID de la empresa.'); return; }
     if (!email.trim()) { setError('El correo es requerido.'); return; }
-    if (emailEditable && email !== emailConfirm) { setError('Los correos no coinciden.'); return; }
     setLoading(true); setError('');
 
     try {
-      // Actualizar correo si fue editado
-      if (emailEditable && email !== empresaData?.email) {
-        await fetch('/api/wasapbot-panel', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accion: 'guardarConfig', empresaId, campos: { email } }),
-        }).catch(() => {});
-      }
-
-      const r = await fetch('/api/wompi-crear-pago', {
+      const r = await fetch('/api/stripe-crear-sesion', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -200,52 +190,20 @@ export default function PlanesWasapbot() {
           empresaId,
           nombreEmpresa: nombre,
           email,
-          monto:         plan.precio,
         }),
       });
       const d = await r.json();
-      if (!d.ok) throw new Error(d.error || 'Error creando el pago');
+      if (!d.ok) throw new Error(d.error || 'Error creando la sesión de pago');
 
-      const pubKey = process.env.NEXT_PUBLIC_WOMPI_PUB_KEY || '';
-      if (!pubKey) {
-        // Sin Wompi configurado → WhatsApp
-        const msg = encodeURIComponent(
-          `Hola, quiero activar el plan ${plan.nombre} de WasapBot ($${Number(plan.precio).toLocaleString('es-CO')}/mes).\n` +
-          `Mi negocio: ${nombre}\nMi correo: ${email}\nID: ${empresaId}`
-        );
-        window.open('https://wa.me/573105056616?text=' + msg, '_blank');
-        setLoading(false);
-        return;
-      }
-
-      // Ir al checkout de Wompi
-      const form = document.createElement('form');
-      form.method = 'GET';
-      form.action = 'https://checkout.wompi.co/p/';
-      const campos = {
-        'public-key':          pubKey,
-        'currency':            'COP',
-        'amount-in-cents':     String(d.montoEnCentavos),
-        'reference':           d.referencia,
-        'signature:integrity': d.firma,
-        'redirect-url':        `${window.location.origin}/wasapbot/pago-exitoso?empresa=${empresaId}&plan=${plan.id}&ref=${d.referencia}`,
-        'customer-data:email': email,
-        'customer-data:full-name': nombre || '',
-      };
-      for (const [k, v] of Object.entries(campos)) {
-        const input = document.createElement('input');
-        input.type = 'hidden'; input.name = k; input.value = v || '';
-        form.appendChild(input);
-      }
-      document.body.appendChild(form);
-      form.submit();
+      // Redirigir al checkout de Stripe
+      window.location.href = d.url;
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
   };
 
-  const fmtP = (n) => Number(n).toLocaleString('es-CO');
+  const fmtP = (n) => Number(n).toLocaleString('es-ES') + '€';
 
   // Qué planes mostrar según si es upgrade. El plan "prueba_5k" es solo
   // para pruebas internas de Alexander (verificar el flujo de pago) y
@@ -375,9 +333,9 @@ export default function PlanesWasapbot() {
               <div style={{fontFamily:F,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:'uppercase',color:plan.color,marginBottom:4}}>{plan.nombre}</div>
               <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.3)',marginBottom:12}}>{plan.desc}</div>
               <div style={{fontFamily:FA,fontSize:44,color:plan.color,letterSpacing:'-2px',lineHeight:1,marginBottom:4}}>
-                ${fmtP(plan.precio)}
+                {fmtP(plan.precio)}
               </div>
-              <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.25)',marginBottom:20}}>COP / mes</div>
+              <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.25)',marginBottom:20}}>EUR / mes · IVA incluido</div>
 
               <div style={{borderTop:'1px solid rgba(255,255,255,.06)',paddingTop:16,marginBottom:20}}>
                 {plan.features.map((f,j) => (
@@ -441,7 +399,7 @@ export default function PlanesWasapbot() {
         <div style={{textAlign:'center',marginTop:36}}>
           <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.2)',marginBottom:12}}>Métodos de pago disponibles</div>
           <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
-            {['💳 Tarjeta débito/crédito','🏦 PSE','📱 Nequi','🏧 Bancolombia'].map(m=>(
+            {['💳 Tarjeta débito/crédito','🏦 Transferencia bancaria','📱 Apple Pay','📱 Google Pay'].map(m=>(
               <span key={m} style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',borderRadius:99,padding:'5px 14px'}}>{m}</span>
             ))}
           </div>

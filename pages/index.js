@@ -194,56 +194,38 @@ function PopupBienvenida({ onClose }) {
         </div>
 
         {/* Texto "tu negocio en piloto automático" */}
-        <div style={{ padding: '20px 22px 0' }}>
-          <h2 style={{
-            fontFamily: "'Abril Fatface',serif",
-            fontSize: 'clamp(24px,6vw,32px)',
-            fontWeight: 400, letterSpacing: '-1px',
-            color: '#F0F0F0', lineHeight: 1.1, marginBottom: 6,
-          }}>
-            Tu negocio en<br />
-            <span style={{ color: '#25D366' }}>piloto automático.</span>
-          </h2>
-          <p style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 18, fontWeight: 300 }}>
-          Un solo bot en WhatsApp administra tu negocio. Desde $249.000/mes.
+        <div style={{ padding: '16px 22px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+            <img src="/agenciame-robot-final.png" alt="AIA" style={{ width: 48, height: 48, objectFit: 'contain', flexShrink: 0 }}/>
+            <h2 style={{
+              fontFamily: "'Abril Fatface',serif",
+              fontSize: 'clamp(20px,5vw,28px)',
+              fontWeight: 400, letterSpacing: '-0.5px',
+              color: '#F0F0F0', lineHeight: 1.1, margin: 0,
+            }}>
+              Tu negocio en<br />
+              <span style={{ color: '#25D366' }}>piloto automático.</span>
+            </h2>
+          </div>
+          <p style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, marginBottom: 12, fontWeight: 300 }}>
+            Un solo bot en WhatsApp administra tu negocio. Desde $249.000/mes.
           </p>
         </div>
 
-        {/* Mini demo — "Libreta de clientes automática" en acción */}
-        <div style={{ padding: '0 22px 14px' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.18)',
-            borderRadius: 12, padding: '10px 12px',
-            animation: 'slideInCard 0.4s 0.3s ease both',
-          }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#25D366' }}>
-              M
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: '#F0F0F0' }}>María · 312 345 6789</div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Preguntó por el tinte rubio cenizo</div>
-            </div>
-            <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, fontWeight: 700, color: '#25D366', background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)', borderRadius: 99, padding: '3px 8px', flexShrink: 0, whiteSpace: 'nowrap', animation: 'fadeUp 0.3s 0.7s ease both' }}>
-              ✓ Agregado a tu libreta
-            </span>
-          </div>
-        </div>
-
-        {/* Items — lo que incluye */}
-        <div style={{ padding: '0 22px 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {POPUP_ITEMS.map((item, i) => (
+        {/* Items — lo que incluye (compacto para que quepan los CTAs) */}
+        <div style={{ padding: '0 22px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          {POPUP_ITEMS.slice(0, 6).map((item, i) => (
             <div key={i} className="popup-item" style={{
               animationDelay: `${0.05 + i * 0.04}s`,
-              display: 'flex', alignItems: 'flex-start', gap: 8,
+              display: 'flex', alignItems: 'center', gap: 7,
               background: 'rgba(255,255,255,0.03)',
               border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: 10, padding: '9px 10px',
+              borderRadius: 8, padding: '7px 9px',
             }}>
-              <div style={{ width: 22, height: 22, borderRadius: 7, background: 'rgba(37,211,102,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 0 }}>
-                <PopupIcon type={item.type}/>
+              <div style={{ width: 18, height: 18, borderRadius: 5, background: 'rgba(37,211,102,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PopupIcon type={item.type} size={11}/>
               </div>
-              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.45, fontWeight: 400 }}>{item.t}</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.55)', lineHeight: 1.3, fontWeight: 400 }}>{item.t}</span>
             </div>
           ))}
         </div>

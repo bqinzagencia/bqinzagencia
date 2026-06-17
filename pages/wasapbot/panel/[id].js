@@ -14,8 +14,8 @@ const TourGuia       = dynamic(() => import('../../../components/TourGuia'), { s
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
-const WA     = 'https://agenciame-whatsapp-server-production.up.railway.app';
-const SECRET = 'agenciame2026secreto_nexoia';
+const WA     = process.env.NEXT_PUBLIC_WA_SERVER || 'REEMPLAZAR_URL_RAILWAY';
+const SECRET = process.env.WA_SECRET || 'REEMPLAZAR_SECRET';
 
 const PLANES = {
   prueba_5k:{ nombre:'Prueba Técnica', tokens:15000,  convs:100,  color:'#F59E0B', precio:'$5.000'   },

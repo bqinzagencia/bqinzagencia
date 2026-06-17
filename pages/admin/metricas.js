@@ -290,7 +290,7 @@ function WasapBotMetricas() {
   const cargar = async () => {
     setLoading(true);
     try {
-      const r = await fetch('/api/wasapbot-admin', { headers: { 'x-admin-secret': 'borrero_nexoia_admin_2026' } });
+      const r = await fetch('/api/wasapbot-admin', { headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_PASS || 'REEMPLAZAR_ADMIN_SECRET' } });
       const d = await r.json();
       if (d.ok) setClientes(d.clientes || []);
     } catch {}
@@ -304,7 +304,7 @@ function WasapBotMetricas() {
     try {
       await fetch('/api/wasapbot-admin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-secret': 'borrero_nexoia_admin_2026' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_PASS || 'REEMPLAZAR_ADMIN_SECRET' },
         body: JSON.stringify({ accion: 'ampliar', empresaId, tokens: parseInt(extra) }),
       });
       alert('Tokens ampliados');
@@ -426,8 +426,8 @@ export default function MetricasAdmin() {
     setLoading(true);
     try {
       const [r1, r2] = await Promise.allSettled([
-        fetch('https://agenciame-whatsapp-server-production.up.railway.app/health').then(r => r.json()),
-        fetch('/api/metrics-admin', { headers: { 'x-admin-secret': 'borrero_nexoia_admin_2026' } }).then(r => r.json()),
+        fetch((process.env.NEXT_PUBLIC_WA_SERVER || 'REEMPLAZAR_URL_RAILWAY') + '/health').then(r => r.json()),
+        fetch('/api/metrics-admin', { headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_PASS || 'REEMPLAZAR_ADMIN_SECRET' } }).then(r => r.json()),
       ]);
       if (r1.status === 'fulfilled') setRailway(r1.value);
       if (r2.status === 'fulfilled') setData(r2.value);
@@ -441,7 +441,7 @@ export default function MetricasAdmin() {
     try {
       const r = await fetch('/api/admin-borrar-empresa', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-secret': 'borrero_nexoia_admin_2026' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_PASS || 'REEMPLAZAR_ADMIN_SECRET' },
         body: JSON.stringify({ empresaId: id }),
       });
       const d = await r.json();
@@ -460,7 +460,7 @@ export default function MetricasAdmin() {
       const ids = conservar ? conservar.split(',').map(s => s.trim()).filter(Boolean) : [];
       const r = await fetch('/api/admin-borrar-empresa', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-secret': 'borrero_nexoia_admin_2026' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_PASS || 'REEMPLAZAR_ADMIN_SECRET' },
         body: JSON.stringify({ todos: true, conservar: ids }),
       });
       const d = await r.json();
