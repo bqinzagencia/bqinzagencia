@@ -435,8 +435,40 @@ export default function WasapBotActivar() {
           <div className="aup" style={{ textAlign: 'center' }}>
             <h1 style={{ fontFamily: FA, fontSize: 38, fontWeight: 400, letterSpacing: '-1.5px', color: '#0F172A', marginBottom: 10 }}>Escanea con tu WhatsApp</h1>
             <p style={{ fontFamily: F, fontSize: 14, color: '#64748B', lineHeight: 1.65, marginBottom: 28 }}>
-              Abre WhatsApp en el celular del negocio<br />y apunta la cámara al código
+              Abre WhatsApp en el móvil del negocio<br />y apunta la cámara al código
             </p>
+
+            {/* Alternativa: conectar con código (sin QR) — clave para móvil */}
+            {!mostrarPairing ? (
+              <button onClick={() => setMostrarPairing(true)} style={{ marginBottom: 24, width: '100%', background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 14, padding: '14px 18px', fontFamily: F, fontSize: 13, fontWeight: 600, color: '#1D4ED8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                📱 ¿Estás en el móvil y no puedes escanear el QR? Conectar con código
+              </button>
+            ) : (
+              <div style={{ marginBottom: 24, background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 16, padding: 20, textAlign: 'left' }}>
+                <div style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: '#1D4ED8', marginBottom: 10 }}>Conectar con código (sin escanear)</div>
+                {!pairingCode ? (
+                  <>
+                    <p style={{ fontFamily: F, fontSize: 12, color: '#3B82F6', marginBottom: 10, lineHeight: 1.6 }}>Escribe el número de WhatsApp del negocio con el código de país.</p>
+                    <input className="inp-focus" style={{ ...INP, marginBottom: 10, background: '#fff' }} value={telefonoPairing} onChange={e => setTelefonoPairing(e.target.value.replace(/[^\d+]/g, ''))} placeholder="+34674421919" />
+                    {pairingError && <p style={{ fontFamily: F, fontSize: 12, color: '#DC2626', marginBottom: 10 }}>{pairingError}</p>}
+                    <button className="btn-sec" style={{ width: '100%', background: '#fff' }} onClick={solicitarPairingCode} disabled={pidiendoPairing || telefonoPairing.replace(/\D/g, '').length < 8}>
+                      {pidiendoPairing ? 'Generando código...' : 'Obtener código →'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontFamily: F, fontSize: 12, color: '#3B82F6', marginBottom: 10, lineHeight: 1.6 }}>Abre WhatsApp → Ajustes → Dispositivos vinculados → Vincular con número de teléfono, e ingresa:</p>
+                    <div style={{ textAlign: 'center', fontFamily: F, fontSize: 26, fontWeight: 800, letterSpacing: '0.15em', color: '#1D4ED8', background: '#fff', border: '2px solid #BFDBFE', borderRadius: 14, padding: 16, marginBottom: 10 }}>
+                      {pairingCode}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', border: '1px solid #BFDBFE', borderRadius: 99, padding: '8px 16px' }}>
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#3B82F6', animation: 'pulse 1.5s ease infinite' }} />
+                      <span style={{ fontFamily: F, fontSize: 11, color: '#1D4ED8', fontWeight: 600 }}>Esperando que lo ingreses...</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'inline-block', background: '#fff', borderRadius: 20, padding: 20, boxShadow: '0 12px 48px rgba(0,0,0,.1)', border: '2.5px solid #22C55E', marginBottom: 24 }}>
               {qrBase64
@@ -465,38 +497,6 @@ export default function WasapBotActivar() {
                 </div>
               ))}
             </div>
-
-            {/* Alternativa: conectar con código (sin QR) — clave para móvil */}
-            {!mostrarPairing ? (
-              <button onClick={() => setMostrarPairing(true)} style={{ marginTop: 20, width: '100%', background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 14, padding: '14px 18px', fontFamily: F, fontSize: 13, fontWeight: 600, color: '#1D4ED8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                📱 ¿Estás en celular y no puedes escanear el QR? Conectar con código
-              </button>
-            ) : (
-              <div style={{ marginTop: 20, background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 16, padding: 20, textAlign: 'left' }}>
-                <div style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: '#1D4ED8', marginBottom: 10 }}>Conectar con código (sin escanear)</div>
-                {!pairingCode ? (
-                  <>
-                    <p style={{ fontFamily: F, fontSize: 12, color: '#3B82F6', marginBottom: 10, lineHeight: 1.6 }}>Escribe el número de WhatsApp del negocio con el código de país.</p>
-                    <input className="inp-focus" style={{ ...INP, marginBottom: 10, background: '#fff' }} value={telefonoPairing} onChange={e => setTelefonoPairing(e.target.value.replace(/[^\d+]/g, ''))} placeholder="+34674421919" />
-                    {pairingError && <p style={{ fontFamily: F, fontSize: 12, color: '#DC2626', marginBottom: 10 }}>{pairingError}</p>}
-                    <button className="btn-sec" style={{ width: '100%', background: '#fff' }} onClick={solicitarPairingCode} disabled={pidiendoPairing || telefonoPairing.replace(/\D/g, '').length < 8}>
-                      {pidiendoPairing ? 'Generando código...' : 'Obtener código →'}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p style={{ fontFamily: F, fontSize: 12, color: '#3B82F6', marginBottom: 10, lineHeight: 1.6 }}>Abre WhatsApp → Ajustes → Dispositivos vinculados → Vincular con número de teléfono, e ingresa:</p>
-                    <div style={{ textAlign: 'center', fontFamily: F, fontSize: 26, fontWeight: 800, letterSpacing: '0.15em', color: '#1D4ED8', background: '#fff', border: '2px solid #BFDBFE', borderRadius: 14, padding: 16, marginBottom: 10 }}>
-                      {pairingCode}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fff', border: '1px solid #BFDBFE', borderRadius: 99, padding: '8px 16px' }}>
-                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#3B82F6', animation: 'pulse 1.5s ease infinite' }} />
-                      <span style={{ fontFamily: F, fontSize: 11, color: '#1D4ED8', fontWeight: 600 }}>Esperando que lo ingreses...</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
           </div>
         )}
 
