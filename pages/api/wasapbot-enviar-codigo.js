@@ -10,7 +10,7 @@ function crearTransporter() {
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER || 'soportesistemas@soporteia.net',
+      user: process.env.EMAIL_USER || 'bqinzagencia@gmail.com',
       pass: process.env.EMAIL_PASS,
     },
   });
@@ -40,10 +40,10 @@ export default async function handler(req, res) {
 
     const transporter = crearTransporter();
     await transporter.sendMail({
-      from: `"agencIAme WasapBot" <${process.env.EMAIL_USER || 'soportesistemas@soporteia.net'}>`,
+      from: `"BQinzagencIA WasapBot" <${process.env.EMAIL_USER || 'bqinzagencia@gmail.com'}>`,
       to: emailKey,
-      subject: `Tu código de verificación: ${codigo} — agencIAme`,
-      html: `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#F4F6F9;font-family:'Segoe UI',Arial,sans-serif"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F9;padding:32px 0"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08)"><tr><td style="background:linear-gradient(135deg,#06080D 0%,#0f1420 100%);padding:28px 32px;text-align:center"><div style="font-family:Georgia,serif;font-size:22px;color:#ffffff">agenc<span style="color:#FF6B00">IA</span>me <span style="color:#25D366;font-size:13px;font-weight:700">WasapBot</span></div></td></tr><tr><td style="padding:36px 32px;text-align:center"><p style="margin:0 0 8px;font-size:14px;color:#6B7280">Tu código de verificación es:</p><div style="font-size:40px;font-weight:800;letter-spacing:8px;color:#111827;margin:16px 0;font-family:monospace">${codigo}</div><p style="margin:16px 0 0;font-size:13px;color:#9CA3AF">Este código expira en 10 minutos. Si no solicitaste esto, ignora este correo.</p></td></tr><tr><td style="background:#F9FAFB;padding:16px 32px;text-align:center"><p style="margin:0;font-size:11px;color:#9CA3AF">agencIAme WasapBot · soportesistemas@soporteia.net</p></td></tr></table></td></tr></table></body></html>`,
+      subject: `Tu código de verificación: ${codigo} — BQinzagencIA`,
+      html: `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#F4F6F9;font-family:'Segoe UI',Arial,sans-serif"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F9;padding:32px 0"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08)"><tr><td style="background:linear-gradient(135deg,#06080D 0%,#0f1420 100%);padding:28px 32px;text-align:center"><div style="font-family:Georgia,serif;font-size:22px;color:#ffffff">BQinz<span style="color:#FF6B00">agenc</span>IA <span style="color:#25D366;font-size:13px;font-weight:700">WasapBot</span></div></td></tr><tr><td style="padding:36px 32px;text-align:center"><p style="margin:0 0 8px;font-size:14px;color:#6B7280">Tu código de verificación es:</p><div style="font-size:40px;font-weight:800;letter-spacing:8px;color:#111827;margin:16px 0;font-family:monospace">${codigo}</div><p style="margin:16px 0 0;font-size:13px;color:#9CA3AF">Este código expira en 10 minutos. Si no solicitaste esto, ignora este correo.</p></td></tr><tr><td style="background:#F9FAFB;padding:16px 32px;text-align:center"><p style="margin:0;font-size:11px;color:#9CA3AF">BQinzagencIA WasapBot · bqinzagencia@gmail.com</p></td></tr></table></td></tr></table></body></html>`,
     });
 
     return res.json({ ok: true });

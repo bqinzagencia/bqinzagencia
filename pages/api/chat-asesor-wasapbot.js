@@ -8,14 +8,14 @@ import { SYSTEM_PROMPT } from '../../components/AsesorWasapbot';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const LIMITE_VISITANTE = 15;
+const LIMITE_VISITANTE = 30;
 const LIMITE_SIN_PLAN  = 20;
 const LIMITE_CON_PLAN  = 60;
 
 const MSG_LIMITE = 'Por hoy llegamos al límite de mensajes. Si necesitas más ayuda escríbenos por WhatsApp. [ESCALAR_ASESOR]';
 
 function hoyKey() {
-  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     console.error('chat-asesor-wasapbot error:', err.message);
     return res.status(500).json({
       error: err.message,
-      respuesta: 'Error de conexion. Puedes escribirnos al WhatsApp 310-505-6616.',
+      respuesta: 'Error de conexion. Puedes escribirnos al WhatsApp 674 421 919.',
     });
   }
 }

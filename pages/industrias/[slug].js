@@ -27,8 +27,8 @@ const INDUSTRY_PHOTOS = {
   ajedrez:            'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=160&q=90',
   arquitectura:       'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=160&q=90',
   papeleria:          'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=160&q=90',
-  aduana:   'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=160&q=90',
-  portuaria: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=160&q=90',
+  mascotas:          'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=160&q=90',
+  acarreos:           'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=160&q=90',
 };
 
 const FUNCTION_PHOTOS = {
@@ -42,6 +42,7 @@ const FUNCTION_PHOTOS = {
   ajedrez:  ['https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=80&q=80','https://images.unsplash.com/photo-1586282391129-76a6df230234?w=80&q=80','https://images.unsplash.com/photo-1580541832626-2a7131ee809f?w=80&q=80','https://images.unsplash.com/photo-1611195974226-a6a9be9dd763?w=80&q=80','https://images.unsplash.com/photo-1528819622765-d6bcf132f793?w=80&q=80','https://images.unsplash.com/photo-1560174038-da43ac74f01b?w=80&q=80'],
   arquitectura:['https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=80&q=80','https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=80&q=80','https://images.unsplash.com/photo-1600607687644-c7171b47b292?w=80&q=80','https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=80&q=80','https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=80&q=80','https://images.unsplash.com/photo-1486325212027-8081e485255e?w=80&q=80'],
   tienda:   ['https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=80&q=80','https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=80&q=80','https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=80&q=80','https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=80&q=80','https://images.unsplash.com/photo-1613082441547-09f407d42dd1?w=80&q=80','https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=80&q=80'],
+  mascotas: ['https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&q=80','https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&q=80','https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=80&q=80','https://images.unsplash.com/photo-1560807707-8cc77767d783?w=80&q=80','https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?w=80&q=80','https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?w=80&q=80'],
   aduana:   ['https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=80&q=80','https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=80&q=80','https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=80&q=80','https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=80&q=80','https://images.unsplash.com/photo-1553877522-43269d4ea984?w=80&q=80','https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=80&q=80'],
   portuaria: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=80&q=80','https://images.unsplash.com/photo-1494412651409-8963ce7935a7?w=80&q=80','https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=80&q=80','https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=80&q=80','https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=80&q=80','https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=80&q=80'],
 };
@@ -162,7 +163,7 @@ export default function IndustriaDetalle({ industria }) {
   return (
     <>
       <Head>
-        <title>{industria.nombre} — agencIAme</title>
+        <title>{industria.nombre} — BQinzagencIA</title>
         <meta name="description" content={industria.descripcion} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -352,7 +353,7 @@ export default function IndustriaDetalle({ industria }) {
             <Link href="/auth/register" style={{ background:color,color:'#080B0F',borderRadius:100,fontFamily:F,fontWeight:800,fontSize:16,padding:'14px 36px',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,boxShadow:`0 6px 24px ${color}44` }}>
               Crear mi cuenta gratis →
             </Link>
-            <a href="mailto:soportesistemas@soporteia.net" className="btn-ghost-ind">Hablar con un asesor</a>
+            <a href="mailto:bqinzagencia@gmail.com" className="btn-ghost-ind">Hablar con un asesor</a>
           </div>
         </div>
       </section>
@@ -365,7 +366,7 @@ export default function IndustriaDetalle({ industria }) {
           <Link href="/#precios" className="ifl">Precios</Link>
           <Link href="/auth/register" className="ifl">Registrarse</Link>
         </div>
-        <span style={{ fontFamily:F,color:'#2D3F5C',fontSize:12 }}>© 2026 agencIAme by NexoTI · Cali, Colombia</span>
+        <span style={{ fontFamily:F,color:'#2D3F5C',fontSize:12 }}>© 2026 BQinzagenc<span style={{color:'#FF6B00'}}>IA</span> · Madrid, España</span>
       </footer>
     </>
   );

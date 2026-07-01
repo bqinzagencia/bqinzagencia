@@ -77,12 +77,24 @@ export default async function handler(req, res) {
         return res.json({ ok: true, mensaje: `Plan cambiado a ${plan}` });
       }
 
+      if (accion === 'renombrar') {
+        const { nombre } = req.body;
+        if (!nombre?.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+        await adminDb.collection('empresas').doc(empresaId).update({
+          nombreEmpresa: nombre.trim(),
+        });
+        return res.json({ ok: true, mensaje: `Empresa renombrada a ${nombre.trim()}` });
+      }
+
       if (accion === 'reset_tokens') {
         await adminDb.collection('empresas').doc(empresaId).update({
           tokensUsados:  0,
           tokensExtra:   0,
           resetTokensEn: FieldValue.serverTimestamp(),
         });
+        // Borrar también el doc mensual de wasapbot_tokens
+        const mesKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+        await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`).delete().catch(()=>{});
         return res.json({ ok: true, mensaje: 'Tokens reseteados' });
       }
 

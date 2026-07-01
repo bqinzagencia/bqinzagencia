@@ -241,7 +241,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout title="Dashboard">
-      <Head><title>Dashboard — {empresa.nombreEmpresa} · agencIAme</title></Head>
+      <Head><title>Dashboard — {empresa.nombreEmpresa} · BQinzagencIA</title></Head>
       <style dangerouslySetInnerHTML={{__html:`
         .db-page { font-family:${F}; }
         .db-card { background:#111827; border:1px solid rgba(255,255,255,0.07); border-radius:18px; }

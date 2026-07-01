@@ -12,17 +12,12 @@ export default async function handler(req, res) {
     try {
       const empSnap = await adminDb.collection('empresas').doc(id).get();
 
-      // Si el documento no existe, buscar por cualquier campo que coincida
       if (!empSnap.exists) {
         return res.status(404).json({ error: 'Empresa no encontrada', id });
       }
 
       const empData = empSnap.data();
 
-      // ── Sin restricción de producto — cualquier empresa puede usar el panel WasapBot ──
-      // (el acceso ya está controlado por el login que verifica ownerUid o email)
-
-      // Subcollección de citas
       if (subcol === 'citas') {
         const citasSnap = await adminDb.collection('empresas').doc(id)
           .collection('citas')
@@ -35,8 +30,7 @@ export default async function handler(req, res) {
         return res.json({ ok: true, citas });
       }
 
-      // Datos principales
-      const [convSnap, tokenSnap, conocimientoSnap] = await Promise.all([
+      const [convSnap, tokenSnap, conocimientoSnap, agenteSnap] = await Promise.all([
         adminDb.collection('empresas').doc(id)
           .collection('conversaciones')
           .orderBy('ultimoMensaje', 'desc')
@@ -44,13 +38,16 @@ export default async function handler(req, res) {
         adminDb.collection('wasapbot_tokens').doc(id).get().catch(() => null),
         adminDb.collection('empresas').doc(id)
           .collection('config').doc('conocimiento').get().catch(() => null),
+        adminDb.collection('empresas').doc(id)
+          .collection('agentes').doc('whatsapp_principal').get().catch(() => null),
       ]);
 
       const convs        = convSnap ? convSnap.docs.map(d => ({ id: d.id, ...d.data() })) : [];
       const conocimiento = conocimientoSnap?.exists ? conocimientoSnap.data() : {};
       const tokenData    = tokenSnap?.exists ? tokenSnap.data() : { usados: 0, total: 15000, plan: 'wasapbot' };
+      const agente       = agenteSnap?.exists ? agenteSnap.data() : { prompt: '', personalidad: '' };
 
-      return res.json({ ok: true, empresa: { id, ...empData }, convs, tokens: tokenData, conocimiento });
+      return res.json({ ok: true, empresa: { id, ...empData }, convs, tokens: tokenData, conocimiento, agente });
 
     } catch (err) {
       console.error('wasapbot-panel GET:', err);
@@ -58,7 +55,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── POST: acciones (actualizar estado de cita) ──
+  // ── POST: acciones ──
   if (req.method === 'POST') {
     const { accion, empresaId, citaId, estado } = req.body;
 
@@ -73,26 +70,19 @@ export default async function handler(req, res) {
 
         const update = { estado, actualizadoEn: FieldValue.serverTimestamp() };
 
-        // Al marcar como completada, registrar momento exacto y habilitar
-        // el seguimiento automático post-servicio (planes Estandar/Pro)
         if (estado === 'completada') {
           update.completadoEn       = FieldValue.serverTimestamp();
           update.seguimientoEnviado = false;
         }
 
-        // Si se reabre o cancela una cita, evitar que se dispare un
-        // seguimiento fuera de lugar y limpiar el timestamp
         if (estado !== 'completada') {
           update.completadoEn       = null;
           update.seguimientoEnviado = false;
         }
 
-        // Si se cancela, no tiene sentido recordar una cita que no va a pasar
         if (estado === 'cancelada') {
           update.recordatorioEnviado = true;
         }
-        // Si se reabre a pendiente/confirmada, permitir que el recordatorio
-        // se evalúe de nuevo (por si se reprogramó)
         if (estado === 'pendiente' || estado === 'confirmada') {
           update.recordatorioEnviado = false;
         }
@@ -104,7 +94,6 @@ export default async function handler(req, res) {
         return res.json({ ok: true });
       }
 
-      // Guardar configuración general (nequi, etc.)
       if (accion === 'guardarConfig') {
         const { campos } = req.body;
         if (!campos) return res.status(400).json({ error: 'campos requerido' });
@@ -115,10 +104,132 @@ export default async function handler(req, res) {
         return res.json({ ok: true });
       }
 
+      if (accion === 'guardarWeb') {
+        const { tituloWeb, descripcionWeb, fotoWebPortada, webActivaWasapbot } = req.body;
+        const empSnap = await adminDb.collection('empresas').doc(empresaId).get();
+        if (!empSnap.exists) return res.status(404).json({ error: 'Empresa no encontrada' });
+        const empData = empSnap.data();
+        const planActual = empData.planWasapbot || empData.plan;
+        if (planActual !== 'pro') return res.status(403).json({ error: 'La página web es exclusiva del plan Pro' });
+
+        let slugWeb = empData.slugWeb;
+        if (!slugWeb) {
+          const base = (tituloWeb || empData.nombreEmpresa || 'negocio')
+            .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+            .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+          let candidato = base || 'negocio';
+          let intento = 0;
+          while (true) {
+            const choque = await adminDb.collection('empresas').where('slugWeb','==',candidato).limit(1).get();
+            if (choque.empty) break;
+            intento++; candidato = `${base}-${intento}`;
+          }
+          slugWeb = candidato;
+        }
+
+        await adminDb.collection('empresas').doc(empresaId).update({
+          tituloWeb: tituloWeb || '',
+          descripcionWeb: descripcionWeb || '',
+          fotoWebPortada: fotoWebPortada || '',
+          webActivaWasapbot: !!webActivaWasapbot,
+          slugWeb,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return res.json({ ok: true, slugWeb });
+      }
+
+      if (accion === 'registrarLeadWeb') {
+        const { nombre, telefono, correo, mensaje, itemInteres } = req.body;
+        if (!nombre || !telefono) return res.status(400).json({ error: 'nombre y telefono requeridos' });
+        await adminDb.collection('empresas').doc(empresaId).collection('contactos').add({
+          nombre, telefono, correo: correo||'', mensaje: mensaje||'', itemInteres: itemInteres||'',
+          canal: 'web', fuente: 'landing-publica', estado: 'nuevo', creadoEn: FieldValue.serverTimestamp(),
+        });
+        return res.json({ ok: true });
+      }
+
+      // ── Reset tokens del mes (para cuando renuevan plan) ──
+      if (accion === 'resetTokensMes') {
+        const mesKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+        await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKey}`).set({
+          usado: 0, empresaId, mes: mesKey, resetAt: FieldValue.serverTimestamp(),
+        });
+        return res.json({ ok: true, mesKey });
+      }
+
+      // ── Guardar el prompt del agente IA de WhatsApp ──
+      // Se guarda en empresas/{id}/agentes/whatsapp_principal con
+      // activo:true y canales:['whatsapp'], que es exactamente lo que
+      // busca whatsapp-baileys.js para inyectar el prompt en el systemPrompt.
+      if (accion === 'guardarPromptAgente') {
+        const { prompt, personalidad } = req.body;
+        await adminDb.collection('empresas').doc(empresaId)
+          .collection('agentes').doc('whatsapp_principal')
+          .set({
+            activo: true,
+            canales: ['whatsapp'],
+            prompt: prompt || '',
+            personalidad: personalidad || '',
+            actualizadoEn: FieldValue.serverTimestamp(),
+          }, { merge: true });
+        return res.json({ ok: true });
+      }
+
+      // ── Actualizar industria desde el onboarding de activación ──
+      if (accion === 'actualizarIndustria') {
+        const { industria } = req.body;
+        if (!industria) return res.status(400).json({ error: 'industria requerida' });
+        await adminDb.collection('empresas').doc(empresaId).update({
+          industria,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return res.json({ ok: true });
+      }
+
       return res.status(400).json({ error: 'Acción no reconocida: ' + accion });
 
     } catch (err) {
       console.error('wasapbot-panel POST:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── DELETE ──
+  if (req.method === 'DELETE') {
+    const { accion, empresaId, citaId, conversacionId } = req.body;
+    if (!empresaId) return res.status(400).json({ error: 'empresaId requerido' });
+
+    try {
+      if (accion === 'eliminarCita') {
+        if (!citaId) return res.status(400).json({ error: 'citaId requerido' });
+        await adminDb.collection('empresas').doc(empresaId).collection('citas').doc(citaId).delete();
+        return res.json({ ok: true });
+      }
+
+      if (accion === 'eliminarCitasCanceladas') {
+        const snap = await adminDb.collection('empresas').doc(empresaId)
+          .collection('citas').where('estado', '==', 'cancelada').get();
+        const batch = adminDb.batch();
+        snap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        return res.json({ ok: true, eliminadas: snap.size });
+      }
+
+      if (accion === 'eliminarConversacion') {
+        if (!conversacionId) return res.status(400).json({ error: 'conversacionId requerido' });
+        const convRef = adminDb.collection('empresas').doc(empresaId).collection('conversaciones').doc(conversacionId);
+        const mensajesSnap = await convRef.collection('mensajes').get();
+        const batch = adminDb.batch();
+        mensajesSnap.docs.forEach(doc => batch.delete(doc.ref));
+        batch.delete(convRef);
+        await batch.commit();
+        return res.json({ ok: true });
+      }
+
+      return res.status(400).json({ error: 'Acción no reconocida: ' + accion });
+
+    } catch (err) {
+      console.error('wasapbot-panel DELETE:', err);
       return res.status(500).json({ error: err.message });
     }
   }

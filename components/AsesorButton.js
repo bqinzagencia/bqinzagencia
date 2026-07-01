@@ -121,7 +121,7 @@ export default function AsesorButton() {
               </div>
               <div>
                 <div style={{ fontFamily:F, fontSize:14, fontWeight:800, color:'#EFF4FF', letterSpacing:'-0.02em' }}>
-                  agenc<span style={{ color:'#FF6B00' }}>IA</span>me
+                  BQinzagenc<span style={{ color:'#FF6B00' }}>IA</span>
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:2 }}>
                   <div style={{ width:7, height:7, borderRadius:'50%', background:'#10B981' }} />
@@ -158,7 +158,7 @@ export default function AsesorButton() {
 
           {/* Contacto directo */}
           <div style={{ borderTop:'1px solid rgba(255,255,255,0.05)', display:'flex' }}>
-            <a href="https://wa.me/573105056616" target="_blank" rel="noreferrer"
+            <a href="https://wa.me/34674421919" target="_blank" rel="noreferrer"
               style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'12px', background:'rgba(37,211,102,0.08)', color:'#25D366', fontFamily:F, fontSize:12, fontWeight:700, textDecoration:'none', borderRight:'1px solid rgba(255,255,255,0.05)', transition:'background 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.background='rgba(37,211,102,0.14)'}
               onMouseLeave={e=>e.currentTarget.style.background='rgba(37,211,102,0.08)'}>
@@ -167,7 +167,7 @@ export default function AsesorButton() {
               </svg>
               WhatsApp
             </a>
-            <a href="tel:+573105056616"
+            <a href="tel:+34674421919"
               style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'12px', background:'rgba(255,107,0,0.06)', color:'#FF8C40', fontFamily:F, fontSize:12, fontWeight:700, textDecoration:'none', transition:'background 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.background='rgba(255,107,0,0.12)'}
               onMouseLeave={e=>e.currentTarget.style.background='rgba(255,107,0,0.06)'}>
@@ -179,7 +179,7 @@ export default function AsesorButton() {
           </div>
 
           <div style={{ padding:'8px 18px 10px', fontFamily:F, fontSize:10, color:'#374151', textAlign:'center' }}>
-            Lun–Vie · 8am–6pm · Cali, Colombia
+            Lun–Vie · 8am–6pm · Madrid, España
           </div>
         </div>
       )}

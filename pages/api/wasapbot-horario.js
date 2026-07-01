@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   try {
     await adminDb.collection('empresas').doc(empresaId)
       .collection('config').doc('conocimiento').set({
-        'horarios.semanal': horarioSemanal,
+        horarios: { semanal: horarioSemanal },
         actualizadoEn: FieldValue.serverTimestamp(),
       }, { merge: true });
 

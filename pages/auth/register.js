@@ -78,6 +78,7 @@ export default function Register() {
     reposteria:         'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1400&q=80', // tortas reposteria
     veterinaria:        'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1400&q=80', // veterinario mascota
     fotografia:         'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1400&q=80', // fotografia camara
+    mascotas:           'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1400&q=80', // perro siendo paseado
     acarreos:           'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1400&q=80', // camion transporte
     otro:               'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1400&q=80', // oficina generica
   };
@@ -165,7 +166,7 @@ export default function Register() {
       };
       await crearEmpresa(cred.user.uid, datosEmpresa);
       setEmpresa({ ...datosEmpresa }); // contexto inmediato — evita spinner
-      toast.success('¡Bienvenido a agencIAme! 🎉 Te enviamos un correo para verificar tu cuenta.');
+      toast.success('¡Bienvenido a BQinzagencIA! 🎉 Te enviamos un correo para verificar tu cuenta.');
       router.push('/dashboard');
     } catch (err) {
       const msgs = {
@@ -192,7 +193,7 @@ export default function Register() {
       };
       await crearEmpresa(socialUser.uid, datosEmpresa);
       agregarEmpresa({ ...datosEmpresa });
-      toast.success('Empresa creada! Bienvenido a agencIAme');
+      toast.success('Empresa creada! Bienvenido a BQinzagencIA');
       router.push('/dashboard');
     } catch (err) {
       toast.error('Error al guardar datos: ' + err.message);
@@ -248,7 +249,7 @@ export default function Register() {
   return (
     <>
       <Head>
-        <title>Crear cuenta — NEXOIA</title>
+        <title>Crear cuenta — BQinzagencIA</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
@@ -278,7 +279,7 @@ export default function Register() {
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <Link href="/">
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 28, color: '#E8E8E8', cursor: 'pointer', display: 'inline-block' }}>
-                agenc<span style={{ color: '#FF6B00', fontSize: 32 }}>IA</span>me
+                BQinzagenc<span style={{ color: '#FF6B00', fontSize: 32 }}>IA</span>
               </div>
             </Link>
             <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6, color: '#E8E8E8' }}>
@@ -424,14 +425,14 @@ export default function Register() {
                 </div>
                 <div>
                   <label style={labelStyle}>Teléfono / WhatsApp *</label>
-                  <input type="tel" style={inputStyle} placeholder="+57 300 000 0000"
+                  <input type="tel" style={inputStyle} placeholder="+34 600 000 000"
                     value={form.telefono} onChange={e => set('telefono', e.target.value)}
                     onFocus={e => e.target.style.borderColor = G}
                     onBlur={e => e.target.style.borderColor = '#222'} />
                 </div>
                 <div>
                   <label style={labelStyle}>Ciudad</label>
-                  <input type="text" style={{ ...inputStyle, marginBottom: 24 }} placeholder="Ej: Cali, Bogotá, Medellín"
+                  <input type="text" style={{ ...inputStyle, marginBottom: 24 }} placeholder="Ej: Madrid, Barcelona, Valencia"
                     value={form.ciudad} onChange={e => set('ciudad', e.target.value)}
                     onFocus={e => e.target.style.borderColor = G}
                     onBlur={e => e.target.style.borderColor = '#222'} />

@@ -50,7 +50,7 @@ export default function SoporteButton() {
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
             <div>
               <div style={{ fontFamily:F, fontWeight:800, fontSize:15, color:'#EFF4FF' }}>💬 Hablar con soporte</div>
-              <div style={{ fontFamily:F, fontSize:12, color:'#4B6080', marginTop:2 }}>NexoTI — Soporte técnico</div>
+              <div style={{ fontFamily:F, fontSize:12, color:'#4B6080', marginTop:2 }}>BQinzagencIA — Soporte técnico</div>
             </div>
             <button onClick={() => setOpen(false)} style={{ background:'none', border:'none', color:'#4B6080', cursor:'pointer', fontSize:18 }}>✕</button>
           </div>

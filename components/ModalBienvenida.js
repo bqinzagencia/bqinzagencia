@@ -47,14 +47,8 @@ export default function ModalBienvenida() {
   const videoRef = useRef(null);
 
   useEffect(() => {
-    // En móvil vertical, el popup de la landing (PopupBienvenida en index.js)
-    // ya cubre esta experiencia con layout video-arriba/texto-abajo + lista WasapBot.
-    // Este modal solo aplica para desktop/tablet/landscape.
-    const esMovilVertical = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
-    if (esMovilVertical) return;
-
-    const t = setTimeout(() => setVisible(true), 800);
-    return () => clearTimeout(t);
+    // Popup desactivado — no se muestra nunca al cargar el index.
+    return;
   }, []);
 
   useEffect(() => {
@@ -134,7 +128,7 @@ export default function ModalBienvenida() {
         .bv-stat-val    { animation: countUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
         .bv-testi       { animation: slideUpFast 0.5s cubic-bezier(0.16,1,0.3,1) both; }
         .bv-play-btn:hover { transform:scale(1.1) !important; background:#FF8C00 !important; box-shadow:0 12px 40px rgba(255,107,0,0.7) !important; }
-        .bv-cta:hover   { background:#E55F00 !important; box-shadow:0 10px 32px rgba(255,107,0,0.6) !important; transform:translateY(-2px) !important; }
+        .bv-cta:hover   { background:rgba(255,107,0,0.08) !important; box-shadow:0 6px 20px rgba(255,107,0,0.25) !important; transform:translateY(-2px) !important; }
         .bv-cerrar:hover { background:rgba(255,255,255,0.18) !important; }
         .bv-mini-card   { transition:transform 0.2s, border-color 0.2s; }
         .bv-mini-card:hover { transform:translateY(-3px); border-color:rgba(255,107,0,0.4) !important; }
@@ -177,7 +171,7 @@ export default function ModalBienvenida() {
           )}
 
           <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'48px 12px 14px', background:'linear-gradient(to top, rgba(0,0,0,0.94), transparent)', display:'flex', flexDirection:'column', gap:6, zIndex:iniciado?10:5 }}>
-            <a href="/wasapbot/activar" onClick={cerrar} className="bv-cta" style={{ background:G, color:'#fff', borderRadius:100, padding:'11px 14px', fontSize:13, fontWeight:800, textAlign:'center', textDecoration:'none', display:'block', fontFamily:F, letterSpacing:'0.02em', boxShadow:'0 6px 24px rgba(37,211,102,0.45)', transition:'all 0.2s' }}>
+            <a href="/wasapbot/activar" onClick={cerrar} className="bv-cta" style={{ background:'#000', color:G, border:`2px solid ${G}`, borderRadius:100, padding:'11px 14px', fontSize:13, fontWeight:800, textAlign:'center', textDecoration:'none', display:'block', fontFamily:F, letterSpacing:'0.02em', boxShadow:'none', transition:'all 0.2s' }}>
               Activar mi WasapBot →
             </a>
             <button onClick={cerrar} style={{ background:'transparent', color:'rgba(255,255,255,0.4)', border:'none', fontSize:11, cursor:'pointer', padding:'3px', fontFamily:F }}>Saltar</button>
@@ -188,7 +182,7 @@ export default function ModalBienvenida() {
         <div className={cerrado ? 'bv-texto-col' : 'bv-texto-in bv-texto-col'} onClick={e => e.stopPropagation()} style={{ maxWidth:260, opacity:0, flexShrink:0 }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:7, background:'rgba(37,211,102,0.12)', border:'1px solid rgba(37,211,102,0.35)', borderRadius:99, padding:'4px 12px', marginBottom:14 }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:G, animation:'pulseWA 2s infinite' }}/>
-            <span style={{ fontFamily:F, fontSize:10, fontWeight:800, color:G, letterSpacing:'0.06em', textTransform:'uppercase' }}>WasapBot · agencIAme</span>
+            <span style={{ fontFamily:F, fontSize:10, fontWeight:800, color:G, letterSpacing:'0.06em', textTransform:'uppercase' }}>WasapBot · BQinzagencIA</span>
           </div>
           <div style={{ fontFamily:FA, fontSize:28, color:'#fff', lineHeight:1.1, marginBottom:14 }}>
             Tu negocio<br />en piloto<br /><span style={{ color:N, textShadow:'0 0 32px rgba(255,107,0,0.6)' }}>automatico.</span>
@@ -234,7 +228,7 @@ export default function ModalBienvenida() {
             </div>
           </div>
 
-          <a href="/wasapbot/activar" onClick={cerrar} className="bv-cta" style={{ background:N, color:'#fff', borderRadius:100, padding:'13px 20px', fontSize:14, fontWeight:800, textAlign:'center', textDecoration:'none', display:'block', fontFamily:F, letterSpacing:'0.02em', boxShadow:'0 6px 28px rgba(255,107,0,0.4)', transition:'all 0.2s' }}>
+          <a href="/wasapbot/activar" onClick={cerrar} className="bv-cta" style={{ background:'#000', color:N, border:`2px solid ${N}`, borderRadius:100, padding:'13px 20px', fontSize:14, fontWeight:800, textAlign:'center', textDecoration:'none', display:'block', fontFamily:F, letterSpacing:'0.02em', boxShadow:'none', transition:'all 0.2s' }}>
             Activar mi WasapBot →
           </a>
         </div>

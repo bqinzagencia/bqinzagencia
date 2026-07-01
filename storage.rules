@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// Reglas de seguridad de Firebase Storage para BQinzAgencIA.
+// Carpeta usada: empresas/{empresaId}/catalogo/{archivo}
+// - Lectura: pública, porque las fotos se envían por WhatsApp y se muestran
+//   en la web pública del negocio (necesitan ser accesibles sin login).
+// - Escritura: solo usuarios autenticados (cualquier cuenta logueada puede
+//   subir fotos a su propia empresa desde el panel). El panel ya restringe
+//   en el frontend a qué empresaId puede escribir cada usuario; esta regla
+//   evita que alguien sin sesión escriba directamente a Storage.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /empresas/{empresaId}/catalogo/{archivo} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null;
+    }
+  }
+}

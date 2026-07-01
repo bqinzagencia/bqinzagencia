@@ -5,33 +5,30 @@
 
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
-import * as admin from 'firebase-admin';
-
-function getAdminDb() {
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : '',
-      }),
-    });
-  }
-  return admin.firestore();
-}
+import { db as adminDb } from '../../lib/firebaseAdmin';
 
 export async function getServerSideProps({ params }) {
   const { slug } = params;
   try {
-    const db = getAdminDb();
+    const db = adminDb;
     const snap = await db.collection('empresas').get();
     let empresaData = null;
+    const debugSlugs = [];
     snap.forEach(doc => {
       const d = doc.data();
-      const nombreSlug = (d.nombreEmpresa || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      if (nombreSlug === slug || d.slug === slug) empresaData = { id: doc.id, ...d };
+      debugSlugs.push({ id: doc.id, nombreEmpresa: d.nombreEmpresa, slugGuardado: d.slug });
+      // Prioridad: slug guardado explícitamente al publicar > cálculo de respaldo
+      // a partir del nombre (para empresas antiguas que nunca guardaron slug).
+      if (d.slug === slug) { empresaData = { id: doc.id, ...d }; return; }
+      const nombreSlug = (d.nombreEmpresa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      if (!empresaData && nombreSlug === slug) empresaData = { id: doc.id, ...d };
     });
-    if (!empresaData) return { notFound: true };
+    console.log('[Sitio DEBUG] slug buscado:', slug);
+    console.log('[Sitio DEBUG] empresas en BD:', JSON.stringify(debugSlugs));
+    if (!empresaData) {
+      console.error('[Sitio] No se encontro empresa para slug:', slug);
+      return { notFound: true };
+    }
 
     let conocimiento = null;
     try {
@@ -75,7 +72,7 @@ export async function getServerSideProps({ params }) {
       }
     };
   } catch (e) {
-    console.error('[Sitio]', e.message);
+    console.error('[Sitio] Error en getServerSideProps:', e.message, e.stack);
     return { notFound: true };
   }
 }
@@ -211,7 +208,8 @@ export default function SitioEmpresa({ empresa, conocimiento, fotosGaleria, menu
   const info = conocimiento?.info || {};
   const diasActivos = DIAS_ES.filter(d => horarios[d]?.activo);
   const whatsappNum = (info.whatsapp || info.telefono || empresa.telefono || '').replace(/\D/g, '');
-  const whatsappUrl = whatsappNum ? 'https://wa.me/57' + whatsappNum : null;
+  const whatsappNumSinPrefijo = whatsappNum.replace(/^34/, '');
+  const whatsappUrl = whatsappNum ? 'https://wa.me/34' + whatsappNumSinPrefijo : null;
   const heroPhoto = empresa.fotoWeb || cfg.hero;
 
   // Galeria: fotos propias primero, luego las de la industria
@@ -278,7 +276,7 @@ export default function SitioEmpresa({ empresa, conocimiento, fotosGaleria, menu
     <>
       <Head>
         <title>{empresa.nombreEmpresa} — {cfg.tagline}</title>
-        <meta name="description" content={info.descripcionNegocio || empresa.nombreEmpresa + ' en ' + (info.ciudad || 'Colombia')} />
+        <meta name="description" content={info.descripcionNegocio || empresa.nombreEmpresa + ' en ' + (info.ciudad || 'España')} />
         <meta property="og:title" content={empresa.nombreEmpresa} />
         <meta property="og:description" content={info.descripcionNegocio || cfg.tagline} />
         <meta property="og:image" content={heroPhoto} />
@@ -409,7 +407,7 @@ export default function SitioEmpresa({ empresa, conocimiento, fotosGaleria, menu
                     <div style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{plato.nombre}</div>
                     {plato.descripcion && <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, marginBottom: 14 }}>{plato.descripcion}</p>}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      {plato.precio && <span style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 22, fontWeight: 700, color: A }}>${parseInt(plato.precio).toLocaleString('es-CO')}</span>}
+                      {plato.precio && <span style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 22, fontWeight: 700, color: A }}>{parseInt(plato.precio).toLocaleString('es-ES')}€</span>}
                       {tieneDomicilio && (
                         <a href={whatsappUrl + '?text=Quiero pedir: ' + plato.nombre} target="_blank" rel="noopener"
                           style={{ background: '#25D366', color: '#fff', borderRadius: 3, padding: '6px 14px', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
@@ -424,7 +422,7 @@ export default function SitioEmpresa({ empresa, conocimiento, fotosGaleria, menu
             {menuDiario.precioMenuCompleto && (
               <div style={{ textAlign: 'center', marginTop: 40, padding: '20px 32px', background: A + '11', border: '1px solid ' + A + '33', borderRadius: 4, display: 'inline-block' }}>
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Menu completo del dia</div>
-                <div style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 32, fontWeight: 700, color: A }}>${parseInt(menuDiario.precioMenuCompleto).toLocaleString('es-CO')}</div>
+                <div style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 32, fontWeight: 700, color: A }}>{parseInt(menuDiario.precioMenuCompleto).toLocaleString('es-ES')}€</div>
               </div>
             )}
           </div>
@@ -455,7 +453,7 @@ export default function SitioEmpresa({ empresa, conocimiento, fotosGaleria, menu
                   <div style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 21, fontWeight: 700, marginBottom: 8 }}>{sv.nombre}</div>
                   {sv.descripcion && <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: 18 }}>{sv.descripcion}</p>}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {sv.precio && <span style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 24, fontWeight: 700, color: A }}>${parseInt(sv.precio).toLocaleString('es-CO')}</span>}
+                    {sv.precio && <span style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 24, fontWeight: 700, color: A }}>{parseInt(sv.precio).toLocaleString('es-ES')}€</span>}
                     {sv.duracion && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: 100 }}>{sv.duracion} min</span>}
                   </div>
                 </div>
@@ -579,7 +577,7 @@ export default function SitioEmpresa({ empresa, conocimiento, fotosGaleria, menu
       <footer style={{ background: '#000', padding: '28px 24px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ fontFamily: '"' + cfg.font + '",serif', fontSize: 18, fontWeight: 700, color: A, marginBottom: 6 }}>{empresa.nombreEmpresa}</div>
         <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-          Powered by <a href="https://agenciame.com" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>agenc<span style={{ color: '#FF6B00' }}>IA</span>me</a> · {new Date().getFullYear()}
+          Powered by <a href="https://bqinzagencia.com" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>BQinzagenc<span style={{ color: '#FF6B00' }}>IA</span></a> · {new Date().getFullYear()}
         </div>
       </footer>
 

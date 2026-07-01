@@ -10,7 +10,7 @@ const WA_SERVER          = process.env.WHATSAPP_SERVER_URL    || 'https://agenci
 const SERVER_SECRET      = process.env.SERVER_SECRET          || 'agenciame2026secreto_nexoia';
 const SOPORTE_EMPRESA_ID = process.env.SOPORTE_EMPRESA_ID      || 'WN5UQBDMp1MSiuBdAfeJ';
 const SOPORTE_NUMERO     = process.env.SOPORTE_WHATSAPP        || '573105056616';
-const SOPORTE_EMAIL      = process.env.SOPORTE_EMAIL_DESTINO   || 'soportesistemas@soporteia.net';
+const SOPORTE_EMAIL      = process.env.SOPORTE_EMAIL_DESTINO   || 'bqinzagencia@gmail.com';
 
 function crearTransporter() {
   return nodemailer.createTransport({
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       creadoEn:      FieldValue.serverTimestamp(),
     });
 
-    const textoWA = `${emoji} *${titulo} — agencIAme*\n\n*Empresa:* ${nombreEmpresa || 'Desconocida'}\n*Email:* ${email || 'sin email'}\n*Mensaje:*\n${mensaje}`;
+    const textoWA = `${emoji} *${titulo} — BQinzagencIA*\n\n*Empresa:* ${nombreEmpresa || 'Desconocida'}\n*Email:* ${email || 'sin email'}\n*Mensaje:*\n${mensaje}`;
 
     // 2. Canal 1 — WhatsApp (sesion Baileys de soporte)
     let waOk = false;
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     try {
       const transporter = crearTransporter();
       await transporter.sendMail({
-        from:    `"agencIAme — Soporte" <${process.env.EMAIL_USER || 'soportesistemas@soporteia.net'}>`,
+        from:    `"BQinzagencIA — Soporte" <${process.env.EMAIL_USER || 'soportesistemas@soporteia.net'}>`,
         to:      SOPORTE_EMAIL,
         subject: `${emoji} ${titulo} — ${nombreEmpresa || 'Desconocida'}${waOk ? '' : ' ⚠️ WhatsApp no enviado'}`,
         text:

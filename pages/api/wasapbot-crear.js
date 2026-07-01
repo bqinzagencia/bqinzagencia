@@ -1,5 +1,5 @@
 // pages/api/wasapbot-crear.js
-// Crea empresa para WasapBot — SIN trial gratuito, requiere plan activo
+// Crea empresa para WasapBot — con prueba gratis de 24h (tokens limitados)
 import { db as adminDb } from '../../lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -38,9 +38,16 @@ export default async function handler(req, res) {
       email,
       ciudad:         ciudad || '',
       plan:           'wasapbot',
-      planActivo:     false,
-      trialHasta:     null,
+      planActivo:     true,
       producto:       producto || 'wasapbot',
+      // ── Prueba gratis 24h ──
+      // No es un plan de pago: es una ventana de evaluacion de 24h desde el
+      // registro, con un tope de tokens bajo para controlar el gasto de OpenAI.
+      // Pasadas las 24h (o agotado el tope), el bot deja de responder con IA
+      // hasta que el cliente contrate un plan — lo haya usado o no.
+      esPruebaGratis: true,
+      trialHasta:     new Date(Date.now() + 24 * 60 * 60 * 1000),
+      trialAvisoEnviado: false,
       ownerUid:       ownerUid || null,   // ← uid del usuario registrado
       creadoEn:       FieldValue.serverTimestamp(),
       whatsapp:       { status: 'disconnected' },

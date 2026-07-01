@@ -113,7 +113,7 @@ html {
 }
 
 body {
-  background:  var(--bg);
+  background:  #080808;
   color:       var(--white);
   font-family: var(--font-body);
   font-size:   var(--text-base);
@@ -261,9 +261,9 @@ code, pre, kbd {
 .btn-lima:hover { background: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 10px 36px rgba(43,106,255,0.45); }
 
 .btn-coral {
-  background:     var(--orange);
-  color:          #fff;
-  border:         none;
+  background:     #000;
+  color:          var(--orange);
+  border:         2px solid var(--orange);
   border-radius:  var(--radius-pill);
   padding:        14px 34px;
   font-family:    var(--font-landing);
@@ -272,9 +272,9 @@ code, pre, kbd {
   cursor:         pointer;
   transition:     all 0.2s;
   display:        inline-block;
-  box-shadow:     var(--shadow-orange);
+  box-shadow:     none;
 }
-.btn-coral:hover { background: #E55F00; transform: translateY(-2px); }
+.btn-coral:hover { background: rgba(255,107,0,0.08); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(255,107,0,0.25); }
 
 .btn-ghost-lima {
   background:     transparent;

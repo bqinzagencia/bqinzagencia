@@ -111,11 +111,11 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Ingresar — agencIAme</title>
+        <title>Ingresar — BQinzagencIA</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
-      <style>{`
+      <style jsx global>{`
         body { background:${BG}; color:#E8E8E8; font-family:${F}; margin:0; }
         input:focus { border-color:${G} !important; outline:none; }
         input::placeholder { color:#333; }
@@ -132,14 +132,14 @@ export default function Login() {
           <div style={{ textAlign:'center', marginBottom:40 }}>
             <Link href="/">
               <div style={{ fontFamily:"'Abril Fatface', serif", fontSize:28, color:'#E8E8E8', cursor:'pointer', display:'inline-block' }}>
-                agenc<span style={{ color:'#FF6B00', fontSize:32 }}>IA</span>me
+                BQinzagenc<span style={{ color:'#FF6B00', fontSize:32 }}>IA</span>
               </div>
             </Link>
             <h1 style={{ fontFamily:F, fontSize:22, fontWeight:600, marginTop:20, marginBottom:6 }}>
               {showSelector ? 'Elige tu empresa' : 'Bienvenido de vuelta'}
             </h1>
             <p style={{ color:'#2A2A2A', fontSize:13 }}>
-              {showSelector ? 'Selecciona con qué empresa quieres ingresar' : 'Ingresa a tu panel de agencIAme'}
+              {showSelector ? 'Selecciona con qué empresa quieres ingresar' : 'Ingresa a tu panel de BQinzagencIA'}
             </p>
           </div>
 

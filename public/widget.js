@@ -11,11 +11,11 @@
   var chatbotId = currentScript ? currentScript.getAttribute('data-id') : null;
 
   if (!chatbotId) {
-    console.warn('[agencIAme] Widget: data-id no encontrado');
+    console.warn('[BqinzagencIA] Widget: data-id no encontrado');
     return;
   }
 
-  var API_BASE = 'https://www.agenciame.com';
+  var API_BASE = 'https://www.bqinzagencia.com';
   var config   = null;
   var isOpen   = false;
   var messages = [];
@@ -163,7 +163,7 @@
     // Branding
     var branding = document.createElement('div');
     branding.id  = 'agme-branding';
-    branding.innerHTML = 'Powered by <a href="https://agenciame.com" target="_blank">agencIAme</a>';
+    branding.innerHTML = 'Powered by <a href="https://bqinzagencia.com" target="_blank">BQinzagenc<span style="color:#FF6B00">IA</span></a>';
 
     panel.appendChild(header);
     panel.appendChild(msgsDiv);

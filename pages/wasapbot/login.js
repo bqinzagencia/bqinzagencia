@@ -154,14 +154,14 @@ export default function WasapBotLogin() {
         @media(max-width:900px){ .login-robot{ display:none; } }
       `}}/>
 
-      <img className="login-robot" src="/agenciame-robot-final.png" alt="" />
+      <img className="login-robot" src="/agenciame-robot-final.webp" alt="" />
 
       <div style={{width:'100%',maxWidth:420,position:'relative',zIndex:1}}>
         {/* Logo */}
         <div style={{textAlign:'center',marginBottom:40}}>
           <Link href="/wasapbot">
             <div style={{fontFamily:FA,fontSize:28,cursor:'pointer',display:'inline-block'}}>
-              agenc<span style={{color:'#FF6B00',fontSize:32}}>IA</span>me
+              BQinzagenc<span style={{color:'#FF6B00',fontSize:32}}>IA</span>
               <span style={{fontFamily:F,fontSize:13,color:'#25D366',fontWeight:700,marginLeft:8,verticalAlign:'middle'}}>WasapBot</span>
             </div>
           </Link>

@@ -70,6 +70,7 @@ export default function Web() {
   const [tab, setTab] = useState('textos');
   const [saving, setSaving] = useState(false);
   const [publicada, setPublicada] = useState(false);
+  const [slugPublicado, setSlugPublicado] = useState('');
 
   useEffect(() => { if (!loading && !user) router.push('/auth/login'); }, [user, loading]);
 
@@ -79,6 +80,7 @@ export default function Web() {
     setCiudad(empresa.ciudad || '');
     setTelefono(empresa.telefono || '');
     if (empresa.plantillaWeb) { setStep(2); setPublicada(true); }
+    if (empresa.slug) setSlugPublicado(empresa.slug);
     if (empresa.fotoWeb) setFotoHero(empresa.fotoWeb);
 
     // Cargar conocimiento
@@ -88,6 +90,7 @@ export default function Web() {
         if (snap.exists()) {
           const d = snap.data();
           if (d.servicios?.length) setServicios(d.servicios);
+          if (d.info?.tituloWeb) setTitulo(d.info.tituloWeb);
           if (d.info?.descripcionNegocio) setDescripcion(d.info.descripcionNegocio);
           if (d.info?.whatsapp) setWhatsapp(d.info.whatsapp);
           if (d.info?.direccion) setDireccion(d.info.direccion);
@@ -106,8 +109,8 @@ export default function Web() {
 
   const indImg  = INDUSTRY_IMGS[empresa.industria] || INDUSTRY_IMGS.default;
   const heroImg = fotoHero || indImg;
-  const slug    = titulo.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  const siteUrl = `https://agenciame.com/sitio/${slug}`;
+  const slug    = slugPublicado || (empresa.slug || titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''));
+  const siteUrl = `https://www.bqinzagencia.com/sitio/${slug}`;
 
   // Guardar borrador
   const guardarBorrador = async () => {
@@ -115,12 +118,15 @@ export default function Web() {
     try {
       await setDoc(doc(db, 'empresas', empresa.id, 'config', 'conocimiento'), {
         servicios,
-        info: { descripcionNegocio: descripcion, whatsapp, telefono, direccion, ciudad, formasPago, heroFrase },
+        info: { tituloWeb: titulo, descripcionNegocio: descripcion, whatsapp, telefono, direccion, ciudad, formasPago, heroFrase },
         actualizadoEn: serverTimestamp(),
       }, { merge: true });
       await updateEmpresa(empresa.id, { fotoWeb: fotoHero || '' });
       toast.success('Borrador guardado');
-    } catch { toast.error('Error al guardar'); }
+    } catch (err) {
+      console.error('Error al guardar borrador:', err);
+      toast.error('Error al guardar: ' + (err?.message || 'desconocido'));
+    }
     finally { setSaving(false); }
   };
 
@@ -130,15 +136,21 @@ export default function Web() {
     setSaving(true);
     try {
       await guardarBorrador();
+      const slugFinal = titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
       await updateEmpresa(empresa.id, {
-        plantillaWeb: empresa.industria,
+        plantillaWeb: empresa.industria || 'default',
         fotoWeb:      fotoHero || '',
         webActiva:    true,
+        slug:         slugFinal,
       });
+      setSlugPublicado(slugFinal);
       setPublicada(true);
       setStep(3);
       toast.success('Sitio web publicado');
-    } catch { toast.error('Error al publicar'); }
+    } catch (err) {
+      console.error('Error al publicar web:', err);
+      toast.error('Error al publicar: ' + (err?.message || 'desconocido'));
+    }
     finally { setSaving(false); }
   };
 
@@ -151,7 +163,7 @@ export default function Web() {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('upload_preset', UPLOAD_PRESET);
-      fd.append('folder', 'agenciame/sitios');
+      fd.append('folder', 'bqinzagencia/sitios');
       const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:'POST', body:fd });
       const data = await res.json();
       onSuccess(data.secure_url);
@@ -171,7 +183,7 @@ export default function Web() {
         const fd = new FormData();
         fd.append('file', f);
         fd.append('upload_preset', UPLOAD_PRESET);
-        fd.append('folder', 'agenciame/galeria');
+        fd.append('folder', 'bqinzagencia/galeria');
         const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:'POST', body:fd });
         const data = await res.json();
         if (data.secure_url) nuevas.push(data.secure_url);
@@ -209,7 +221,7 @@ export default function Web() {
 
   return (
     <>
-      <Head><title>Mi Web — agencIAme</title></Head>
+      <Head><title>Mi Web — BQinzagencIA</title></Head>
       <DashboardLayout title="Mi Web">
         <style dangerouslySetInnerHTML={{__html:`
           .web-inp:focus { border-color: rgba(255,107,0,0.5) !important; }
@@ -302,7 +314,7 @@ export default function Web() {
                   </div>
                   <div style={{ marginBottom:12 }}>
                     <span style={LBL}>Titular del hero (frase impactante)</span>
-                    <input className="web-inp" style={INP} value={heroFrase} onChange={e=>setHeroFrase(e.target.value)} placeholder="Ej: Tu centro de belleza de confianza en Cali" />
+                    <input className="web-inp" style={INP} value={heroFrase} onChange={e=>setHeroFrase(e.target.value)} placeholder="Ej: Tu centro de belleza de confianza en Madrid" />
                   </div>
                   <div>
                     <span style={LBL}>Descripcion del negocio</span>
@@ -331,8 +343,8 @@ export default function Web() {
                           <input className="web-inp" style={INP} placeholder="Ej: Corte clasico" value={sv.nombre} onChange={e=>setServicios(s=>s.map((x,j)=>j===i?{...x,nombre:e.target.value}:x))} />
                         </div>
                         <div>
-                          <span style={LBL}>Precio COP</span>
-                          <input className="web-inp" style={INP} placeholder="25000" value={sv.precio} onChange={e=>setServicios(s=>s.map((x,j)=>j===i?{...x,precio:e.target.value}:x))} />
+                          <span style={LBL}>Precio €</span>
+                          <input className="web-inp" style={INP} placeholder="25" value={sv.precio} onChange={e=>setServicios(s=>s.map((x,j)=>j===i?{...x,precio:e.target.value}:x))} />
                         </div>
                         <div>
                           <span style={LBL}>Duracion min</span>
@@ -418,25 +430,25 @@ export default function Web() {
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
                     <div>
                       <span style={LBL}>Telefono</span>
-                      <input className="web-inp" style={INP} placeholder="3105056616" value={telefono} onChange={e=>setTelefono(e.target.value)} />
+                      <input className="web-inp" style={INP} placeholder="674421919" value={telefono} onChange={e=>setTelefono(e.target.value)} />
                     </div>
                     <div>
                       <span style={LBL}>WhatsApp</span>
-                      <input className="web-inp" style={INP} placeholder="3105056616" value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} />
+                      <input className="web-inp" style={INP} placeholder="674421919" value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} />
                     </div>
                     <div>
                       <span style={LBL}>Direccion</span>
-                      <input className="web-inp" style={INP} placeholder="Calle 15 # 28-40" value={direccion} onChange={e=>setDireccion(e.target.value)} />
+                      <input className="web-inp" style={INP} placeholder="Calle Gran Vía 28" value={direccion} onChange={e=>setDireccion(e.target.value)} />
                     </div>
                     <div>
                       <span style={LBL}>Ciudad</span>
-                      <input className="web-inp" style={INP} placeholder="Cali" value={ciudad} onChange={e=>setCiudad(e.target.value)} />
+                      <input className="web-inp" style={INP} placeholder="Madrid" value={ciudad} onChange={e=>setCiudad(e.target.value)} />
                     </div>
                   </div>
                   <div>
                     <span style={LBL}>Formas de pago</span>
                     <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:6 }}>
-                      {['Efectivo','Nequi','Daviplata','Transferencia','Tarjeta debito','Tarjeta credito'].map(p => (
+                      {['Efectivo','Bizum','Transferencia','Tarjeta debito','Tarjeta credito'].map(p => (
                         <button key={p} onClick={() => togPago(p)}
                           style={{ background: formasPago.includes(p)?'rgba(255,107,0,0.12)':'rgba(255,255,255,0.04)', color: formasPago.includes(p)?'#FF8C40':'#6B7A99', border:`1px solid ${formasPago.includes(p)?'rgba(255,107,0,0.3)':'rgba(255,255,255,0.06)'}`, borderRadius:100, padding:'5px 14px', fontFamily:F, fontSize:12, cursor:'pointer', transition:'all 0.15s' }}>
                           {p}
@@ -470,7 +482,7 @@ export default function Web() {
                   {['#EF4444','#F59E0B','#10B981'].map((c,i) => <div key={i} style={{ width:10, height:10, borderRadius:'50%', background:c }} />)}
                 </div>
                 <div style={{ flex:1, background:'#0D1420', borderRadius:6, padding:'4px 10px', fontFamily:F, fontSize:10, color:'#4B6080', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                  agenciame.com/sitio/{slug || 'tu-negocio'}
+                  bqinzagencia.com/sitio/{slug || 'tu-negocio'}
                 </div>
                 {publicada && <span style={{ fontFamily:F, fontSize:9, color:'#10B981', fontWeight:700, background:'rgba(16,185,129,0.1)', padding:'2px 8px', borderRadius:100 }}>ACTIVA</span>}
               </div>
@@ -513,7 +525,7 @@ export default function Web() {
                       <div key={i} style={{ background:'#111827', borderRadius:8, padding:'10px 6px', textAlign:'center' }}>
                         <div style={{ fontSize:16, marginBottom:4 }}>⭐</div>
                         <div style={{ fontFamily:F, fontSize:9, fontWeight:600, color:'#EFF4FF', lineHeight:1.2 }}>{sv.nombre}</div>
-                        {sv.precio && <div style={{ fontFamily:F, fontSize:8, color:'#FF6B00', marginTop:3 }}>${sv.precio}</div>}
+                        {sv.precio && <div style={{ fontFamily:F, fontSize:8, color:'#FF6B00', marginTop:3 }}>{sv.precio}€</div>}
                       </div>
                     ))}
                   </div>

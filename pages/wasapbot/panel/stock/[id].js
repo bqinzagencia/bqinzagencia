@@ -14,18 +14,18 @@ const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
 
 function hoyStr() {
-  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function mesStr() {
-  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
-function fmtP(n) { return Number(n||0).toLocaleString('es-CO'); }
+function fmtP(n) { return Number(n||0).toLocaleString('es-ES'); }
 function fmtTs(ts) {
   if (!ts) return '';
   const d = ts._seconds ? new Date(ts._seconds*1000) : new Date(ts);
-  return d.toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 }
 
 export default function StockPanel() {
@@ -194,7 +194,7 @@ export default function StockPanel() {
     {/* NAV */}
     <nav style={{background:'rgba(6,9,13,.97)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'0 24px',height:56,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
       <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-        <span style={{fontFamily:FA,fontSize:16}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span>
+        <span style={{fontFamily:FA,fontSize:16}}>BQinz<span style={{color:'#FF6B00'}}>agenc</span>IA</span>
         <span style={{color:'rgba(255,255,255,.15)'}}>|</span>
         <span style={{fontFamily:F,fontSize:13,fontWeight:600}}>{empresa?.nombreEmpresa||'...'} — {cfg.labelInventario||'Inventario'}</span>
         {alertas.agotados.length>0&&<span className="badge" style={{background:'rgba(239,68,68,.15)',color:'#EF4444'}}>🔴 {alertas.agotados.length} agotados</span>}
@@ -221,23 +221,7 @@ export default function StockPanel() {
             style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'14px 36px',fontFamily:F,fontSize:15,fontWeight:700,textDecoration:'none',boxShadow:'0 6px 24px rgba(245,158,11,.35)'}}>
             ⚡ Activar mi plan →
           </a>
-          <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginTop:12}}>Desde $189.000/mes · Sin contratos</div>
-        </div>
-      )}
-
-      {/* Candado si no hay plan */}
-      {sinPlan&&(
-        <div style={{background:'rgba(245,158,11,.06)',border:'1px solid rgba(245,158,11,.25)',borderRadius:16,padding:'32px 24px',marginBottom:24,textAlign:'center'}}>
-          <div style={{fontSize:48,marginBottom:14}}>🔒</div>
-          <div style={{fontFamily:FA,fontSize:24,color:'#EFF4FF',marginBottom:8,fontWeight:400}}>Función premium</div>
-          <div style={{fontFamily:F,fontSize:14,color:'rgba(255,255,255,.4)',lineHeight:1.7,marginBottom:24,maxWidth:400,margin:'0 auto 24px'}}>
-            El inventario y los reportes de ventas requieren un plan activo. Activa tu plan para comenzar a registrar entradas, salidas y ver tus ganancias diarias.
-          </div>
-          <a href={'/wasapbot/planes?id='+id+'&nombre='+encodeURIComponent(empresa?.nombreEmpresa||'')}
-            style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'13px 32px',fontFamily:F,fontSize:15,fontWeight:700,textDecoration:'none',boxShadow:'0 6px 24px rgba(245,158,11,.35)'}}>
-            ⚡ Activar mi plan →
-          </a>
-          <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginTop:12}}>Desde $189.000/mes · Sin contratos</div>
+          <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginTop:12}}>Desde 79€/mes · Sin contratos</div>
         </div>
       )}
 
@@ -303,9 +287,9 @@ export default function StockPanel() {
               <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#4B6080',textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Resumen del día</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
                 {[
-                  {label:'Invertido compras', val:'$'+fmtP(resumenDia?.totalEntradas), color:'#60A5FA', icon:'📥'},
-                  {label:'Total en ventas',    val:'$'+fmtP(resumenDia?.totalSalidas),  color:'#25D366', icon:'📤'},
-                  {label:'Ganancia bruta',     val:'$'+fmtP(resumenDia?.gananciaBruta), color:(resumenDia?.gananciaBruta||0)>=0?'#25D366':'#EF4444', icon:'💰'},
+                  {label:'Invertido compras', val:fmtP(resumenDia?.totalEntradas)+'€', color:'#60A5FA', icon:'📥'},
+                  {label:'Total en ventas',    val:fmtP(resumenDia?.totalSalidas)+'€',  color:'#25D366', icon:'📤'},
+                  {label:'Ganancia bruta',     val:fmtP(resumenDia?.gananciaBruta)+'€', color:(resumenDia?.gananciaBruta||0)>=0?'#25D366':'#EF4444', icon:'💰'},
                   {label:'Movimientos',        val:resumenDia?.totalMovimientos||0,      color:'#EFF4FF', icon:'📋'},
                 ].map((s,i)=>(
                   <div key={i} style={{...CARD,textAlign:'center',padding:'14px 10px'}}>
@@ -320,9 +304,9 @@ export default function StockPanel() {
               <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#4B6080',textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Resumen del mes</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:20}}>
                 {[
-                  {label:'Total invertido en compras', val:'$'+fmtP(resumenMes?.totalEntradas), color:'#60A5FA', icon:'📥'},
-                  {label:'Total ventas del mes',        val:'$'+fmtP(resumenMes?.totalSalidas),  color:'#25D366', icon:'📤'},
-                  {label:'Ganancia bruta del mes',      val:'$'+fmtP(resumenMes?.gananciaBruta), color:(resumenMes?.gananciaBruta||0)>=0?'#25D366':'#EF4444', icon:'💰'},
+                  {label:'Total invertido en compras', val:fmtP(resumenMes?.totalEntradas)+'€', color:'#60A5FA', icon:'📥'},
+                  {label:'Total ventas del mes',        val:fmtP(resumenMes?.totalSalidas)+'€',  color:'#25D366', icon:'📤'},
+                  {label:'Ganancia bruta del mes',      val:fmtP(resumenMes?.gananciaBruta)+'€', color:(resumenMes?.gananciaBruta||0)>=0?'#25D366':'#EF4444', icon:'💰'},
                 ].map((s,i)=>(
                   <div key={i} style={{...CARD,display:'flex',alignItems:'center',gap:14,padding:'16px 18px'}}>
                     <span style={{fontSize:26}}>{s.icon}</span>
@@ -391,8 +375,8 @@ export default function StockPanel() {
                               {item.stockMinimo>0&&<div style={{fontFamily:F,fontSize:10,color:'rgba(255,255,255,.25)'}}>Mín: {item.stockMinimo}</div>}
                             </div>
                             <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.4)',textAlign:'center'}}>{item.unidad}</div>
-                            <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.5)',textAlign:'center'}}>${fmtP(item.precioCompra)}</div>
-                            <div style={{fontFamily:F,fontSize:12,color:'#25D366',textAlign:'center'}}>{item.precioVenta>0?'$'+fmtP(item.precioVenta):'-'}</div>
+                            <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.5)',textAlign:'center'}}>{fmtP(item.precioCompra)}€</div>
+                            <div style={{fontFamily:F,fontSize:12,color:'#25D366',textAlign:'center'}}>{item.precioVenta>0?fmtP(item.precioVenta)+'€':'-'}</div>
                             <div style={{textAlign:'center'}}>
                               <span style={{fontFamily:FA,fontSize:18,color:agotado?'#EF4444':bajo?'#F59E0B':'#25D366'}}>{item.stockActual||0}</span>
                               {agotado&&<div className="badge" style={{background:'rgba(239,68,68,.15)',color:'#EF4444',marginTop:2}}>Agotado</div>}
@@ -459,12 +443,12 @@ export default function StockPanel() {
                           <div style={{textAlign:'right',flexShrink:0}}>
                             {!esAjuste&&(
                               <div style={{fontFamily:FA,fontSize:18,color:esEntrada?'#60A5FA':'#25D366',letterSpacing:'-0.5px'}}>
-                                {esEntrada?'-':'+'}${fmtP(mov.totalMovimiento)}
+                                {esEntrada?'-':'+'}{fmtP(mov.totalMovimiento)}€
                               </div>
                             )}
                             {!esEntrada&&!esAjuste&&mov.ganancia!=null&&(
                               <div style={{fontFamily:F,fontSize:11,color:mov.ganancia>=0?'#25D366':'#EF4444',marginTop:2}}>
-                                Gan: ${fmtP(mov.ganancia)}
+                                Gan: {fmtP(mov.ganancia)}€
                               </div>
                             )}
                           </div>

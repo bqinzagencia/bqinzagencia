@@ -1,10 +1,3 @@
-// MOVER ESTE ARCHIVO A:
-// E:\DATOS\copiacontroltecnologico\nexoia\pages\wasapbot\panel\inventario\[id].js
-//
-// Comando desde CMD:
-// mkdir E:\DATOS\copiacontroltecnologico\nexoia\pages\wasapbot\panel\inventario
-// move E:\DATOS\copiacontroltecnologico\nexoia\pages\wasapbot\inventario_id.js E:\DATOS\copiacontroltecnologico\nexoia\pages\wasapbot\panel\inventario\[id].js
-
 // pages/wasapbot/panel/inventario/[id].js
 import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
@@ -19,7 +12,7 @@ const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
 
 function hoyStr() {
-  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function fmtFecha(str) {
@@ -221,7 +214,7 @@ export default function InventarioPanel() {
 
     <nav style={{background:'rgba(6,9,13,.97)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'0 24px',height:56,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
       <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-        <span style={{fontFamily:FA,fontSize:16}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span>
+        <span style={{fontFamily:FA,fontSize:16}}>BQinz<span style={{color:'#FF6B00'}}>agenc</span>IA</span>
         <span style={{color:'rgba(255,255,255,.15)'}}>|</span>
         <span style={{fontFamily:F,fontSize:13,fontWeight:600}}>{empresa?.nombreEmpresa||'...'} — Inventario</span>
         {bajoStk>0&&<span className="bdg" style={{background:'rgba(245,158,11,.15)',color:'#F59E0B'}}>⚠️ {bajoStk} bajo stock</span>}
@@ -248,7 +241,7 @@ export default function InventarioPanel() {
             style={{display:'inline-block',background:'linear-gradient(135deg,#F59E0B,#D97706)',color:'#fff',borderRadius:10,padding:'14px 36px',fontFamily:F,fontSize:15,fontWeight:700,textDecoration:'none',boxShadow:'0 6px 24px rgba(245,158,11,.35)'}}>
             ⚡ Activar mi plan →
           </a>
-          <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginTop:12}}>Desde $189.000/mes · Sin contratos · Cancela cuando quieras</div>
+          <div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.2)',marginTop:12}}>Desde 79€/mes · Sin contratos · Cancela cuando quieras</div>
         </div>
       )}
 
@@ -332,7 +325,7 @@ export default function InventarioPanel() {
                         {ag&&<span className="bdg" style={{background:'rgba(239,68,68,.15)',color:'#EF4444'}}>AGOTADO</span>}
                         {bj&&<span className="bdg" style={{background:'rgba(245,158,11,.15)',color:'#F59E0B'}}>⚠️ BAJO</span>}
                         {!item.activo&&!ag&&<span className="bdg" style={{background:'rgba(107,114,128,.1)',color:'#6B7280'}}>INACTIVO</span>}
-                        {item.precio>0&&<span style={{fontFamily:F,fontSize:12,color:'#25D366'}}>${Number(item.precio).toLocaleString('es-CO')}</span>}
+                        {item.precio>0&&<span style={{fontFamily:F,fontSize:12,color:'#25D366'}}>{Number(item.precio).toLocaleString('es-ES')}€</span>}
                       </div>
                       {item.descripcion&&<div style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,.3)',marginBottom:4}}>{item.descripcion}</div>}
                       <StockBar actual={item.stockActual} inicial={item.stockInicial}/>
@@ -358,7 +351,7 @@ export default function InventarioPanel() {
                     {item.foto&&<img src={item.foto} alt="" style={{width:48,height:48,objectFit:'cover',borderRadius:8,flexShrink:0}}/>}
                     <div style={{flex:1,minWidth:140}}>
                       <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:2}}>{item.nombre}</div>
-                      {item.precio>0&&<div style={{fontFamily:F,fontSize:12,color:'#25D366'}}>${Number(item.precio).toLocaleString('es-CO')}</div>}
+                      {item.precio>0&&<div style={{fontFamily:F,fontSize:12,color:'#25D366'}}>{Number(item.precio).toLocaleString('es-ES')}€</div>}
                     </div>
                     <div style={{display:'flex',flexDirection:'column',gap:5,alignItems:'center'}}>
                       <div style={{fontFamily:F,fontSize:10,color:'#4B6080'}}>PORCIONES</div>

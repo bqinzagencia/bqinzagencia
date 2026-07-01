@@ -90,7 +90,7 @@ export default function DashboardLayout({ children, title }) {
       {/* Logo + cerrar (móvil) */}
       <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <Link href="/dashboard" style={{ fontFamily: "'Inter',sans-serif", fontSize: 15, fontWeight: 900, letterSpacing: '-0.04em', color: '#EFF4FF', textDecoration: 'none' }}>
-          agenc<span style={{ color: '#FF6B00' }}>IA</span>me
+          <span style={{color:'#fff'}}>BQinz</span><span style={{ color: '#FF6B00' }}>agenc</span><span style={{color:'#fff'}}>IA</span>
         </Link>
         {mobile && (
           <button onClick={() => setOpen(false)}

@@ -1,0 +1,114 @@
+// pages/api/setup-oscar-admin.js
+// ⚠️ ENDPOINT TEMPORAL DE UN SOLO USO — BORRAR DESPUÉS DE EJECUTAR.
+// Crea (o reutiliza) el usuario Oscar en Firebase Auth, le crea una empresa
+// de prueba con WasapBot activo, y lo marca como superadmin en Firestore.
+
+import { getAuth } from 'firebase-admin/auth';
+import { db as adminDb, adminApp } from '../../lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
+
+const SETUP_SECRET = 'bqinz_setup_oscar_2026'; // secreto de un solo uso
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.query.secret !== SETUP_SECRET) return res.status(401).json({ error: 'No autorizado' });
+
+  const EMAIL = 'oborreroquinonez@gmail.com';
+  const PASSWORD = '20202020';
+
+  try {
+    const auth = getAuth(adminApp);
+
+    // 1. Crear o reutilizar usuario en Firebase Auth
+    let userRecord;
+    try {
+      userRecord = await auth.getUserByEmail(EMAIL);
+      // Si ya existe, actualizamos la contraseña por si acaso
+      await auth.updateUser(userRecord.uid, { password: PASSWORD, emailVerified: true });
+    } catch (e) {
+      if (e.code === 'auth/user-not-found') {
+        userRecord = await auth.createUser({
+          email: EMAIL,
+          password: PASSWORD,
+          emailVerified: true,
+          displayName: 'Oscar Borrero',
+        });
+      } else {
+        throw e;
+      }
+    }
+    const uid = userRecord.uid;
+
+    // 2. Crear empresa de prueba con WasapBot activo (si no existe ya una)
+    const userDocRef = adminDb.collection('usuarios').doc(uid);
+    const userDocSnap = await userDocRef.get();
+    let empresaId;
+
+    if (userDocSnap.exists && userDocSnap.data().empresaActiva) {
+      empresaId = userDocSnap.data().empresaActiva;
+      // Aseguramos que el plan quede activo para pruebas
+      await adminDb.collection('empresas').doc(empresaId).set({
+        producto: 'wasapbot',
+        planWasapbot: 'pro',
+        plan: 'agencia',
+        planActivo: true,
+        ownerUid: uid,
+        telefonoDueno: '34674421919',
+      }, { merge: true });
+      // Reparar el array empresas[] si quedo vacio o no contiene esta empresa
+      await userDocRef.set({
+        empresas: FieldValue.arrayUnion(empresaId),
+      }, { merge: true });
+    } else {
+      const empresaRef = adminDb.collection('empresas').doc();
+      empresaId = empresaRef.id;
+      await empresaRef.set({
+        nombreEmpresa: 'Oscar - Empresa de Prueba',
+        email: EMAIL,
+        ownerUid: uid,
+        industria: 'otro',
+        ciudad: 'Madrid',
+        telefono: '34674421919',
+        telefonoDueno: '34674421919',
+        producto: 'wasapbot',
+        planWasapbot: 'pro',
+        plan: 'agencia',
+        planActivo: true,
+        creadoEn: FieldValue.serverTimestamp(),
+        agentesActivos: 0,
+        conversacionesHoy: 0,
+        leadsTotal: 0,
+      });
+
+      await userDocRef.set({
+        uid,
+        email: EMAIL,
+        empresas: FieldValue.arrayUnion(empresaId),
+        empresaActiva: empresaId,
+        creadoEn: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+
+    // 3. Marcar como superadmin
+    await adminDb.collection('admins').doc(uid).set({
+      rol: 'superadmin',
+      email: EMAIL,
+      creadoEn: FieldValue.serverTimestamp(),
+    });
+
+    return res.json({
+      ok: true,
+      uid,
+      empresaId,
+      email: EMAIL,
+      mensaje: 'Usuario creado/actualizado, empresa con plan activo, y superadmin asignado correctamente.',
+      diagnostico: {
+        usuarioDoc: (await userDocRef.get()).data(),
+        empresaDoc: (await adminDb.collection('empresas').doc(empresaId).get()).data(),
+      },
+    });
+  } catch (err) {
+    console.error('setup-oscar-admin error:', err);
+    return res.status(500).json({ error: err.message, stack: err.stack });
+  }
+}

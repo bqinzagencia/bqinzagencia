@@ -12,30 +12,32 @@ const INDUSTRIES = [
   { icon: '🛒', title: 'Tiendas & Retail', desc: 'Catálogo digital, ventas y domicilios.', slug: 'tienda', color: '#30D988', img: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80' },
   { icon: '🏋️', title: 'Gimnasios & Fitness', desc: 'Inscripciones, clases y pagos automáticos.', slug: 'gimnasio', color: '#1A56FF', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80' },
   { icon: '🏥', title: 'Salud & Clínicas', desc: 'Agenda médica y pre-triage por chat.', slug: 'salud', color: '#00D4FF', img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=80' },
-  { icon: '♟️', title: 'Escuelas de Ajedrez', desc: 'Clases niños/adultos, torneos, libros y clases virtuales.', slug: 'ajedrez', color: '#C0962C', img: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=600&q=80' },
+  { icon: '🐕', title: 'Cuidado de Mascotas', desc: 'Paseos, cuidado a domicilio y guardería. Reservas automáticas 24/7.', slug: 'mascotas', color: '#F472B6', img: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&q=80' },
   { icon: '🏗️', title: 'Arquitectura & Construcción', desc: 'Diseño, construcción, renders y consultoría de proyectos.', slug: 'arquitectura', color: '#B5A16E', img: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&q=80' },
   { icon: '📋', title: 'Servicios & Papelerías', desc: 'Cotizaciones automáticas y seguimiento de pedidos.', slug: 'papeleria', color: '#C77DFF', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80' },
   { icon: '🎯', title: 'Deporte & Entrenamientos', desc: 'Clases, torneos, inscripciones y seguimiento deportivo.', slug: 'gimnasio', color: '#FF4D6D', img: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80' },
-  { icon: '🛃', title: 'Agencias de Aduana', desc: 'Seguimiento de declaraciones, aranceles y estado de mercancias en puerto.', slug: 'aduana', color: '#0EA5E9', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80' },
-  { icon: '🚢', title: 'Operadoras Portuarias', desc: 'Contenedores, ETA de buques, bodegaje y coordinacion con navieras.', slug: 'portuaria', color: '#0F766E', img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
   { icon: '💻', title: 'Soporte Técnico & Electrónica', desc: 'Celulares, computadoras y electrónica. Recepción, presupuestos y seguimiento.', slug: 'tecnico', color: '#6366F1', img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80' },
   { icon: '✂️', title: 'Barbería & Estilo', desc: 'Turnos, reservas y clientes fieles. Tu barbería siempre llena sin perder un turno.', slug: 'barbero', color: '#1D4ED8', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&q=80' },
   { icon: '🍰', title: 'Repostería & Chef', desc: 'Pedidos de tortas, cotizaciones automáticas y agenda de entregas sin esfuerzo.', slug: 'reposteria', color: '#EC4899', img: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=600&q=80' },
   { icon: '🐾', title: 'Veterinaria & Mascotas', desc: 'Citas, vacunas y grooming. Recordatorios automáticos para cada mascota.', slug: 'veterinaria', color: '#10B981', img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&q=80' },
   { icon: '📷', title: 'Fotografía & Video', desc: 'Cotizaciones, portafolio y agenda de sesiones. Bookings confirmados automáticamente.', slug: 'fotografia', color: '#F59E0B', img: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&q=80' },
-  { icon: '🚛', title: 'Transporte & Acarreos', desc: 'Cotización de fletes, trasteos y transporte intermunicipal. Tu camión siempre con carga.', slug: 'acarreos', color: '#6B7280', img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80' },
+  { icon: '🚛', title: 'Transporte & Mudanzas', desc: 'Cotización de fletes y mudanzas. Tu vehículo siempre con carga.', slug: 'acarreos', color: '#6B7280', img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80' },
   { icon: '🧠', title: 'Psicología & Bienestar', desc: 'Agenda de sesiones, recordatorios y pre-consulta automática. Más pacientes, menos admin.', slug: 'psicologo', color: '#8B5CF6', img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80' },
-  { icon: '📊', title: 'Contaduría & Finanzas', desc: 'Agenda asesorías, recuerda vencimientos DIAN y onboarding de clientes automático.', slug: 'contador', color: '#0EA5E9', img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80' },
+  { icon: '📊', title: 'Asesoría Fiscal & Finanzas', desc: 'Agenda asesorías, recuerda vencimientos Agencia Tributaria y onboarding de clientes automático.', slug: 'contador', color: '#0EA5E9', img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80' },
+  { icon: '💅', title: 'Manicura & Estética', desc: 'Reservas de uñas, diseños y tratamientos. Tu agenda siempre llena sin perder ni un turno.', slug: 'manicura', color: '#FB7185', img: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&q=80' },
 ];
 
 const PLANES = [
-  { name: 'Básico', price: '249.000', features: ['Bot WhatsApp 24/7', 'Lista de clientes automática', 'Catálogo de productos', 'Agendamiento de citas', 'Inventario básico', 'Notificaciones email'], cta: 'Activar WasapBot', popular: false },
-  { name: 'Estándar', price: '450.000', features: ['Todo lo del Básico', 'Panel de pedidos', 'Inventario avanzado', 'Reportes de ventas', 'Broadcasts masivos', 'Soporte prioritario'], cta: 'Activar WasapBot', popular: true },
-  { name: 'Pro', price: '790.000', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes', 'Múltiples agentes IA', 'Gestor dedicado'], cta: 'Hablar con ventas', popular: false },
+  { name: 'Básico',    price: '79',  features: ['Bot WhatsApp IA 24/7', 'Catálogo con fotos y precios', 'Toma pedidos y domicilios', 'Agenda citas automáticamente', 'Libreta de clientes', '500 créditos/mes'], cta: 'Activar WasapBot', popular: false },
+  { name: 'Estándar',  price: '149', features: ['Todo lo del Básico', 'Modo Dueño por WhatsApp', 'Panel de pedidos en tiempo real', 'Inventario avanzado', 'Reportes de ventas', 'CRM de clientes', '1.500 créditos/mes'], cta: 'Activar WasapBot', popular: true },
+  { name: 'Pro',       price: '249', features: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios automáticos', 'Broadcasts masivos', 'Múltiples agentes IA', 'Gestor dedicado', '4.000 créditos/mes'], cta: 'Hablar con ventas', popular: false },
 ];
 
+const O  = '#F97316';  // naranja principal
+const O2 = '#ea6500';  // naranja oscuro
+
 // ── Iconos de línea (sin emojis tipo caricatura) ─────────────────────────────
-function PopupIcon({ type, color = '#25D366', size = 14 }) {
+function PopupIcon({ type, color = '#F97316', size = 14 }) {
   const p = { fill: 'none', stroke: color, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
   const icons = {
     bot:       <svg width={size} height={size} viewBox="0 0 24 24" {...p}><rect x="3" y="11" width="18" height="9" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>,
@@ -98,19 +100,18 @@ function PopupBienvenida({ onClose }) {
         @keyframes slideInCard { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
         .popup-box { animation: popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) both; }
         .popup-item { animation: fadeUp 0.3s ease both; }
-        .popup-sound-btn:hover { background: rgba(37,211,102,0.2) !important; border-color: rgba(37,211,102,0.5) !important; }
+        .popup-sound-btn:hover { background: rgba(249,115,22,0.2) !important; border-color: rgba(249,115,22,0.5) !important; }
       `}</style>
 
       <div className="popup-box" style={{
         background: '#0A0D12',
-        border: '1px solid rgba(37,211,102,0.2)',
+        border: '1px solid rgba(249,115,22,0.2)',
         borderRadius: 24,
         width: '100%', maxWidth: 440,
         maxHeight: '92vh',
         overflowY: 'auto',
-        boxShadow: '0 40px 80px rgba(0,0,0,0.7), 0 0 60px rgba(37,211,102,0.08)',
+        boxShadow: '0 40px 80px rgba(0,0,0,0.7), 0 0 60px rgba(249,115,22,0.08)',
       }}>
-        {/* Video pequeño arriba — miniatura, video completo sin recortar (object-fit: contain) */}
         <div style={{ position: 'relative', borderRadius: '24px 24px 0 0', overflow: 'hidden', height: 150, background: '#000', flexShrink: 0 }}>
           <video
             ref={videoRef}
@@ -119,36 +120,33 @@ function PopupBienvenida({ onClose }) {
           >
             <source src="/bienvenida.mp4" type="video/mp4"/>
           </video>
-          {/* Overlay gradiente — solo abajo, para que el badge se lea sin oscurecer el video */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(10,13,18,0.9) 100%)', pointerEvents: 'none' }}/>
 
-          {/* Badge "Inventario en vivo" — aprovecha el espacio oscuro IZQUIERDO del video */}
           <div style={{
             position: 'absolute', top: 12, left: 12, zIndex: 5,
             display: 'flex', alignItems: 'center', gap: 5,
-            background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)',
+            background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)',
             borderRadius: 99, padding: '4px 9px',
           }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#25D366', flexShrink: 0, animation: 'pulseDot 1.6s ease infinite' }}/>
-            <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, fontWeight: 700, color: '#25D366', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: O, flexShrink: 0, animation: 'pulseDot 1.6s ease infinite' }}/>
+            <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, fontWeight: 700, color: O, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
               Inventario en vivo
             </span>
           </div>
 
-          {/* Mini-chat "¿Cómo va el inventario?" — aprovecha el espacio oscuro DERECHO del video */}
           <div style={{
             position: 'absolute', top: 40, right: 8, maxWidth: 102, zIndex: 5,
             display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end',
           }}>
             <div style={{
-              background: 'rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.85)',
+              background: 'rgba(255,255,255,0.13)', color: '#fff',
               borderRadius: '10px 10px 10px 3px', padding: '5px 9px',
               fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, lineHeight: 1.3, fontWeight: 500,
             }}>
               ¿Cómo va el inventario?
             </div>
             <div style={{
-              background: '#25D366', color: '#06140C',
+              background: O, color: '#fff',
               borderRadius: '10px 10px 3px 10px', padding: '5px 9px',
               fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, lineHeight: 1.35, fontWeight: 700, textAlign: 'right',
             }}>
@@ -156,23 +154,21 @@ function PopupBienvenida({ onClose }) {
             </div>
           </div>
 
-          {/* Badge WasapBot sobre el video */}
           <div style={{ position: 'absolute', bottom: 10, left: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(249,115,22,0.15)', border: '1.5px solid rgba(249,115,22,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <PopupIcon type="bot" size={15}/>
             </div>
             <div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: '#25D366' }}>WasapBot · agencIAme</div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, color: 'rgba(255,255,255,0.4)', marginTop: 1 }}>● En línea · Responde al instante</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: O }}>WasapBot · <span style={{color:'#fff'}}>BQinz</span><span style={{color:'#FF6B00'}}>agenc</span><span style={{color:'#fff'}}>IA</span></div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, color: '#ccc', marginTop: 1 }}>● En línea · Responde al instante</div>
             </div>
           </div>
-          {/* Botón sonido */}
           <button onClick={toggleSonido} aria-label="Activar sonido" className="popup-sound-btn" style={{
             position: 'absolute', bottom: 10, right: 14, zIndex: 11,
             width: 30, height: 30, borderRadius: '50%',
-            background: sonidoActivo ? 'rgba(37,211,102,0.22)' : 'rgba(0,0,0,0.55)',
-            border: `1px solid ${sonidoActivo ? 'rgba(37,211,102,0.55)' : 'rgba(255,255,255,0.18)'}`,
-            color: sonidoActivo ? '#25D366' : 'rgba(255,255,255,0.75)',
+            background: sonidoActivo ? 'rgba(249,115,22,0.22)' : 'rgba(0,0,0,0.55)',
+            border: `1px solid ${sonidoActivo ? 'rgba(249,115,22,0.55)' : 'rgba(255,255,255,0.18)'}`,
+            color: sonidoActivo ? O : '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all .2s',
           }}>
@@ -182,18 +178,16 @@ function PopupBienvenida({ onClose }) {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
             )}
           </button>
-          {/* Botón cerrar */}
           <button onClick={onClose} style={{
             position: 'absolute', top: 12, right: 12,
             background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)',
             borderRadius: '50%', width: 32, height: 32,
-            color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+            color: '#fff', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, fontWeight: 700, zIndex: 12,
           }}>✕</button>
         </div>
 
-        {/* Texto "tu negocio en piloto automático" */}
         <div style={{ padding: '16px 22px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
             <img src="/agenciame-robot-final.png" alt="AIA" style={{ width: 48, height: 48, objectFit: 'contain', flexShrink: 0 }}/>
@@ -204,15 +198,14 @@ function PopupBienvenida({ onClose }) {
               color: '#F0F0F0', lineHeight: 1.1, margin: 0,
             }}>
               Tu negocio en<br />
-              <span style={{ color: '#25D366' }}>piloto automático.</span>
+              <span style={{ color: O }}>piloto automático.</span>
             </h2>
           </div>
-          <p style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, marginBottom: 12, fontWeight: 300 }}>
-            Un solo bot en WhatsApp administra tu negocio. Desde $249.000/mes.
+          <p style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: '#ccc', lineHeight: 1.5, marginBottom: 12, fontWeight: 300 }}>
+            Un solo bot en WhatsApp administra tu negocio. Desde 49€/mes.
           </p>
         </div>
 
-        {/* Items — lo que incluye (compacto para que quepan los CTAs) */}
         <div style={{ padding: '0 22px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
           {POPUP_ITEMS.slice(0, 6).map((item, i) => (
             <div key={i} className="popup-item" style={{
@@ -222,29 +215,27 @@ function PopupBienvenida({ onClose }) {
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: 8, padding: '7px 9px',
             }}>
-              <div style={{ width: 18, height: 18, borderRadius: 5, background: 'rgba(37,211,102,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 18, height: 18, borderRadius: 5, background: 'rgba(249,115,22,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <PopupIcon type={item.type} size={11}/>
               </div>
-              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.55)', lineHeight: 1.3, fontWeight: 400 }}>{item.t}</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: '#ccc', lineHeight: 1.3, fontWeight: 400 }}>{item.t}</span>
             </div>
           ))}
         </div>
 
-        {/* CTAs */}
         <div style={{ padding: '0 22px 22px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Link href="/wasapbot/activar" onClick={onClose}>
             <div style={{
-              background: 'linear-gradient(135deg,#25D366,#1aad4e)',
-              color: '#fff', borderRadius: 12, padding: '14px',
+              background: '#000',
+              color: O, border: `2px solid ${O}`, borderRadius: 12, padding: '14px',
               fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 700,
               textAlign: 'center', cursor: 'pointer',
-              boxShadow: '0 6px 24px rgba(37,211,102,0.35)',
+              boxShadow: 'none',
             }}>
               Activar mi WasapBot →
             </div>
           </Link>
 
-          {/* Botón chatbot AIA dentro del popup */}
           <div
             onClick={() => {
               onClose();
@@ -260,17 +251,17 @@ function PopupBienvenida({ onClose }) {
             }}>
             <img src="/agenciame-robot-final.png" alt="AIA" style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }}/>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#EFF4FF' }}>Hablar con AIA ahora</div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>Tu asistente IA · Responde al instante</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#fff' }}>Hablar con AIA ahora</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: '#ccc', marginTop: 1 }}>Tu asistente IA · Responde al instante</div>
             </div>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#25D366', flexShrink: 0, boxShadow: '0 0 6px #25D366' }}/>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: O, flexShrink: 0, boxShadow: `0 0 6px ${O}` }}/>
           </div>
 
           <button onClick={onClose} style={{
             background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 12, padding: '11px',
             fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13,
-            color: 'rgba(255,255,255,0.3)', cursor: 'pointer',
+            color: '#ccc', cursor: 'pointer',
           }}>
             Ver más información
           </button>
@@ -292,7 +283,6 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  // Mostrar popup solo en móvil, solo una vez por sesión
   useEffect(() => {
     const isMobile = window.innerWidth <= 768;
     const yaVisto  = sessionStorage.getItem('popup_wasapbot_visto');
@@ -303,7 +293,6 @@ export default function Landing() {
       }, 800);
       return () => clearTimeout(t);
     } else if (isMobile && yaVisto) {
-      // Si ya lo vio antes, mostrar WasapBot directamente
       setPopupClosed(true);
     }
   }, []);
@@ -311,29 +300,37 @@ export default function Landing() {
   const handleClosePopup = () => {
     setShowPopup(false);
     setPopupClosed(true);
-    // Scroll suave a la sección WasapBot tras cerrar el popup
     setTimeout(() => {
       const el = document.getElementById('wasapbot');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 120);
   };
 
-  const G  = '#25D366';  // verde WasapBot
-  const G2 = '#1aad4e';
+  const G  = '#F97316';
+  const G2 = '#ea6500';
   const BG = '#0F1623';
 
   return (
     <>
       <Head>
-        <title>agencIAme — Tu negocio atendido por Inteligencia Artificial</title>
-        <meta name="description" content="agencIAme: La plataforma de IA que atiende, agenda y vende por tu negocio. Automatiza ventas y atención al cliente 24/7." />
+        <title>BQinzagencIA — Tu negocio atendido por Inteligencia Artificial</title>
+        <meta name="description" content="BQinzagencIA: La plataforma de IA que atiende, agenda y vende por tu negocio. Automatiza ventas y atención al cliente 24/7." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
-      {/* Popup de bienvenida — solo móvil */}
       {showPopup && <PopupBienvenida onClose={handleClosePopup} />}
+
+      {/* ── FRANJA SUPERIOR: PRUEBA GRATIS 24H (solo desktop) ── */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 201, background: 'linear-gradient(90deg,#1aad4e,#25D366)', padding: '6px 16px', textAlign: 'center' }} className="franja-promo">
+        <Link href="/wasapbot/activar">
+          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#06090D', cursor: 'pointer' }}>
+            🎁 Prueba tu WasapBot <u>gratis 24 horas</u> — sin tarjeta, activo en minutos →
+          </span>
+        </Link>
+      </div>
+      <div style={{ height: 30 }} className="franja-promo-spacer" />
 
       <style dangerouslySetInnerHTML={{__html: `
         body { background: #080808; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
@@ -341,13 +338,13 @@ export default function Landing() {
         a { text-decoration: none; color: inherit; }
         h1,h2,h3 { font-synthesis: none; }
         img { display:block; }
-        .btn-ghost { background: transparent; color: #aaa; border: 1px solid #333; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .btn-ghost:hover { border-color: #666; color: #E8E8E8; }
-        .btn-wa { background: linear-gradient(135deg,#25D366,#1aad4e); color: #fff; border: none; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; box-shadow: 0 4px 20px rgba(37,211,102,0.3); }
-        .btn-wa:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,211,102,0.45); }
-        .btn-coral { background: #F97316; color: #fff; border: none; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .btn-ghost-wa { background: transparent; color: #25D366; border: 1px solid rgba(37,211,102,0.35); border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
-        .label { display: inline-block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #25D366; margin-bottom: 20px; }
+        .btn-ghost { background: transparent; color: #ccc; border: 1px solid #555; border-radius: 2px; padding: 15px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .btn-ghost:hover { border-color: #aaa; color: #fff; }
+        .btn-wa { background: #000; color: #F97316; border: 2px solid #F97316; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; box-shadow: none; }
+        .btn-wa:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(249,115,22,0.3); background: rgba(249,115,22,0.06); }
+        .btn-coral { background: #000; color: #F97316; border: 2px solid #F97316; border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .btn-ghost-wa { background: transparent; color: #F97316; border: 1px solid rgba(249,115,22,0.4); border-radius: 2px; padding: 14px 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; font-size: 15px; cursor: pointer; transition: all 0.25s; display: inline-block; }
+        .label { display: inline-block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #F97316; margin-bottom: 20px; }
         .ind-wrap { position: relative; overflow: hidden; cursor: pointer; }
         .ind-img { object-fit: cover; position: absolute; inset: 0; width: 100%; height: 100%; transition: transform 0.6s ease; }
         .ind-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.4) 50%, rgba(8,8,8,0.1) 100%); }
@@ -358,13 +355,15 @@ export default function Landing() {
         .d1 { animation-delay: 0.1s; } .d2 { animation-delay: 0.25s; } .d3 { animation-delay: 0.4s; } .d4 { animation-delay: 0.55s; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        @keyframes pulseWA { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)} 70%{box-shadow:0 0 0 10px rgba(37,211,102,0)} }
+        @keyframes pulseWA { 0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0.4)} 70%{box-shadow:0 0 0 10px rgba(249,115,22,0)} }
         @keyframes float { 0%,100%{transform:translateY(-50%)} 50%{transform:translateY(calc(-50% - 14px))} }
 
         .planes-swipe-hint { display: none; }
 
-        /* ─── MOBILE ─────────────────────────────────────────────────── */
         @media (max-width: 768px) {
+          .franja-promo { display: none !important; }
+          .franja-promo-spacer { display: none !important; }
+          .lnd-nav { top: 0 !important; }
           .lnd-nav { padding: 0 20px !important; height: 58px !important; }
           .lnd-nav-links { display: none !important; }
           .lnd-hero { height: 100dvh !important; min-height: 580px !important; }
@@ -410,11 +409,7 @@ export default function Landing() {
           .lnd-footer-grid > div:first-child { grid-column: 1 / -1 !important; }
           .lnd-footer-inner { padding: 56px 22px 32px !important; }
           .lnd-footer-copy { flex-direction: column !important; gap: 8px !important; text-align: center !important; }
-
-          /* WASAPBOT SECTION — visible en móvil sin scroll cuando cierra popup */
           .wasapbot-hero-mobile { display: flex !important; }
-
-          /* Carrusel de planes deslizable (id tiene mayor especificidad que el selector de arriba) */
           .planes-swipe-hint { display: flex !important; }
           #planes-scroll-mobile {
             display: flex !important;
@@ -431,14 +426,8 @@ export default function Landing() {
             padding-right: 22px !important;
           }
           #planes-scroll-mobile::-webkit-scrollbar { display: none; }
-          #planes-scroll-mobile > a {
-            flex: 0 0 82% !important;
-            scroll-snap-align: center !important;
-          }
-          #planes-scroll-mobile > a > div {
-            border-radius: 14px !important;
-            height: 100% !important;
-          }
+          #planes-scroll-mobile > a { flex: 0 0 82% !important; scroll-snap-align: center !important; }
+          #planes-scroll-mobile > a > div { border-radius: 14px !important; height: 100% !important; }
         }
         @media (max-width: 420px) {
           .lnd-ind-grid { grid-template-columns: 1fr !important; }
@@ -449,7 +438,7 @@ export default function Landing() {
 
       {/* ── NAV ── */}
       <nav className="lnd-nav" style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
+        position: 'fixed', top: 30, left: 0, right: 0, zIndex: 200,
         padding: '0 64px', height: 68,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: scrolled ? 'rgba(8,8,8,0.97)' : 'transparent',
@@ -458,22 +447,22 @@ export default function Landing() {
         transition: 'all 0.5s ease',
       }}>
         <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 20, letterSpacing: '-0.5px', color: '#E8E8E8' }}>
-          agenc<span style={{ color: '#FF6B00', fontSize: 23, fontWeight: 900 }}>IA</span>me
+          <span style={{ color: '#fff' }}>BQinz</span><span style={{ color: '#FF6B00' }}>agenc</span><span style={{ color: '#fff' }}>IA</span>
         </div>
         <div className="lnd-nav-links" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
           {['Empresas', 'Funciones', 'Precios', 'WasapBot'].map(item => (
             <a key={item}
               href={item === 'WasapBot' ? '/wasapbot' : '#' + item.toLowerCase()}
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: item === 'WasapBot' ? '#25D366' : '#aaa', fontSize: 13, fontWeight: item === 'WasapBot' ? 600 : 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
-              onMouseEnter={e => e.target.style.color = '#E8E8E8'}
-              onMouseLeave={e => e.target.style.color = item === 'WasapBot' ? '#25D366' : '#aaa'}>
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: item === 'WasapBot' ? G : '#ccc', fontSize: 13, fontWeight: item === 'WasapBot' ? 600 : 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
+              onMouseEnter={e => e.target.style.color = '#fff'}
+              onMouseLeave={e => e.target.style.color = item === 'WasapBot' ? G : '#ccc'}>
               {item}
             </a>
           ))}
           <Link href="/wasapbot/login"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#aaa', fontSize: 13, fontWeight: 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#E8E8E8'}
-            onMouseLeave={e => e.currentTarget.style.color = '#aaa'}>
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 13, fontWeight: 400, letterSpacing: 0.3, transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+            onMouseLeave={e => e.currentTarget.style.color = '#ccc'}>
             Ingresar
           </Link>
         </div>
@@ -482,7 +471,7 @@ export default function Landing() {
             <Link href="/wasapbot"><button className="btn-wa" style={{ padding: '9px 22px', fontSize: 13 }}>Mi WasapBot →</button></Link>
           ) : (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <Link href="/wasapbot/login"><span style={{ color: '#aaa', fontSize: 13, cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = '#E8E8E8'} onMouseLeave={e => e.target.style.color = '#aaa'}>Ingresar</span></Link>
+              <Link href="/wasapbot/login"><span style={{ color: '#ccc', fontSize: 13, cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = '#ccc'}>Ingresar</span></Link>
               <Link href="/wasapbot/activar"><button className="btn-wa" style={{ padding: '9px 22px', fontSize: 13 }}>Crear mi bot →</button></Link>
             </div>
           ))}
@@ -491,7 +480,6 @@ export default function Landing() {
 
       {/* ── HERO ── */}
       <section className={`lnd-hero${popupClosed ? ' hero-popup-closed' : ''}`} style={{ position: 'relative', height: '100svh', minHeight: 580, overflow: 'hidden' }}>
-        {/* En móvil con popup cerrado: hero más compacto para que WasapBot sea la primera sección visible */}
         <style>{`@media(max-width:768px){
           .hero-popup-closed{height:56dvh!important;min-height:300px!important;transition:height 0.4s ease}
           .hero-popup-closed .lnd-hero-content{padding:68px 22px 20px!important}
@@ -503,38 +491,34 @@ export default function Landing() {
           .hero-popup-closed .slide-up.d3{margin-top:10px!important}
         }`}</style>
         <img className="lnd-hero-img"
-          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=90" alt="Oficina"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.85) 50%, rgba(8,8,8,0.65) 100%)' }} />
+          src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1920&q=90" alt="Luces neon abstractas bokeh"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(8,8,8,0.55) 0%, rgba(8,8,8,0.2) 50%, rgba(8,8,8,0.0) 100%)' }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, background: 'linear-gradient(to top, #080808, transparent)' }} />
 
         <div className="lnd-hero-content" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', padding: '68px 80px 0' }}>
           <div className="lnd-hero-inner" style={{ maxWidth: 740 }}>
 
-            {/* Badge */}
-            <div className="slide-up lnd-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: `1px solid rgba(37,211,102,0.3)`, borderRadius: 1, padding: '7px 16px', marginBottom: 44 }}>
+            <div className="slide-up lnd-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: `1px solid rgba(249,115,22,0.4)`, borderRadius: 1, padding: '7px 16px', marginBottom: 44 }}>
               <span style={{ width: 5, height: 5, background: G, borderRadius: '50%', flexShrink: 0, animation: 'pulseWA 2s infinite' }} />
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: G, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase' }}>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#fff', fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase' }}>
                 Tu negocio atendido por Inteligencia Artificial
               </span>
             </div>
 
-            {/* Título */}
             <h1 className="slide-up d1 lnd-hero-h1" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(60px, 8.5vw, 120px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '-2px', color: '#FAFAFA', marginBottom: 36 }}>
-              agenc<span style={{ color: '#FF6B00' }}>IA</span>me<br />
-              <span style={{ fontSize: '55%', color: 'rgba(240,240,240,0.7)' }}>tu negocio en<br /></span>
+              <span style={{ color: '#fff' }}>BQinz</span><span style={{ color: '#FF6B00' }}>agenc</span><span style={{ color: '#fff' }}>IA</span><br />
+              <span style={{ fontSize: '55%', color: '#fff' }}>tu negocio en<br /></span>
               <span style={{ color: G }}>piloto automático.</span>
             </h1>
 
-            {/* Sub */}
-            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 21, color: 'rgba(255,255,255,0.5)', maxWidth: 500, marginBottom: 8, lineHeight: 1.65, fontWeight: 300 }}>
+            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 21, color: '#fff', maxWidth: 500, marginBottom: 8, lineHeight: 1.65, fontWeight: 300 }}>
               No es un bot. Es tu administrador.
             </p>
-            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, color: 'rgba(255,255,255,0.35)', maxWidth: 500, marginBottom: 52, lineHeight: 1.75, fontWeight: 300 }}>
+            <p className="slide-up d2 lnd-hero-sub" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, color: '#ddd', maxWidth: 500, marginBottom: 52, lineHeight: 1.75, fontWeight: 300 }}>
               Atiende, agenda, vende y controla tu negocio — todo desde WhatsApp, todo solo, las 24 horas.
             </p>
 
-            {/* CTAs — todos apuntan a WasapBot */}
             <div className="slide-up d3 lnd-hero-ctas" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <Link href="/wasapbot/activar">
                 <button className="btn-wa" style={{ fontSize: 16, padding: '16px 44px' }}>Activar mi WasapBot →</button>
@@ -546,23 +530,22 @@ export default function Landing() {
 
             <div className="slide-up d3" style={{ marginTop: 22 }}>
               <Link href="/wasapbot/activar">
-                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 700, color: G, cursor: 'pointer', borderBottom: `1px solid rgba(37,211,102,0.4)`, paddingBottom: 2 }}>
-                  Desde $249.000/mes · Sin contratos →
+                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 700, color: G, cursor: 'pointer', borderBottom: `1px solid rgba(249,115,22,0.4)`, paddingBottom: 2 }}>
+                  Desde 79€/mes · Sin contratos →
                 </span>
               </Link>
             </div>
 
-            {/* Social proof */}
             <div className="slide-up d4 lnd-hero-proof" style={{ marginTop: 60, display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ display: 'flex' }}>
-                {['#FF6B35','#FF4D8B','#4D94FF','#FFB830','#25D366'].map((c, i) => (
+                {['#FF6B35','#FF4D8B','#4D94FF','#FFB830','#F97316'].map((c, i) => (
                   <div key={i} style={{ width: 34, height: 34, borderRadius: '50%', background: c + '33', border: `2px solid ${c}66`, marginLeft: i === 0 ? 0 : -10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600, color: c, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     {['RM','PG','AL','JV','DG'][i]}
                   </div>
                 ))}
               </div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, color: '#888' }}>
-                <span style={{ color: '#E8E8E8', fontWeight: 600 }}>+240 empresas</span> colombianas ya automatizan con agenc<span style={{ color: '#FF6B00' }}>IA</span>me
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, color: '#ddd' }}>
+                <span style={{ color: '#fff', fontWeight: 600 }}>+240 empresas</span> ya automatizan con <span style={{ color: '#fff' }}>BQinz</span><span style={{ color: '#FF6B00' }}>agenc</span><span style={{ color: '#fff' }}>IA</span>
               </div>
             </div>
           </div>
@@ -572,21 +555,71 @@ export default function Landing() {
           {[{ v: '24/7', l: 'Disponible' }, { v: '<2s', l: 'Respuesta' }, { v: '94%', l: 'Satisfacción' }].map((s, i) => (
             <div key={i} style={{ textAlign: 'right' }}>
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 44, color: G, lineHeight: 1 }}>{s.v}</div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#444', marginTop: 4, letterSpacing: 1.5, textTransform: 'uppercase' }}>{s.l}</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, color: '#ccc', marginTop: 4, letterSpacing: 1.5, textTransform: 'uppercase' }}>{s.l}</div>
             </div>
           ))}
         </div>
 
-        {/* Robot flotando, espacio derecho del hero */}
-        <img className="lnd-hero-robot" src="/agenciame-robot-final.png" alt="agencIAme robot IA"
+        <img className="lnd-hero-robot" src="/agenciame-robot-final.png" alt="BQinzagencIA robot IA"
           style={{ position: 'absolute', right: 110, top: '50%', transform: 'translateY(-50%)', width: 380, height: 'auto', objectFit: 'contain', opacity: 0.55, animation: 'float 6s ease-in-out infinite', pointerEvents: 'none' }} />
       </section>
 
-      {/* ── WASAPBOT SECTION — visible en móvil al cerrar popup ── */}
-      <section id="wasapbot" style={{ background: '#06090D', borderTop: '1px solid rgba(37,211,102,0.15)', padding: '64px 80px' }}>
+      {/* ── BANNER PRUEBA GRATIS — JUSTO DEBAJO DEL HERO (móvil: estático; desktop: oculto) ── */}
+      <Link href="/wasapbot/activar">
+        <div className="banner-prueba-movil" style={{ display: 'none', background: 'linear-gradient(90deg,#1aad4e,#25D366)', padding: '14px 22px', textAlign: 'center', cursor: 'pointer' }}>
+          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 700, color: '#06090D' }}>
+            🎁 Prueba WasapBot <u>gratis 24h</u> — sin tarjeta →
+          </span>
+        </div>
+      </Link>
+
+      {/* ── WASAPBOT SECTION ── */}
+      <section id="wasapbot" style={{ background: '#06090D', borderTop: `1px solid rgba(249,115,22,0.15)`, padding: '40px 80px 64px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+
+          {/* Banner prueba gratis 24h — visible nada más entrar */}
+          <div style={{ background: 'linear-gradient(135deg,rgba(37,211,102,.12),rgba(37,211,102,.04))', border: '1.5px solid rgba(37,211,102,.35)', borderRadius: 14, padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 40 }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>🎁</span>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, fontWeight: 800, color: '#25D366', textTransform: 'uppercase', letterSpacing: 1.5 }}>Prueba gratis 24 horas</span>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 300, margin: '3px 0 0', lineHeight: 1.5 }}>
+                Sin tarjeta · Activo en minutos · Sin permanencia
+              </p>
+            </div>
+            <Link href="/wasapbot/activar">
+              <button style={{ background: '#000', color: '#25D366', border: '1.5px solid #25D366', borderRadius: 8, padding: '9px 20px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Probar gratis →</button>
+            </Link>
+          </div>
+
+          {/* ── QUÉ ADMINISTRA WASAPBOT ── */}
+          <div style={{ marginBottom: 36 }}>
+            <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: G, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 20 }}>
+              ¿Qué administra WasapBot por ti?
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0, borderTop: '1px solid rgba(255,255,255,.06)', borderLeft: '1px solid rgba(255,255,255,.06)' }}>
+              {[
+                { icon: '🛒', titulo: 'Pedidos',     desc: 'Toma y confirma pedidos por WhatsApp' },
+                { icon: '📊', titulo: 'Inventario',   desc: 'Descuenta stock y alerta cuando se agota' },
+                { icon: '📅', titulo: 'Citas',        desc: 'Agenda y recuerda citas sin tu intervención' },
+                { icon: '📈', titulo: 'Reportes',     desc: 'Resumen diario de ventas y actividad' },
+                { icon: '💼', titulo: 'Clientes',     desc: 'CRM automático con historial de cada cliente' },
+                { icon: '📣', titulo: 'Broadcasts',   desc: 'Envía promos a todos tus clientes en 1 clic' },
+              ].map((item, i) => (
+                <div key={i} style={{ padding: '18px 22px', borderRight: '1px solid rgba(255,255,255,.06)', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 700, color: '#EFF4FF', marginBottom: 3 }}>{item.titulo}</div>
+                    <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: G, fontWeight: 400, lineHeight: 1.5 }}>{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
-            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(37,211,102,0.1)', border: '2px solid rgba(37,211,102,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'pulseWA 2s infinite' }}>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(249,115,22,0.1)', border: '2px solid rgba(249,115,22,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'pulseWA 2s infinite' }}>
               <PopupIcon type="bot" size={24}/>
             </div>
             <div>
@@ -595,8 +628,7 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Hint de swipe — solo móvil */}
-          <div className="planes-swipe-hint" style={{ alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+          <div className="planes-swipe-hint" style={{ alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, color: '#ccc' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Desliza para ver los 3 planes
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -604,21 +636,21 @@ export default function Landing() {
 
           <div id="planes-scroll-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 16, overflow: 'hidden', marginBottom: 32 }}>
             {[
-              { plan: 'Básico', precio: '$249K/mes', color: '#25D366', items: ['Bot WhatsApp IA 24/7', 'Lista de clientes automática', 'Catálogo de productos', 'Agendamiento de citas', 'Inventario básico'] },
-              { plan: 'Estándar', precio: '$450K/mes', color: '#2563EB', popular: true, items: ['Todo lo del Básico', 'Panel de pedidos', 'Reportes diarios de ventas', 'Broadcasts masivos'] },
-              { plan: 'Pro', precio: '$790K/mes', color: '#A78BFA', items: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes'] },
+              { plan: 'Básico', precio: '79€/mes', color: G, items: ['Bot WhatsApp IA 24/7', 'Lista de clientes automática', 'Catálogo de productos', 'Agendamiento de citas', 'Inventario básico'] },
+              { plan: 'Estándar', precio: '149€/mes', color: G, popular: true, items: ['Todo lo del Básico', 'Panel de pedidos', 'Reportes diarios de ventas', 'Broadcasts masivos'] },
+              { plan: 'Pro', precio: '249€/mes', color: G, items: ['Todo lo del Estándar', 'Página web incluida', 'Recordatorios de citas', 'CRM avanzado de clientes'] },
             ].map((p, i) => (
               <Link key={i} href="/wasapbot/activar">
                 <div style={{ background: '#0A0D12', padding: '24px 20px', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = `rgba(${p.color === '#25D366' ? '37,211,102' : p.color === '#2563EB' ? '37,99,235' : '167,139,250'},0.06)`}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,115,22,0.06)'}
                   onMouseLeave={e => e.currentTarget.style.background = '#0A0D12'}>
-                  {p.popular && <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', background: p.color, color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 12px', borderRadius: '0 0 8px 8px', whiteSpace: 'nowrap' }}>★ MÁS POPULAR</div>}
-                  <div style={{ fontFamily: "'Abril Fatface',serif", fontSize: 22, color: p.color, letterSpacing: '-0.5px', marginBottom: 2 }}>{p.precio}</div>
-                  <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1 }}>{p.plan}</div>
+                  {p.popular && <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', background: G, color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 12px', borderRadius: '0 0 8px 8px', whiteSpace: 'nowrap' }}>★ MÁS POPULAR</div>}
+                  <div style={{ fontFamily: "'Abril Fatface',serif", fontSize: 22, color: G, letterSpacing: '-0.5px', marginBottom: 2 }}>{p.precio}</div>
+                  <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#fff', marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1 }}>{p.plan}</div>
                   {p.items.map((item, j) => (
                     <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginBottom: 7 }}>
-                      <span style={{ color: p.color, fontSize: 10, flexShrink: 0, marginTop: 2 }}>✓</span>
-                      <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>{item}</span>
+                      <span style={{ color: G, fontSize: 10, flexShrink: 0, marginTop: 2 }}>✓</span>
+                      <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: '#ccc', lineHeight: 1.4 }}>{item}</span>
                     </div>
                   ))}
                 </div>
@@ -640,10 +672,10 @@ export default function Landing() {
       {/* ── MARQUEE ── */}
       <div style={{ borderTop: '1px solid #141414', borderBottom: '1px solid #141414', padding: '14px 0', overflow: 'hidden', background: '#0C0C0C' }}>
         <div style={{ display: 'flex', gap: 80, animation: 'marquee 32s linear infinite', whiteSpace: 'nowrap' }}>
-          {['Bot WhatsApp 24/7', 'Inventario en tiempo real', 'Pedidos automáticos', 'Reportes diarios', 'Agendamiento IA', 'Broadcasts masivos', 'Stock con alertas', 'Página web incluida',
-            'Bot WhatsApp 24/7', 'Inventario en tiempo real', 'Pedidos automáticos', 'Reportes diarios', 'Agendamiento IA', 'Broadcasts masivos', 'Stock con alertas', 'Página web incluida'].map((t, i) => (
-              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#252525', fontSize: 12, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
-                <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.6 }} />{t}
+          {['Prueba gratis 24 horas', 'Bot WhatsApp 24/7', 'Inventario en tiempo real', 'Pedidos automáticos', 'Reportes diarios', 'Agendamiento IA', 'Broadcasts masivos', 'Stock con alertas', 'Página web incluida',
+            'Prueba gratis 24 horas', 'Bot WhatsApp 24/7', 'Inventario en tiempo real', 'Pedidos automáticos', 'Reportes diarios', 'Agendamiento IA', 'Broadcasts masivos', 'Stock con alertas', 'Página web incluida'].map((t, i) => (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#fff', fontSize: 12, fontWeight: 500, letterSpacing: 2.5, textTransform: 'uppercase', flexShrink: 0 }}>
+                <span style={{ width: 3, height: 3, background: G, borderRadius: '50%', opacity: 0.7 }} />{t}
               </span>
             ))}
         </div>
@@ -661,7 +693,7 @@ export default function Landing() {
                 Diseñado para<br />tu tipo de empresa
               </h2>
             </div>
-            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontSize: 18, maxWidth: 380, lineHeight: 1.8, fontWeight: 300 }}>
+            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: '#ddd', fontSize: 18, maxWidth: 380, lineHeight: 1.8, fontWeight: 300 }}>
               Cada industria tiene su bot preconfigurado con el vocabulario, flujos y catálogo listo desde el primer día.
             </p>
           </div>
@@ -677,7 +709,7 @@ export default function Landing() {
                 <div style={{ position: 'absolute', inset: 0, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
                   <div style={{ fontSize: 24, marginBottom: 8 }}>{ind.icon}</div>
                   <h3 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 22, fontWeight: 400, color: '#fff', marginBottom: 6, lineHeight: 1.1 }}>{ind.title}</h3>
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, fontWeight: 300 }}>{ind.desc}</p>
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12, color: '#ddd', lineHeight: 1.5, fontWeight: 300 }}>{ind.desc}</p>
                 </div>
                 <div style={{ position: 'absolute', top: 16, right: 16, background: ind.color + '22', color: ind.color, fontSize: 9, fontWeight: 600, padding: '3px 9px', letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>IA</div>
               </div>
@@ -699,7 +731,7 @@ export default function Landing() {
             <h2 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(36px, 4vw, 60px)', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-1px', marginBottom: 28, color: '#F0F0F0' }}>
               Todo en una<br />sola plataforma
             </h2>
-            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.4)', fontSize: 17, lineHeight: 1.8, marginBottom: 44, fontWeight: 300 }}>
+            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: '#ddd', fontSize: 17, lineHeight: 1.8, marginBottom: 44, fontWeight: 300 }}>
               Desde el primer mensaje hasta la cita agendada, el pedido confirmado y el reporte del día — todo automático.
             </p>
             <Link href="/wasapbot/activar">
@@ -718,9 +750,9 @@ export default function Landing() {
             { n:'06', title:'Broadcasts masivos',       desc:'Envía promos, recordatorios o novedades a todos tus clientes con un solo clic desde el panel.' },
           ].map((f, i) => (
             <div key={i} className="feat-cell" style={{ padding: '48px 40px', borderRight: i % 3 !== 2 ? '1px solid #141414' : 'none', borderBottom: i < 3 ? '1px solid #141414' : 'none', position: 'relative' }}>
-              <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 88, color: G, opacity: 0.06, position: 'absolute', top: -8, right: 24, lineHeight: 1 }}>{f.n}</div>
+              <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 88, color: G, opacity: 0.08, position: 'absolute', top: -8, right: 24, lineHeight: 1 }}>{f.n}</div>
               <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, marginBottom: 14, color: '#E8E8E8', lineHeight: 1.2 }}>{f.title}</h3>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{f.desc}</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{f.desc}</p>
             </div>
           ))}
         </div>
@@ -751,9 +783,9 @@ export default function Landing() {
               { n: '04', title: 'Crece', desc: 'Activa tu plan y desbloquea pedidos, inventario, reportes y broadcasts. Crece sin límites.' },
             ].map((step, i) => (
               <div key={i} style={{ background: '#080808', padding: '52px 40px' }}>
-                <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 64, color: G, opacity: 0.2, lineHeight: 1, marginBottom: 28 }}>{step.n}</div>
+                <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 64, color: G, opacity: 0.25, lineHeight: 1, marginBottom: 28 }}>{step.n}</div>
                 <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 30, fontWeight: 600, marginBottom: 16, color: '#E8E8E8' }}>{step.title}</h3>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{step.desc}</p>
+                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 14, lineHeight: 1.8, fontWeight: 300 }}>{step.desc}</p>
               </div>
             ))}
           </div>
@@ -772,7 +804,7 @@ export default function Landing() {
                 Elige tu plan,<br />crece sin límites
               </h2>
             </div>
-            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.3)', fontSize: 18, maxWidth: 320, lineHeight: 1.8, fontWeight: 300 }}>
+            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: '#ddd', fontSize: 18, maxWidth: 320, lineHeight: 1.8, fontWeight: 300 }}>
               Sin contratos · Sin sorpresas · Cancela cuando quieras
             </p>
           </div>
@@ -780,19 +812,19 @@ export default function Landing() {
         <div style={{ padding: '0 80px 120px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }} className="lnd-planes-grid">
           {PLANES.map((plan, i) => (
             <div key={i} className="plan-card" style={{
-              border: '1px solid ' + (plan.popular ? `rgba(37,211,102,0.4)` : '#1A1A1A'),
+              border: '1px solid ' + (plan.popular ? `rgba(249,115,22,0.4)` : '#1A1A1A'),
               borderTop: plan.popular ? `3px solid ${G}` : '1px solid #1A1A1A',
               padding: '48px 40px', background: plan.popular ? '#0E0E0E' : '#0A0A0A',
             }}>
               {plan.popular && <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: G, marginBottom: 20 }}>★ Más popular</div>}
-              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 24 }}>{plan.name}</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: '#fff', marginBottom: 24 }}>{plan.name}</div>
               <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 72, fontWeight: 400, color: plan.popular ? G : '#E8E8E8', lineHeight: 1, marginBottom: 4, letterSpacing: -2 }}>
-                <sup style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 20, verticalAlign: 'top', marginTop: 18, fontWeight: 300, opacity: 0.6 }}>$</sup>{plan.price}
+                {plan.price}<sup style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 20, verticalAlign: 'top', marginTop: 18, fontWeight: 300, opacity: 0.6 }}>€</sup>
               </div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 44, letterSpacing: 0.3 }}>COP / mes · IVA incluido</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 12, marginBottom: 44, letterSpacing: 0.3 }}>EUR / mes · IVA incluido</div>
               <ul style={{ listStyle: 'none', marginBottom: 48 }}>
                 {plan.features.map((f, j) => (
-                  <li key={j} style={{ padding: '11px 0', borderBottom: '1px solid #1A1A1A', fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.55)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 12, fontWeight: 300 }}>
+                  <li key={j} style={{ padding: '11px 0', borderBottom: '1px solid #1A1A1A', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 13, display: 'flex', alignItems: 'center', gap: 12, fontWeight: 300 }}>
                     <span style={{ color: G, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
                   </li>
                 ))}
@@ -823,18 +855,18 @@ export default function Landing() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#141414' }} className="lnd-test-grid">
             {[
-              { quote: 'Antes perdíamos clientes por no contestar a tiempo. Ahora el bot responde en segundos, agenda citas solo y me manda el reporte del día. Increíble.', name: 'Ricardo Montoya', role: 'Taller AutoCenter — Medellín', initials: 'RM', color: '#FF6B35' },
-              { quote: 'Las reservas de mi peluquería se manejan solas. El bot sabe mis horarios y precios. Ahorro 3 horas diarias que antes gastaba en mensajes de WhatsApp.', name: 'Patricia Guerrero', role: 'Estudio Elegance — Cali', initials: 'PG', color: '#FF4D8B' },
-              { quote: 'Mis clientes piden el menú por WhatsApp y el bot toma el pedido, descuenta el inventario y me avisa. Ya no pierdo ningún pedido por estar ocupado.', name: 'Andrés López', role: 'Restaurante El Sabor — Bogotá', initials: 'AL', color: '#25D366' },
+              { quote: 'Antes perdíamos clientes por no contestar a tiempo. Ahora el bot responde en segundos, agenda citas solo y me manda el reporte del día. Increíble.', name: 'Ricardo Montoya', role: 'Taller AutoCenter — Madrid', initials: 'RM', color: '#FF6B35' },
+              { quote: 'Las reservas de mi peluquería se manejan solas. El bot sabe mis horarios y precios. Ahorro 3 horas diarias que antes gastaba en mensajes de WhatsApp.', name: 'Patricia Guerrero', role: 'Estudio Elegance — Barcelona', initials: 'PG', color: '#FF4D8B' },
+              { quote: 'Mis clientes piden el menú por WhatsApp y el bot toma el pedido, descuenta el inventario y me avisa. Ya no pierdo ningún pedido por estar ocupado.', name: 'Andrés López', role: 'Restaurante El Sabor — Valencia', initials: 'AL', color: '#F97316' },
             ].map((t, i) => (
               <div key={i} style={{ background: '#080808', padding: '52px 44px' }}>
                 <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 72, color: t.color, opacity: 0.25, lineHeight: 0.8, marginBottom: 28 }}>"</div>
-                <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 17, color: 'rgba(255,255,255,0.55)', lineHeight: 1.9, marginBottom: 44, fontWeight: 300 }}>{t.quote}</p>
+                <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 17, color: '#ddd', lineHeight: 1.9, marginBottom: 44, fontWeight: 300 }}>{t.quote}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div style={{ width: 42, height: 42, borderRadius: 2, background: t.color + '18', color: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t.initials}</div>
                   <div>
                     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: 14, color: '#E8E8E8' }}>{t.name}</div>
-                    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 3 }}>{t.role}</div>
+                    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 12, marginTop: 3 }}>{t.role}</div>
                   </div>
                 </div>
               </div>
@@ -853,14 +885,14 @@ export default function Landing() {
           <h2 className="lnd-cta-h2" style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(52px, 7vw, 100px)', fontWeight: 400, lineHeight: 0.95, letterSpacing: '-2.5px', marginBottom: 28, maxWidth: 800, color: '#F0F0F0' }}>
             ¿Listo para poner<br />tu negocio en<br /><span style={{ color: G }}>modo automático?</span>
           </h2>
-          <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontSize: 20, marginBottom: 60, fontWeight: 300, lineHeight: 1.6, maxWidth: 460 }}>
+          <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', color: '#ddd', fontSize: 20, marginBottom: 60, fontWeight: 300, lineHeight: 1.6, maxWidth: 460 }}>
             Sin contratos · Cancela cuando quieras · Activo en 10 minutos
           </p>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }} className="lnd-cta-btns">
             <Link href="/wasapbot/activar">
               <button className="btn-wa" style={{ fontSize: 17, padding: '18px 52px' }}>Activar mi WasapBot →</button>
             </Link>
-            <a href="https://wa.me/573105056616?text=Quiero%20información%20sobre%20WasapBot" target="_blank" rel="noreferrer">
+            <a href="https://wa.me/34600000000?text=Quiero%20información%20sobre%20WasapBot" target="_blank" rel="noreferrer">
               <button className="btn-ghost" style={{ fontSize: 17, padding: '18px 52px' }}>Hablar con un asesor</button>
             </a>
           </div>
@@ -872,14 +904,14 @@ export default function Landing() {
         <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: 64, marginBottom: 64 }} className="lnd-footer-grid">
           <div>
             <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: 26, color: '#E8E8E8', marginBottom: 20 }}>
-              agenc<span style={{ color: '#FF6B00', fontSize: 30 }}>IA</span>me
+              <span style={{color:'#fff'}}>BQinz</span><span style={{ color: '#FF6B00', fontSize: 30 }}>agenc</span><span style={{color:'#fff'}}>IA</span>
             </div>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#888', fontSize: 13, lineHeight: 1.8, maxWidth: 300, fontWeight: 300 }}>
-              La IA que atiende, agenda y vende por tu negocio. Plataforma colombiana de automatización con inteligencia artificial.
+            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 13, lineHeight: 1.8, maxWidth: 300, fontWeight: 300 }}>
+              <span>La IA que atiende, agenda y vende por tu negocio. Plataforma de automatización con inteligencia artificial.</span>
             </p>
             <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#666', fontSize: 12 }}>Cali, Colombia</span>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#666', fontSize: 12 }}>soportesistemas@soporteia.net</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 12 }}>Madrid, España</span>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 12 }}>bqinzagencia@gmail.com</span>
             </div>
           </div>
           {[
@@ -888,13 +920,13 @@ export default function Landing() {
             { title: 'Empresa', links: ['Sobre nosotros', 'Soporte', 'Términos', 'Privacidad'] },
           ].map((col, i) => (
             <div key={i}>
-              <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 3, color: '#666', marginBottom: 28 }}>{col.title}</h4>
+              <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 3, color: '#ccc', marginBottom: 28 }}>{col.title}</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {col.links.map((link, j) => (
                   <li key={j}>
-                    <a href="/wasapbot/activar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#777', fontSize: 13, fontWeight: 300, transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.target.style.color = '#ccc'}
-                      onMouseLeave={e => e.target.style.color = '#777'}>
+                    <a href="/wasapbot/activar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 13, fontWeight: 300, transition: 'color 0.2s' }}
+                      onMouseEnter={e => e.target.style.color = '#fff'}
+                      onMouseLeave={e => e.target.style.color = '#ccc'}>
                       {link}
                     </a>
                   </li>
@@ -903,13 +935,15 @@ export default function Landing() {
             </div>
           ))}
         </div>
-        <div style={{ borderTop: '1px solid #1A1A1A', paddingTop: 28, display: 'flex', justifyContent: 'space-between', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#555', fontSize: 12 }} className="lnd-footer-copy">
-          <span>© 2026 agenc<span style={{ color: '#FF6B00' }}>IA</span>me by NexoTI · Todos los derechos reservados</span>
-          <div style={{display:'flex',gap:20}}>
-            <Link href="/legal/terminos" style={{color:'#666'}}>Términos y Condiciones</Link>
-            <Link href="/legal/privacidad" style={{color:'#666'}}>Política de Privacidad</Link>
+        <div style={{ borderTop: '1px solid #1A1A1A', paddingTop: 28, display: 'flex', justifyContent: 'space-between', alignItems:'center', flexWrap:'wrap', gap:16, fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 12 }} className="lnd-footer-copy">
+          <span>© 2026 BQinz<span style={{ color: '#FF6B00' }}>agenc</span>IA · Todos los derechos reservados</span>
+          <div style={{display:'flex',gap:18,flexWrap:'wrap'}}>
+            <Link href="/legal/aviso-legal" style={{color:'#ccc'}}>Aviso Legal</Link>
+            <Link href="/legal/privacidad" style={{color:'#ccc'}}>Privacidad</Link>
+            <Link href="/legal/condiciones" style={{color:'#ccc'}}>Condiciones</Link>
+            <Link href="/legal/cookies" style={{color:'#ccc'}}>Cookies</Link>
           </div>
-          <span>Hecho con amor en Cali, Colombia 🇨🇴</span>
+          <span>Hecho con amor en España 🇪🇸</span>
         </div>
       </footer>
     </>
@@ -919,7 +953,7 @@ export default function Landing() {
 export function Logo({ size = 20 }) {
   return (
     <div style={{ fontFamily: "'Abril Fatface', serif", fontSize: size + 2, color: '#E8E8E8' }}>
-      agenc<span style={{ color: '#FF6B00', fontSize: size + 5 }}>IA</span>me
+      <span style={{color:'#fff'}}>BQinz</span><span style={{ color: '#FF6B00', fontSize: size + 5 }}>agenc</span><span style={{color:'#fff'}}>IA</span>
     </div>
   );
 }

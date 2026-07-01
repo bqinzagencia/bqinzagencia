@@ -19,7 +19,7 @@ const PLANES = [
   {
     id:      'prueba_5k',
     nombre:  'Prueba Técnica',
-    precio:  5000,
+    precio:  5,
     sub:     'Solo para pruebas internas',
     color:   '#F59E0B',
     features: [
@@ -32,7 +32,7 @@ const PLANES = [
   {
     id:      'emprendedor',
     nombre:  'Emprendedor',
-    precio:  189000,
+    precio:  19,
     sub:     'Ideal para arrancar',
     color:   '#6B7280',
     features: [
@@ -47,7 +47,7 @@ const PLANES = [
   {
     id:      'profesional',
     nombre:  'Profesional',
-    precio:  490000,
+    precio:  49,
     sub:     'El mas popular',
     color:   '#1A56FF',
     popular: true,
@@ -65,7 +65,7 @@ const PLANES = [
   {
     id:      'agencia',
     nombre:  'Agencia',
-    precio:  1190000,
+    precio:  119,
     sub:     'Para equipos y agencias',
     color:   '#A78BFA',
     features: [
@@ -81,9 +81,9 @@ const PLANES = [
   },
 ];
 
-function formatCOP(n) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency', currency: 'COP', maximumFractionDigits: 0,
+function formatEUR(n) {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
   }).format(n);
 }
 
@@ -128,7 +128,7 @@ export default function PlanesPage() {
       // 2. Redirigir al checkout de Wompi
       const params = new URLSearchParams({
         'public-key':             WOMPI_PUB,
-        'currency':               'COP',
+        'currency':               'EUR',
         'amount-in-cents':        String(plan.precio * 100),
         'reference':              d.referencia,
         'redirect-url':           `${window.location.origin}/dashboard/pago-resultado`,
@@ -145,7 +145,7 @@ export default function PlanesPage() {
 
   return (
     <DashboardLayout title="Planes y precios">
-      <Head><title>Planes — agencIAme</title></Head>
+      <Head><title>Planes — BQinzagencIA</title></Head>
 
       {/* Aviso trial */}
       {esTrial && (
@@ -204,7 +204,7 @@ export default function PlanesPage() {
               <div style={{ fontFamily: F, fontSize: 11, fontWeight: 700, color: plan.color, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>{plan.sub}</div>
               <div style={{ fontFamily: F, fontSize: 20, fontWeight: 800, color: '#F9FAFB', marginBottom: 16 }}>{plan.nombre}</div>
               <div style={{ marginBottom: 24 }}>
-                <span style={{ fontFamily: F, fontSize: 34, fontWeight: 900, color: plan.color, letterSpacing: '-1px' }}>{formatCOP(plan.precio)}</span>
+                <span style={{ fontFamily: F, fontSize: 34, fontWeight: 900, color: plan.color, letterSpacing: '-1px' }}>{formatEUR(plan.precio)}</span>
                 <span style={{ fontFamily: F, fontSize: 13, color: '#4B5563' }}>/mes</span>
               </div>
 
@@ -221,7 +221,7 @@ export default function PlanesPage() {
 
               {/* Métodos de pago */}
               <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-                {['PSE', 'Tarjeta', 'Nequi', 'Bancolombia'].map(m => (
+                {['Tarjeta', 'Bizum', 'Transferencia', 'SEPA'].map(m => (
                   <span key={m} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: '2px 8px', fontSize: 10, color: '#6B7280', fontFamily: F }}>
                     {m}
                   </span>
@@ -257,7 +257,7 @@ export default function PlanesPage() {
         </div>
         <div>
           <div style={{ fontFamily: F, fontSize: 14, fontWeight: 700, color: '#F9FAFB', marginBottom: 2 }}>Garantía de 30 días o te devolvemos tu dinero</div>
-          <div style={{ fontFamily: F, fontSize: 12, color: '#4B5563' }}>Pago 100% seguro con Wompi · PSE · Tarjeta · Nequi · Sin contratos</div>
+          <div style={{ fontFamily: F, fontSize: 12, color: '#4B5563' }}>Pago 100% seguro · Tarjeta · Bizum · Transferencia SEPA · Sin contratos</div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="https://wompi.com/assets/img/brand/logo-wompi.svg" alt="Wompi" style={{ height: 24, opacity: 0.6 }} onError={e => e.target.style.display='none'} />

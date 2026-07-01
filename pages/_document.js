@@ -6,10 +6,15 @@ export default function Document() {
     <Html lang="es">
       <Head>
         <meta charSet="UTF-8" />
-        {/* Sin zoom con dedos, ancho fijo al dispositivo */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="theme-color" content="#0A0F1E" />
+        {/* Zoom habilitado para accesibilidad */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png" />
+        <meta name="theme-color" content="#FF6B00" />
         <style dangerouslySetInnerHTML={{__html: `
           html, body {
             background: #0A0F1E;
@@ -17,7 +22,6 @@ export default function Document() {
             padding: 0;
             -webkit-text-size-adjust: 100%;
             overflow-x: hidden;
-            touch-action: pan-y;
           }
           * { box-sizing: border-box; }
 
@@ -92,8 +96,16 @@ export default function Document() {
             .db-main   { padding: 12px !important; }
           }
         `}} />
-        <meta name="description" content="agencIAme — Automatización empresarial con Inteligencia Artificial." />
-        <meta property="og:title" content="agencIAme — Tu negocio en piloto automático con IA" />
+        {/* Google Analytics GA4 */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-54NPKF2D5N" />
+        <script dangerouslySetInnerHTML={{__html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-54NPKF2D5N');
+        `}} />
+        <meta name="description" content="BQinzagencIA — Automatización empresarial con Inteligencia Artificial." />
+        <meta property="og:title" content="BQinzagencIA — Tu negocio en piloto automático con IA" />
         <meta property="og:description" content="Automatiza ventas, atención al cliente y operaciones con agentes de IA." />
         <meta property="og:type" content="website" />
       </Head>

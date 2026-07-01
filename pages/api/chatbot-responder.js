@@ -62,21 +62,21 @@ export default async function handler(req, res) {
     const conoc = conocSnap.exists ? conocSnap.data() : {};
 
     // 6. System prompt
-    let systemPrompt = `Eres el asistente de chat web de "${cb.nombre || cb.nombreEmpresa}", negocio de ${cb.industria || 'servicios'} en ${cb.ciudad || 'Colombia'}.
+    let systemPrompt = `Eres el asistente de chat web de "${cb.nombre || cb.nombreEmpresa}", negocio de ${cb.industria || 'servicios'} en ${cb.ciudad || 'España'}.
 
 MISIÓN: Ayudar ÚNICAMENTE con preguntas relacionadas con el negocio (servicios, precios, horarios, ubicación, pedidos, citas). 
 
 REGLAS CRÍTICAS:
 - Si el mensaje NO tiene relación con el negocio, responde amablemente que solo puedes ayudar con temas del negocio.
 - Respuestas concisas (max 3 oraciones).
-- Idioma: español colombiano natural.
+- Idioma: español de España natural.
 - Si pide hablar con persona, avisa que lo comunicarás al equipo.`;
 
     if (conoc.info?.descripcionNegocio) systemPrompt += `\n\nNEGOCIO: ${conoc.info.descripcionNegocio}`;
 
     if (conoc.servicios?.length > 0) {
       const svcs = conoc.servicios.filter(s=>s.nombre).slice(0,10)
-        .map(s => `- ${s.nombre}${s.precio ? ': $'+Number(s.precio).toLocaleString('es-CO')+' COP':''}`).join('\n');
+        .map(s => `- ${s.nombre}${s.precio ? ': '+Number(s.precio).toLocaleString('es-ES')+'€':''}`).join('\n');
       systemPrompt += `\n\nSERVICIOS:\n${svcs}`;
     }
 

@@ -13,13 +13,13 @@ const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
 
 function hoyStr() {
-  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function fmtHora(ts) {
   if (!ts) return '';
   const d = ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts);
-  return d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 function fmtFecha(str) {
   if (!str) return '';
@@ -27,7 +27,7 @@ function fmtFecha(str) {
   const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   return `${d} ${meses[Number(m)-1]} ${y}`;
 }
-function fmtP(n) { return Number(n||0).toLocaleString('es-CO'); }
+function fmtP(n) { return Number(n||0).toLocaleString('es-ES'); }
 
 const ESTADOS = {
   pendiente:  { label:'Pendiente',  color:'#F59E0B', bg:'rgba(245,158,11,0.1)',  border:'rgba(245,158,11,0.3)'  },
@@ -179,7 +179,7 @@ export default function PedidosPanel() {
     {/* NAV */}
     <nav style={{background:'rgba(6,9,13,.97)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'0 24px',height:56,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
       <div style={{display:'flex',alignItems:'center',gap:12}}>
-        <span style={{fontFamily:FA,fontSize:16}}>agenc<span style={{color:'#FF6B00'}}>IA</span>me</span>
+        <span style={{fontFamily:FA,fontSize:16}}>BQinz<span style={{color:'#FF6B00'}}>agenc</span>IA</span>
         <span style={{color:'rgba(255,255,255,.15)'}}>|</span>
         <span style={{fontFamily:F,fontSize:13,fontWeight:600}}>{empresa?.nombreEmpresa || '...'} — Pedidos</span>
         {pendientes > 0 && (
@@ -208,7 +208,7 @@ export default function PedidosPanel() {
       {/* Stats */}
       <div data-tour="ped-stats" style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10,marginBottom:18}}>
         {[
-          {label:'Total ventas', val:`$${fmtP(totalVentas)}`, color:'#25D366', icon:'💰', big:true},
+          {label:'Total ventas', val:`${fmtP(totalVentas)}€`, color:'#25D366', icon:'💰', big:true},
           {label:'Pendientes',   val:pendientes,  color:'#F59E0B', icon:'🔔'},
           {label:'En proceso',   val:enProceso,   color:'#60A5FA', icon:'⏳'},
           {label:'Entregados',   val:entregados,  color:'#25D366', icon:'✅'},
@@ -222,16 +222,16 @@ export default function PedidosPanel() {
         ))}
       </div>
 
-      {/* Nequi config */}
+      {/* Bizum config */}
       <GuiaWasapbot visible={!nequi} icono="💳"
-        texto="Configura aquí tu número de Nequi: el bot lo incluye automáticamente en el mensaje de confirmación que recibe el cliente cuando hace un pedido por WhatsApp, para que pueda pagar de una vez."/>
+        texto="Configura aquí tu número de Bizum: el bot lo incluye automáticamente en el mensaje de confirmación que recibe el cliente cuando hace un pedido por WhatsApp, para que pueda pagar de una vez."/>
       <div data-tour="ped-nequi" style={{...CARD,marginBottom:16,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
         <span style={{fontSize:18}}>💳</span>
         <div style={{flex:1}}>
-          <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#EFF4FF',marginBottom:2}}>Número Nequi para pagos</div>
+          <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#EFF4FF',marginBottom:2}}>Número Bizum para pagos</div>
           {editNequi ? (
             <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-              <input value={nequi} onChange={e=>setNequi(e.target.value)} placeholder="Ej: 3001234567"
+              <input value={nequi} onChange={e=>setNequi(e.target.value)} placeholder="Ej: 600123456"
                 style={{...INP,width:160}} onKeyDown={e=>e.key==='Enter'&&guardarNequi()}/>
               <button onClick={guardarNequi} disabled={savingNequi}
                 style={{background:'#25D366',color:'#fff',border:'none',borderRadius:8,padding:'7px 14px',fontFamily:F,fontSize:12,fontWeight:700,cursor:'pointer'}}>
@@ -337,14 +337,14 @@ export default function PedidosPanel() {
                         <div key={j} style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.5)',display:'flex',justifyContent:'space-between',maxWidth:360}}>
                           <span>{item.cantidad}x {item.nombre}</span>
                           <span style={{color:'rgba(255,255,255,.3)'}}>
-                            {item.precio>0?`$${fmtP(Number(item.precio)*item.cantidad)}`:''}
+                            {item.precio>0?`${fmtP(Number(item.precio)*item.cantidad)}€`:''}
                           </span>
                         </div>
                       ))}
                     </div>
 
                     <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                      <span style={{fontFamily:FA,fontSize:16,color:'#25D366'}}>${fmtP(total)} COP</span>
+                      <span style={{fontFamily:FA,fontSize:16,color:'#25D366'}}>{fmtP(total)}€</span>
                       {pedido.telefono && (
                         <a href={`https://wa.me/${pedido.telefono}`} target="_blank" rel="noreferrer"
                           style={{fontFamily:F,fontSize:11,color:'#25D366',display:'flex',alignItems:'center',gap:4}}>
@@ -395,8 +395,8 @@ export default function PedidosPanel() {
           texto:'Por defecto ves los pedidos de hoy. Cambia la fecha para revisar pedidos de otro día.' },
         { selector:'[data-tour="ped-stats"]', titulo:'Resumen del día', icono:'💰',
           texto:'Aquí ves el total vendido y cuántos pedidos están pendientes, en proceso, entregados o cancelados — se actualiza solo cada 30 segundos.' },
-        { selector:'[data-tour="ped-nequi"]', titulo:'Tu número Nequi', icono:'💳',
-          texto:'Escríbelo aquí una sola vez: el bot lo incluye automáticamente en el mensaje de confirmación para que tu cliente pueda pagar el pedido por Nequi de inmediato.' },
+        { selector:'[data-tour="ped-nequi"]', titulo:'Tu número Bizum', icono:'💳',
+          texto:'Escríbelo aquí una sola vez: el bot lo incluye automáticamente en el mensaje de confirmación para que tu cliente pueda pagar el pedido por Bizum de inmediato.' },
         { selector:'[data-tour="ped-filtros"]', titulo:'Sigue el flujo de cada pedido', icono:'🛍️',
           texto:'Usa estos filtros para ver solo los pedidos en cada estado. En cada pedido tienes un botón para avanzarlo: Pendiente → Preparando → Listo → Entregado, o cancelarlo si es necesario.' },
       ]}

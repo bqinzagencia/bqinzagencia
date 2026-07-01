@@ -2,35 +2,65 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admins collection — solo superadmins
+    // ── Helper: ¿el usuario autenticado es superadmin? ──────────────
+    function esSuperAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ── Admins collection — solo superadmins pueden leerse a sí mismos ──
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false; // Solo via Firebase Console
+      allow write: if false; // Solo vía Firebase Console / Admin SDK
     }
 
-    // Empresas — cada empresa solo ve sus propios datos
+    // ── Usuarios — cada usuario lee/escribe su propio perfil ────────
+    // Aquí vive empresaActiva y el array de empresas[] del usuario.
+    // El superadmin también puede leer/escribir cualquier perfil.
+    match /usuarios/{uid} {
+      allow read, write: if request.auth != null && (request.auth.uid == uid || esSuperAdmin());
+    }
+
+    // ── Marketing: Reels y Posts (solo superadmin) ────────────────────
+    match /marketing_reels/{id} {
+      allow read, write: if esSuperAdmin();
+    }
+    match /marketing_posts/{id} {
+      allow read, write: if esSuperAdmin();
+    }
+
+    // ── Leads de marketing ─ solo superadmin ──────────────────────────
+    match /leads/{leadId} {
+      allow read, write: if esSuperAdmin();
+    }
+
+    // ── Config global (credenciales API, reglas de negocio) ─ solo superadmin ──
+    match /config/{docId} {
+      allow read, write: if esSuperAdmin();
+    }
+
+    // ── Logs de sistema / alertas ─ solo superadmin ──────────────────────────
+    match /systemLogs/{logId} {
+      allow read, write: if esSuperAdmin();
+    }
+
+    // ── Empresas (modelo multi-empresa con ownerUid + legacy id=uid) ──
     match /empresas/{empresaId} {
-      allow read, write: if request.auth != null && request.auth.uid == empresaId;
+      allow read, write: if request.auth != null && (
+        empresaId == request.auth.uid ||
+        (resource != null && resource.data.ownerUid == request.auth.uid) ||
+        esSuperAdmin()
+      );
+      allow create: if request.auth != null;
 
-      // Subcolecciones — mismas reglas
-      match /agentes/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == empresaId;
+      // Subcolecciones — mismo dueño de la empresa padre, o superadmin
+      match /{subcoleccion}/{docId} {
+        allow read, write: if request.auth != null && (
+          empresaId == request.auth.uid ||
+          get(/databases/$(database)/documents/empresas/$(empresaId)).data.ownerUid == request.auth.uid ||
+          esSuperAdmin()
+        );
       }
-      match /conversaciones/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == empresaId;
-      }
-      match /contactos/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == empresaId;
-      }
-      match /citas/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == empresaId;
-      }
-    }
-
-    // Superadmin puede leer todo
-    match /empresas/{docId} {
-      allow read: if request.auth != null &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
   }
 }
