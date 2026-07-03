@@ -2,6 +2,7 @@
 // Crea empresa para WasapBot — con prueba gratis de 24h (tokens limitados)
 import { db as adminDb } from '../../lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { enviarEmailNuevoRegistro } from '../../lib/emailWasapbot';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -100,6 +101,9 @@ export default async function handler(req, res) {
     } catch (e) {
       console.error('Error notificacion registro:', e.message);
     }
+
+    // Notificar a Oscar por email cuando se registra una nueva empresa
+    enviarEmailNuevoRegistro({ nombre, email, industria, ciudad, empresaId }).catch(() => {});
 
     return res.json({ ok: true, empresaId });
   } catch (err) {

@@ -13,9 +13,9 @@ const BORDER = 'rgba(255,255,255,0.07)';
 const MetricCard = ({ label, value, sub, color='#EFF4FF', icon, delta }) => (
   <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'18px 20px', position:'relative', overflow:'hidden' }}>
     <div style={{ position:'absolute', top:14, right:16, fontSize:22, opacity:.15 }}>{icon}</div>
-    <div style={{ fontSize:11, color:'#4B6080', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>{label}</div>
+    <div style={{ fontSize:11, color:'rgba(255,255,255,0.55)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>{label}</div>
     <div style={{ fontSize:28, fontWeight:800, color, letterSpacing:'-.03em', lineHeight:1 }}>{value}</div>
-    {sub   && <div style={{ fontSize:11, color:'#4B6080', marginTop:5 }}>{sub}</div>}
+    {sub   && <div style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginTop:5 }}>{sub}</div>}
     {delta != null && <div style={{ fontSize:11, color: delta>=0?'#25D366':'#EF4444', marginTop:4, fontWeight:600 }}>{delta>=0?'▲':'▼'} {Math.abs(delta)}% vs ayer</div>}
   </div>
 );
@@ -93,7 +93,7 @@ export default function MetricasAdmin() {
   useEffect(() => {
     if (!auth) return;
     fetchAll();
-    intervalRef.current = setInterval(fetchAll, 60000); // auto-refresh 1min
+    intervalRef.current = setInterval(fetchAll, 30000); // auto-refresh 30s para tiempo real
     return () => clearInterval(intervalRef.current);
   }, [auth]);
 
@@ -106,7 +106,22 @@ export default function MetricasAdmin() {
         fetch('/api/metrics-admin', { headers:{'x-admin-secret':SECRET}, method:'POST', body:JSON.stringify({accion:'getAgenciaConfig'}), headers:{'Content-Type':'application/json','x-admin-secret':SECRET} }).then(r=>r.json()).catch(()=>null),
       ]);
       if (r1.status==='fulfilled' && r1.value) setRailway(r1.value);
-      if (r2.status==='fulfilled' && r2.value?.ok) setData(r2.value);
+      if (r2.status==='fulfilled' && r2.value?.ok) {
+        setData(r2.value);
+        // Eliminar automáticamente registros sin nombre Y sin plan Y sin conversaciones
+        const sinNombre = (r2.value?.empresas || []).filter(e =>
+          (!e.nombre || e.nombre.trim() === '' || e.nombre === 'Sin nombre') &&
+          (!e.planActivo || e.plan === 'sin_plan') &&
+          e.conversaciones === 0
+        );
+        if (sinNombre.length > 0) {
+          fetch('/api/metrics-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-secret': SECRET },
+            body: JSON.stringify({ accion: 'eliminarEmpresas', empresaIds: sinNombre.map(e => e.id) }),
+          }).catch(() => {});
+        }
+      }
       if (r3.status==='fulfilled' && r3.value?.ok) {
         setAgenciaConfig(r3.value);
         setAgenciaEdit({ telefonoDueno: r3.value.telefonoDueno||'', tokensLimite: String(r3.value.tokensLimite||400000) });
@@ -191,6 +206,7 @@ export default function MetricasAdmin() {
   const semana    = data?.web?.semana     || {};
   const ultimos14 = data?.web?.ultimos14  || [];
   const topPages  = data?.web?.paginasTop || [];
+  const usuariosRT = data?.web?.usuariosRT || [];
   const empresas  = data?.empresas        || [];
 
   const PLAN_EUR  = { basico:79, estandar:149, pro:249, prueba_5k:0, wasapbot:0 };
@@ -222,7 +238,7 @@ export default function MetricasAdmin() {
             <span style={{ fontSize:13, fontWeight:400, color:'#4B6080', marginLeft:10 }}>Métricas</span>
           </div>
           <div style={{ fontSize:11, color:'#4B6080', marginTop:2 }}>
-            {loading ? '⏳ Actualizando...' : `Actualizado: ${new Date().toLocaleTimeString('es-ES')}`}
+            {loading ? '⏳ Actualizando...' : <span style={{color:'rgba(255,255,255,0.7)'}}>Actualizado: {new Date().toLocaleTimeString('es-ES')}</span>}
             {railway?.uptime && <span style={{ marginLeft:12, color:'#25D366' }}>● Railway activo</span>}
           </div>
         </div>
@@ -251,6 +267,36 @@ export default function MetricasAdmin() {
       {/* ══════════ TAB WEB ══════════ */}
       {tab==='web' && (
         <div>
+      {/* ── TIEMPO REAL ── */}
+          <div style={{ background: usuariosRT.length>0 ? 'rgba(37,211,102,.04)' : CARD, border: `1.5px solid ${usuariosRT.length>0 ? 'rgba(37,211,102,.25)' : BORDER}`, borderRadius:14, padding:'16px 20px', marginBottom:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom: usuariosRT.length>0 ? 14 : 0 }}>
+              <div style={{ width:10, height:10, borderRadius:'50%', background: usuariosRT.length>0 ? '#25D366' : '#4B6080', animation: usuariosRT.length>0 ? 'pulse-g 1.5s ease infinite' : 'none', flexShrink:0 }}/>
+              <div style={{ fontSize:14, fontWeight:700, color: usuariosRT.length>0 ? '#25D366' : '#EFF4FF' }}>
+                {usuariosRT.length > 0 ? `${usuariosRT.length} usuario${usuariosRT.length>1?'s':''} ahora en la web` : 'Nadie en la web ahora mismo'}
+              </div>
+              <div style={{ marginLeft:'auto', fontSize:10, color:'rgba(255,255,255,0.4)' }}>Actualiza cada 30s</div>
+            </div>
+            {usuariosRT.length > 0 && (
+              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                {usuariosRT.map((u, i) => {
+                  const mins = Math.floor(u.segsAtras / 60);
+                  const segs = u.segsAtras % 60;
+                  const tiempoStr = mins > 0 ? `hace ${mins}m ${segs}s` : `hace ${segs}s`;
+                  const pagLabel = u.paginaActual === '/' ? 'Inicio' : u.paginaActual.replace('/wasapbot','WasapBot').replace('/planes','Planes').replace('/activar','Activando bot');
+                  return (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:10, background:'rgba(37,211,102,.05)', border:'1px solid rgba(37,211,102,.12)', borderRadius:8, padding:'8px 12px' }}>
+                      <div style={{ width:7, height:7, borderRadius:'50%', background:'#25D366', flexShrink:0 }}/>
+                      <div style={{ flex:1, fontSize:12, color:'#EFF4FF', fontFamily:"'Courier New',monospace" }}>{pagLabel}</div>
+                      <div style={{ fontSize:11, color:'#4B6080' }}>{u.paginasVistas} pág{u.paginasVistas>1?'s':''}</div>
+                      {u.isNew && <span style={{ background:'rgba(255,107,0,.15)', color:'#FF6B00', border:'1px solid rgba(255,107,0,.3)', borderRadius:99, padding:'1px 7px', fontSize:9, fontWeight:700 }}>NUEVO</span>}
+                      <div style={{ fontSize:11, color:'#4B6080', whiteSpace:'nowrap' }}>{tiempoStr}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* KPIs HOY */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:12, marginBottom:20 }}>
             <MetricCard icon="👥" label="Sesiones"        value={web.sesiones||0}                         sub="visitas independientes" />
@@ -264,18 +310,18 @@ export default function MetricasAdmin() {
           {/* 7 días y 30 días */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:20 }}>
             <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'18px 20px' }}>
-              <div style={{ fontSize:12, color:'#4B6080', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Últimos 7 días</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Últimos 7 días</div>
               <div style={{ display:'flex', gap:24 }}>
                 {[{l:'Sesiones',v:semana.sesiones||0},{l:'Usuarios',v:semana.usuarios||0},{l:'Pageviews',v:semana.pageviews||0}].map((s,i)=>(
-                  <div key={i}><div style={{ fontSize:24,fontWeight:800,color:'#EFF4FF' }}>{s.v}</div><div style={{ fontSize:11,color:'#4B6080',marginTop:2 }}>{s.l}</div></div>
+                  <div key={i}><div style={{ fontSize:24,fontWeight:800,color:'#EFF4FF' }}>{s.v}</div><div style={{ fontSize:11,color:'rgba(255,255,255,0.65)',marginTop:2 }}>{s.l}</div></div>
                 ))}
               </div>
             </div>
             <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'18px 20px' }}>
-              <div style={{ fontSize:12, color:'#4B6080', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Últimos 30 días</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Últimos 30 días</div>
               <div style={{ display:'flex', gap:24 }}>
                 {[{l:'Sesiones',v:data?.web?.mes?.sesiones||0},{l:'Empresas',v:data?.totalEmpresas||0},{l:'Convs IA',v:convsTot}].map((s,i)=>(
-                  <div key={i}><div style={{ fontSize:24,fontWeight:800,color:'#EFF4FF' }}>{s.v}</div><div style={{ fontSize:11,color:'#4B6080',marginTop:2 }}>{s.l}</div></div>
+                  <div key={i}><div style={{ fontSize:24,fontWeight:800,color:'#EFF4FF' }}>{s.v}</div><div style={{ fontSize:11,color:'rgba(255,255,255,0.65)',marginTop:2 }}>{s.l}</div></div>
                 ))}
               </div>
             </div>
@@ -283,7 +329,7 @@ export default function MetricasAdmin() {
 
           {/* Gráfica 14 días */}
           <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'20px 24px', marginBottom:16 }}>
-            <div style={{ fontSize:13, fontWeight:700, marginBottom:16 }}>Sesiones por día — últimos 14 días</div>
+            <div style={{ fontSize:13, fontWeight:700, color:'#EFF4FF', marginBottom:16 }}>Sesiones por día — últimos 14 días</div>
             <BarChart data={ultimos14.map(d=>({ k:d.fecha.slice(5), v:d.sesiones }))} color="#2B6AFF" label="sesiones" />
             <div style={{ display:'flex', justifyContent:'space-between', marginTop:6 }}>
               {ultimos14.filter((_,i)=>i%2===0).map((d,i)=>(
@@ -295,7 +341,7 @@ export default function MetricasAdmin() {
           {/* Páginas más vistas */}
           {topPages.length>0 && (
             <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, padding:'20px 24px' }}>
-              <div style={{ fontSize:13, fontWeight:700, marginBottom:14 }}>Páginas más vistas hoy</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#EFF4FF', marginBottom:14 }}>Páginas más vistas hoy</div>
               {topPages.map((p,i)=>(
                 <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'8px 0', borderBottom: i<topPages.length-1?`1px solid ${BORDER}`:'none' }}>
                   <div style={{ width:20, fontSize:11, color:'#4B6080', textAlign:'right' }}>{i+1}</div>
@@ -344,6 +390,37 @@ export default function MetricasAdmin() {
             </div>
           )}
 
+          {/* Botón limpiar Sin nombre */}
+          {empresas.filter(e=>(!e.nombre||e.nombre==='Sin nombre')&&!e.planActivo&&e.conversaciones===0).length>0&&(
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(245,158,11,.06)', border:'1px solid rgba(245,158,11,.2)', borderRadius:10, padding:'10px 16px', marginBottom:12 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:16 }}>🧹</span>
+                <span style={{ fontFamily:F, fontSize:13, color:'#F59E0B', fontWeight:600 }}>
+                  {empresas.filter(e=>(!e.nombre||e.nombre==='Sin nombre')&&!e.planActivo&&e.conversaciones===0).length} registros sin nombre detectados
+                </span>
+              </div>
+              <button
+                disabled={accionando==='__sinNombre__'}
+                onClick={async()=>{
+                  if(!confirm('¿Eliminar todos los registros Sin nombre sin plan ni conversaciones?')) return;
+                  setAccionando('__sinNombre__');
+                  const ids = empresas.filter(e=>(!e.nombre||e.nombre==='Sin nombre')&&!e.planActivo&&e.conversaciones===0).map(e=>e.id);
+                  try {
+                    const r = await fetch('/api/metrics-admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':SECRET},body:JSON.stringify({accion:'eliminarEmpresas',empresaIds:ids})});
+                    const d = await r.json();
+                    if(d.ok) await fetchAll();
+                    else alert('Error: '+(d.error||'desconocido'));
+                  } catch(e){alert('Error: '+e.message);}
+                  setAccionando(null);
+                }}
+                style={{ background: accionando==='__sinNombre__'?'#92400E':'linear-gradient(135deg,#F59E0B,#D97706)', color:'#fff', border:'none', borderRadius:8, padding:'7px 18px', fontFamily:F, fontSize:12, fontWeight:700, cursor: accionando==='__sinNombre__'?'wait':'pointer', display:'flex', alignItems:'center', gap:6 }}>
+                {accionando==='__sinNombre__'
+                  ? <><div style={{width:12,height:12,border:'2px solid rgba(255,255,255,.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'spin .7s linear infinite'}}/> Limpiando...</>
+                  : <>🧹 Limpiar todos los Sin nombre</>}
+              </button>
+            </div>
+          )}
+
           {/* Tabla */}
           <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:14, overflow:'hidden' }}>
             <div style={{ display:'grid', gridTemplateColumns:'24px 2fr 1fr 1fr 1fr 1fr 1fr 2fr', padding:'10px 18px', background:'#0D1525', fontSize:10, color:'#4B6080', textTransform:'uppercase', letterSpacing:'.06em', gap:8, alignItems:'center' }}>
@@ -361,6 +438,16 @@ export default function MetricasAdmin() {
                   <div>
                     <div style={{ fontSize:13, fontWeight:600, color: e.bloqueada?'#EF4444':'#EFF4FF', display:'flex', alignItems:'center', gap:6 }}>
                       {e.bloqueada && '🔒'}{e.nombre}
+                      {(!e.nombre || e.nombre === 'Sin nombre') && e.planActivo && (
+                        <button onClick={async()=>{
+                          const nuevoNombre = prompt('Nombre para esta empresa:');
+                          if (!nuevoNombre?.trim()) return;
+                          await fetch('/api/metrics-admin', { method:'POST', headers:{'Content-Type':'application/json','x-admin-secret':SECRET}, body:JSON.stringify({ accion:'renombrarEmpresa', empresaId:e.id, nuevoNombre:nuevoNombre.trim() }) });
+                          fetchAll();
+                        }} style={{ background:'rgba(255,107,0,.15)', color:'#FF6B00', border:'1px solid rgba(255,107,0,.3)', borderRadius:6, padding:'2px 8px', fontSize:10, fontWeight:700, cursor:'pointer' }}>
+                          ✏️ Renombrar
+                        </button>
+                      )}
                     </div>
                     <div style={{ fontSize:10, color:'#4B6080', marginTop:1 }}>{e.email}</div>
                     {e.esAfiliado && <Badge text="Afiliado" color="#F59E0B" />}
@@ -443,27 +530,30 @@ export default function MetricasAdmin() {
               <div style={{ background:'rgba(255,107,0,.04)', border:'1.5px solid rgba(255,107,0,.25)', borderRadius:14, padding:'20px 24px', marginBottom:20 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, flexWrap:'wrap', gap:10 }}>
                   <div>
-                    <div style={{ fontSize:14, fontWeight:800, color:'#FF6B00', display:'flex', alignItems:'center', gap:8 }}>🏢 Tu Agencia — BQinzagencIA</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:'#FF6B00', display:'flex', alignItems:'center', gap:8 }}>🏢 AGENCIA — BQinzagencIA</div>
                     <div style={{ fontSize:11, color:'#4B6080', marginTop:2 }}>Gestiona tus créditos y número del dueño</div>
                   </div>
                   <div style={{ display:'flex', gap:8 }}>
                     <button onClick={resetearTokens} disabled={agenciaSaving}
                       style={{ background:'rgba(239,68,68,.08)', color:'#EF4444', border:'1px solid rgba(239,68,68,.2)', borderRadius:8, padding:'7px 14px', fontFamily:F, fontSize:12, fontWeight:600, cursor:'pointer' }}>
-                      🔄 Resetear tokens del mes
+                      🔄 Resetear créditos del dueño
                     </button>
                   </div>
                 </div>
 
-                {/* Barra de créditos */}
+                {/* Barra de créditos del dueño */}
                 <div style={{ marginBottom:16 }}>
+                  <div style={{ fontSize:12, color:'#8A9BB5', marginBottom:10, fontWeight:600 }}>📱 Créditos WasapBot del dueño (tu número)</div>
                   <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                    <span style={{ fontSize:12, color:'#8A9BB5' }}>Créditos consumidos este mes ({mesKey})</span>
-                    <span style={{ fontSize:12, fontWeight:700, color:col }}>{tokUsado.toLocaleString('es-ES')} / {tokLimit.toLocaleString('es-ES')} ({pct}%)</span>
+                    <span style={{ fontSize:12, color:'#8A9BB5' }}>Consumidos este mes</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:(agenciaConfig?.tokensUsadosDueno||0)/(agenciaConfig?.tokensLimite||50000)>.8?'#EF4444':'#FF6B00' }}>
+                      {(agenciaConfig?.tokensUsadosDueno||0).toLocaleString('es-ES')} / {(agenciaConfig?.tokensLimite||50000).toLocaleString('es-ES')}
+                    </span>
                   </div>
                   <div style={{ background:'rgba(255,255,255,.06)', borderRadius:6, height:10, overflow:'hidden' }}>
-                    <div style={{ width:`${pct}%`, height:'100%', background:col, borderRadius:6, transition:'width .5s' }}/>
+                    <div style={{ width:`${Math.min(Math.round((agenciaConfig?.tokensUsadosDueno||0)/(agenciaConfig?.tokensLimite||50000)*100),100)}%`, height:'100%', background:'#FF6B00', borderRadius:6, transition:'width .5s' }}/>
                   </div>
-                  {pct>=80 && <div style={{ fontSize:11, color:'#F59E0B', marginTop:6 }}>⚠️ Más del 80% consumido — considera resetear o subir el tope</div>}
+                  {(agenciaConfig?.tokensUsadosDueno||0)/(agenciaConfig?.tokensLimite||50000)>.8 && <div style={{ fontSize:11, color:'#F59E0B', marginTop:6 }}>⚠️ Más del 80% consumido — sube el tope o resetea</div>}
                 </div>
 
                 {/* Formulario */}
@@ -580,7 +670,7 @@ export default function MetricasAdmin() {
               ].map((s,i)=>(
                 <div key={i}>
                   <div style={{ fontSize:22, fontWeight:800, color:s.c }}>{s.v}</div>
-                  <div style={{ fontSize:10, color:'#4B6080', marginTop:3 }}>{s.l}</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.65)', marginTop:3 }}>{s.l}</div>
                 </div>
               ))}
             </div>

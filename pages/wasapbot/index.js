@@ -2,6 +2,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../../lib/AuthContext';
+import DemoSimuladorPublico from '../../components/landing/DemoSimuladorPublico';
 import { useState, useEffect, useRef } from 'react';
 
 const INDUSTRIES = [
@@ -315,6 +316,7 @@ export default function Landing() {
   const [popupClosed, setPopupClosed] = useState(false);
   const [empresaIdx,  setEmpresaIdx]  = useState(0);
   const [chatVisible,  setChatVisible]  = useState(true);
+  const [showDemo, setShowDemo] = useState(false);
   const empresaActiva = CONVERSACIONES_EJEMPLO[empresaIdx];
   const autoRotRef    = useRef(null);
 
@@ -386,6 +388,7 @@ export default function Landing() {
 
       {/* Popup de bienvenida — solo móvil */}
       {showPopup && <PopupBienvenida onClose={handleClosePopup} />}
+      {showDemo && <DemoSimuladorPublico onClose={() => setShowDemo(false)} />}
 
       <style dangerouslySetInnerHTML={{__html: `
         body { background: #080808; color: #E8E8E8; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
@@ -595,6 +598,13 @@ export default function Landing() {
                 </button>
               </Link>
               <span style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:13, color:'rgba(255,255,255,0.3)' }}>Desde 79€/mes</span>
+            </div>
+
+            {/* Botón del simulador demo — pruébalo sin registrarte */}
+            <div style={{ marginTop:16 }}>
+              <button onClick={() => setShowDemo(true)} style={{ background:'rgba(37,211,102,0.08)', border:'1.5px solid rgba(37,211,102,0.4)', color:'#25D366', borderRadius:8, padding:'12px 24px', fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:700, fontSize:13.5, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
+                💬 Pruébalo ahora, sin registrarte →
+              </button>
             </div>
 
             {/* Checks */}
@@ -1099,6 +1109,13 @@ export default function Landing() {
           <span>Hecho con amor en España 🇪🇸</span>
         </div>
       </footer>
+
+      {/* Botón flotante fijo del simulador demo — siempre visible, prioritario en móvil */}
+      {!showDemo && (
+        <button onClick={() => setShowDemo(true)} style={{ position:'fixed', bottom:20, right:20, zIndex:500, background:'linear-gradient(135deg,#25D366,#1aad4e)', color:'#fff', border:'none', borderRadius:99, padding:'13px 20px', fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:700, fontSize:13, cursor:'pointer', boxShadow:'0 8px 28px rgba(37,211,102,0.45)', display:'flex', alignItems:'center', gap:8 }}>
+          💬 Probar demo
+        </button>
+      )}
     </>
   );
 }

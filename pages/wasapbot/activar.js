@@ -3,7 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { auth, loginWithGoogle } from '../../lib/firebase';
-import { trackInicioRegistro, trackRegistroCompleto, trackEvent } from '../../lib/analytics';
+const trackInicioRegistro = () => {};
+const trackRegistroCompleto = () => {};
+const trackEvent = () => {};
 
 // Ocultar el bot flotante en esta pagina de registro para no distraer al usuario
 if (typeof window !== 'undefined') {
@@ -151,6 +153,8 @@ export default function WasapBotActivar() {
   // ── Paso 1 → crear empresa + ir a QR ───────────────────────────────────
   const crearYMostrarQR = async () => {
     if (!nombre.trim()) { setError('Escribe el nombre de tu negocio'); return; }
+    if (nombre.trim().length < 3) { setError('El nombre debe tener al menos 3 caracteres'); return; }
+    if (/^(sin nombre|test|prueba|hola|demo|asdf|qwerty)$/i.test(nombre.trim())) { setError('Escribe el nombre real de tu negocio'); return; }
     const errEmail = validarEmail(email);
     if (errEmail) { setError(errEmail); return; }
     if (!emailVerificado) { setError('Verifica tu correo para continuar'); return; }
@@ -191,7 +195,7 @@ export default function WasapBotActivar() {
   // ── Pairing Code ─────────────────────────────────────────────────────
   const iniciarPairing = async () => {
     const tel = telefonoPairing.replace(/\D/g,'');
-    if (tel.length < 10) { setErrorPairing('Escribe tu numero de WhatsApp con codigo de pais. Ej: 573001234567'); return; }
+    if (tel.length < 10) { setErrorPairing('Escribe tu numero de WhatsApp con codigo de pais. Ej: 34674421919'); return; }
     setErrorPairing(''); setLoadingPairing(true); setPairingCode('');
     try {
       // 1. Iniciar sesion en modo pairing
@@ -346,14 +350,14 @@ export default function WasapBotActivar() {
   return (
     <>
       <Head>
-        <title>Activa tu WasapBot — agencIAme</title>
+        <title>Activa tu WasapBot — BQinzagencIA</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
         <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
       </Head>
 
       <style dangerouslySetInnerHTML={{__html:`
         *{box-sizing:border-box;margin:0;padding:0}
-        html,body{min-height:100vh;background:#F0F4FF;font-family:${F};-webkit-font-smoothing:antialiased}
+        html,body{min-height:100vh;background:#060B14;font-family:${F};-webkit-font-smoothing:antialiased;color:#EFF4FF}
         a{text-decoration:none;color:inherit}
         input{-webkit-appearance:none}
         input:focus{border-color:rgba(43,106,255,.5)!important;box-shadow:0 0 0 3px rgba(43,106,255,.08)!important;outline:none}
@@ -371,14 +375,14 @@ export default function WasapBotActivar() {
       {/* NAV */}
       <nav style={{
         position:'sticky',top:0,zIndex:100,
-        background:'rgba(240,244,255,.97)',backdropFilter:'blur(20px)',
-        borderBottom:'1px solid #E5EAFF',
+        background:'rgba(8,8,8,.97)',backdropFilter:'blur(20px)',
+        borderBottom:'1px solid rgba(255,255,255,0.08)',
         padding:'0 24px',height:58,
         display:'flex',alignItems:'center',justifyContent:'space-between',
       }}>
         <Link href="/wasapbot">
           <span style={{fontFamily:FA,fontSize:18,letterSpacing:'-.5px',cursor:'pointer'}}>
-            agenc<span style={{color:'#FF6B00'}}>IA</span>me
+            BQinzagenc<span style={{color:'#FF6B00'}}>IA</span>
             <span style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#25D366',
               background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.2)',
               padding:'3px 10px',borderRadius:99,marginLeft:8}}>WasapBot</span>
@@ -391,7 +395,7 @@ export default function WasapBotActivar() {
       </nav>
 
       {/* INDICADOR DE PASO */}
-      <div style={{background:'#F8FAFF',borderBottom:'1px solid #E5EAFF',padding:'12px 24px'}}>
+      <div style={{background:'#0E0E0E',borderBottom:'1px solid rgba(255,255,255,0.07)',padding:'12px 24px'}}>
         <div style={{maxWidth:480,margin:'0 auto',display:'flex',alignItems:'center',gap:8}}>
           {[
             {n:1, label:'Tu negocio'},
@@ -407,9 +411,9 @@ export default function WasapBotActivar() {
                     width:24,height:24,borderRadius:7,flexShrink:0,
                     display:'flex',alignItems:'center',justifyContent:'center',
                     fontSize:11,fontWeight:700,
-                    background: done?'#25D366': cur?'rgba(43,106,255,.12)':'#E5EAFF',
-                    border: `1px solid ${done?'#1aad4e':cur?'rgba(43,106,255,.3)':'#D1D9F0'}`,
-                    color: done?'#fff':cur?'#2B6AFF':'#9CA3AF',
+            background: done?'#25D366': cur?'rgba(255,107,0,.15)':'rgba(255,255,255,.06)',
+                    border: `1px solid ${done?'#1aad4e':cur?'rgba(255,107,0,.4)':'rgba(255,255,255,.1)'}`,
+                    color: done?'#fff':cur?'#FF6B00':'rgba(255,255,255,.3)',
                     transition:'all .3s',
                   }}>
                     {done
@@ -418,7 +422,7 @@ export default function WasapBotActivar() {
                   </div>
                   <span style={{
                     fontFamily:F,fontSize:11,fontWeight:cur?700:400,
-                    color:cur?'#111827':'#9CA3AF',
+                    color:cur?'#EFF4FF':'rgba(255,255,255,.3)',
                     display: cur?'block':'none',
                   }}>{s.label}</span>
                 </div>
@@ -469,7 +473,7 @@ export default function WasapBotActivar() {
                   </div>
                 </div>
               )}
-              <img src="/agenciame-robot-final.png" alt=""
+              <img src="/robot-bqinz-v2-texto-nitido.png" alt="BQinzagencIA"
                 style={{width:52,height:52,objectFit:'contain',opacity:.5,margin:'0 auto 14px',display:'block'}}/>
               <h1 style={{
                 fontFamily:FA,fontSize:34,fontWeight:400,
@@ -689,7 +693,7 @@ export default function WasapBotActivar() {
 
             {/* Garantías */}
             <div style={{display:'flex',justifyContent:'center',gap:16,flexWrap:'wrap'}}>
-              {['✓ Sin tarjeta','✓ Sin contratos','✓ Gratis para empezar'].map((t,i)=>(
+              {['\u2713 Sin tarjeta','\u2713 Sin contratos','\u2713 Gratis para empezar'].map((t,i)=>(
                 <span key={i} style={{fontFamily:F,fontSize:12,color:'#6B7280',fontWeight:500}}>{t}</span>
               ))}
             </div>
@@ -733,7 +737,7 @@ export default function WasapBotActivar() {
                   <div>
                     <div style={{display:'flex',gap:8,marginBottom:6}}>
                       <input value={telefonoPairing} onChange={e=>setTelefonoPairing(e.target.value)}
-                        placeholder="573001234567" inputMode="tel"
+                        placeholder="34674421919" inputMode="tel"
                         style={{...INP,flex:1,fontSize:14,padding:'11px 14px'}}/>
                       <button onClick={iniciarPairing} disabled={loadingPairing}
                         style={{background:'linear-gradient(135deg,#25D366,#1aad4e)',color:'#fff',border:'none',borderRadius:10,padding:'0 14px',fontFamily:F,fontSize:13,fontWeight:700,opacity:loadingPairing?.6:1,flexShrink:0}}>
@@ -741,7 +745,7 @@ export default function WasapBotActivar() {
                       </button>
                     </div>
                     {errorPairing&&<div style={{fontFamily:F,fontSize:12,color:'#EF4444',marginBottom:6}}>{errorPairing}</div>}
-                    <div style={{fontFamily:F,fontSize:11,color:'#6B7280',marginBottom:6}}>Colombia: 57 + numero sin el 0 inicial</div>
+                    <div style={{fontFamily:F,fontSize:11,color:'#6B7280',marginBottom:6}}>España: 34 + numero sin el 0 inicial</div>
                     <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.2)',borderRadius:8,padding:'8px 10px',fontFamily:F,fontSize:11,color:'#92400E',lineHeight:1.5}}>
                       WhatsApp mostrara "Chrome (Ubuntu) esta intentando vincularse" — toca <strong>Confirmar</strong>.
                     </div>

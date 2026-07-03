@@ -278,21 +278,33 @@ export default async function handler(req, res) {
     }
 
     // ── 2.6. Check de tokens ANTES de llamar a GPT ───────────
-    // Se hace aquí para no consumir tokens si ya se superó el límite.
-    // Usa la clave mensual correcta para evitar acumulación entre meses.
+    // Si es el dueño, usa creditosDueno separados (gestionable desde métricas).
+    // Si es un cliente normal, usa wasapbot_tokens del mes actual.
     {
+      const esDueno = telefonoDueno && numeroLimpio === telefonoDueno;
       const PLAN_TOKENS_CHECK = { basico:50000, estandar:150000, pro:400000, wasapbot:0, emprendedor:50000, profesional:150000, prueba_5k:45000 };
-      const tokLimitCheck = empresa.esPruebaGratis ? 45000 : (PLAN_TOKENS_CHECK[empresa.planWasapbot||empresa.plan||'wasapbot'] || 50000);
-      if (tokLimitCheck > 0) {
-        const mesKeyCheck = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
-        const tokSnapCheck = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKeyCheck}`).get().catch(()=>null);
-        const tokUsadoCheck = tokSnapCheck?.exists ? (tokSnapCheck.data().usado || 0) : 0;
-        if (tokUsadoCheck > tokLimitCheck) {
-          if (empresa.esPruebaGratis) {
-            await adminDb.collection('empresas').doc(empresaId).update({ planActivo: false, pruebaGratisFinalizada: true }).catch(()=>{});
-            return res.json({ respuesta:`Has alcanzado el límite de tu *prueba gratuita* en ${nombreEmpresa}. Para seguir usando tu asistente, activa uno de nuestros planes desde tu panel. 🚀`, imagenes:[] });
+      const mesKeyCheck = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+
+      if (esDueno) {
+        // El dueño tiene su propio tope configurable desde métricas
+        const tokLimitDueno = Number(empresa.tokensLimiteDueno || 50000);
+        const tokUsadoDueno = Number(empresa.tokensUsadosDueno || 0);
+        if (tokLimitDueno > 0 && tokUsadoDueno > tokLimitDueno) {
+          return res.json({ respuesta:`Has alcanzado tu límite mensual de créditos de agencia. Puedes ajustarlo en el panel de métricas.`, imagenes:[] });
+        }
+      } else {
+        // Cliente normal: check de tokens del mes
+        const tokLimitCheck = empresa.esPruebaGratis ? 45000 : (PLAN_TOKENS_CHECK[empresa.planWasapbot||empresa.plan||'wasapbot'] || 50000);
+        if (tokLimitCheck > 0) {
+          const tokSnapCheck = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKeyCheck}`).get().catch(()=>null);
+          const tokUsadoCheck = tokSnapCheck?.exists ? (tokSnapCheck.data().usado || 0) : 0;
+          if (tokUsadoCheck > tokLimitCheck) {
+            if (empresa.esPruebaGratis) {
+              await adminDb.collection('empresas').doc(empresaId).update({ planActivo: false, pruebaGratisFinalizada: true }).catch(()=>{});
+              return res.json({ respuesta:`Has alcanzado el límite de tu *prueba gratuita* en ${nombreEmpresa}. Para seguir usando tu asistente, activa uno de nuestros planes desde tu panel. 🚀`, imagenes:[] });
+            }
+            return res.json({ respuesta:`El servicio de ${nombreEmpresa} ha alcanzado su límite mensual.`, imagenes:[] });
           }
-          return res.json({ respuesta:`El servicio de ${nombreEmpresa} ha alcanzado su límite mensual.`, imagenes:[] });
         }
       }
     }
@@ -586,9 +598,11 @@ ${conocimiento?.info?.direccion?`DIRECCIÓN: ${conocimiento.info.direccion}`:''}
     if (nombreDetectado && (!nombreCliente||nombreCliente.startsWith('WhatsApp ')))
       await contactosRef.doc(contactoId).update({ nombre:nombreDetectado }).catch(()=>{});
 
-    await adminDb.collection('empresas').doc(empresaId).update({
-      tokensUsados:FieldValue.increment(tokensUsados), conversaciones:FieldValue.increment(1), ultimaActividad:FieldValue.serverTimestamp(),
-    }).catch(()=>{});
+    await adminDb.collection('empresas').doc(empresaId).update(
+      telefonoDueno && numeroLimpio === telefonoDueno
+        ? { tokensUsadosDueno: FieldValue.increment(tokensUsados), ultimaActividad: FieldValue.serverTimestamp() }
+        : { tokensUsados: FieldValue.increment(tokensUsados), conversaciones: FieldValue.increment(1), ultimaActividad: FieldValue.serverTimestamp() }
+    ).catch(()=>{});
 
     let respuestaLimpia = respuesta.replace(/\n?CITA_DETECTADA:.*$/m,'').replace(/\n?SOPORTE_SOLICITADO:.*$/m,'').trim();
 
