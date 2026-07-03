@@ -1110,9 +1110,9 @@ export default function Landing() {
         </div>
       </footer>
 
-      {/* Botón flotante fijo del simulador demo — siempre visible, prioritario en móvil */}
+      {/* Botón flotante fijo del simulador demo — esquina inferior IZQUIERDA para no chocar con el chatbot AIA (bottom-right) */}
       {!showDemo && (
-        <button onClick={() => setShowDemo(true)} style={{ position:'fixed', bottom:20, right:20, zIndex:500, background:'linear-gradient(135deg,#25D366,#1aad4e)', color:'#fff', border:'none', borderRadius:99, padding:'13px 20px', fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:700, fontSize:13, cursor:'pointer', boxShadow:'0 8px 28px rgba(37,211,102,0.45)', display:'flex', alignItems:'center', gap:8 }}>
+        <button onClick={() => setShowDemo(true)} style={{ position:'fixed', bottom:20, left:20, zIndex:9990, background:'linear-gradient(135deg,#25D366,#1aad4e)', color:'#fff', border:'none', borderRadius:99, padding:'13px 20px', fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:700, fontSize:13, cursor:'pointer', boxShadow:'0 8px 28px rgba(37,211,102,0.45)', display:'flex', alignItems:'center', gap:8 }}>
           💬 Probar demo
         </button>
       )}

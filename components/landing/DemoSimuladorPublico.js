@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 const F = "'Plus Jakarta Sans', sans-serif";
 
-const CTA_TEXT = '¡Fácil! 🚀 Regístrate gratis en agenciame — tienes 24 horas sin tarjeta para conectar tu WhatsApp real y que la IA responda con la información de TU negocio. ¿Empezamos?';
+const CTA_TEXT = '¡Fácil! 🚀 Regístrate gratis en BQinzagencIA — tienes 24 horas sin tarjeta para conectar tu WhatsApp real y que la IA responda con la información de TU negocio. ¿Empezamos?';
 
 const DEMO_DATA = {
   peluqueria: {
