@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Bloquear rutas privadas
+Disallow: /admin
+Disallow: /wasapbot/panel
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
+
+Sitemap: https://www.bqinzagencia.com/sitemap.xml

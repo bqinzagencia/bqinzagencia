@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTokViral.ia - Creador de Contenido para TikTok Shop</title>
+    <style>
+        /* Estilos Globales - Modo Oscuro TikTok Style */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        header {
+            background-color: #121826;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #242f47;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fe2c55; /* Color corporativo de TikTok */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            color: #25f4ee; /* El toque cyan de TikTok */
+        }
+
+        .credits-counter {
+            background-color: #1f293d;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #2e3d59;
+        }
+
+        .btn-vip {
+            background: linear-gradient(135deg, #fe2c55, #25f4ee);
+            color: #0b0f19;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-vip:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(37, 244, 238, 0.4);
+        }
+
+        /* Contenedor Principal */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Zona de Carga (Drag & Drop) */
+        .upload-zone {
+            background-color: #121826;
+            border: 2px dashed #fe2c55;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: #25f4ee;
+            background-color: #12182699;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Panel de Resultados (2 Columnas) */
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Columna Izquierda: Vista previa */
+        .preview-box {
+            background-color: #121826;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #242f47;
+            text-align: center;
+        }
+
+        .preview-box h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+
+        .mock-image {
+            width: 100%;
+            height: 380px;
+            background-color: #1f293d;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-weight: bold;
+            border: 1px solid #2e3d59;
+        }
+
+        /* Columna Derecha: Formulario IA */
+        .form-box {
+            background-color: #121826;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #242f47;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #25f4ee;
+        }
+
+        .input-mock {
+            width: 100%;
+            background-color: #0b0f19;
+            border: 1px solid #242f47;
+            padding: 0.8rem;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 1rem;
+        }
+
+        textarea.input-mock {
+            height: 180px;
+            resize: none;
+        }
+
+        /* Botón Copiar */
+        .btn-copy {
+            background-color: #fe2c55;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        .btn-copy:hover {
+            background-color: #e11d48;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menú Superior -->
+    <header>
+        <div class="logo">🎥 TikTokViral<span>.ia</span></div>
+        <div class="credits-counter">🎁 Créditos Gratis: <b>2 / 3</b></div>
+        <button class="btn-vip">Pro Ilimitado (9,99€)</button>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main>
+        
+        <!-- Zona de subida de fotos / producto -->
+        <div class="upload-zone">
+            <span class="upload-icon">📦</span>
+            <h2>Sube el producto de tu TikTok Shop o Dropshipping</h2>
+            <p style="color: #94a3b8; margin-top: 0.5rem;">La IA generará ganchos virales y guiones de venta en segundos</p>
+        </div>
+
+        <!-- Resultados de la IA -->
+        <div class="results-container">
+            
+            <!-- Vista Previa del Producto -->
+            <div class="preview-box">
+                <h3>🖼️ Producto Analizado</h3>
+                <div class="mock-image">
+                    [ Imagen: Mini Humidificador de Llama RGB ]
+                </div>
+            </div>
+
+            <!-- Guion e Info Generada -->
+            <div class="form-box">
+                <div class="form-group">
+                    <label>⚡ Ganchos Virales sugeridos (Hooks para los primeros 3 segundos)</label>
+                    <input type="text" class="input-mock" value="👉 Opción 1: 'Por esto tu habitación huele mal y no lo sabías...' | Opción 2: 'El gadget de 15€ que parece de una casa de millonario'" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>📝 Guión de Vídeo de Alta Conversión (Voz en off / Texto en pantalla)</label>
+                    <textarea class="input-mock" readonly>[0:00 - 0:03] (Muestra el humidificador apagado) ¿Quieres cambiar por completo la vibra de tu setup o habitación sin gastar una fortuna?
+[0:03 - 0:10] (Enciendes el dispositivo con el efecto de fuego RGB) Mira esto. Es el nuevo humidificador con efecto de llama real. Le echas tu perfume favorito y el cuarto entero huele espectacular en 2 minutos.
+[0:10 - 0:15] (Señalas el carrito de compra) Está rompiéndola en TikTok Shop y tiene descuento esta semana. Te dejo el link directo en el botón de aquí abajo antes de que se agote.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>🏷️ Copy de la Publicación y Hashtags SEO</label>
+                    <input type="text" class="input-mock" value="El mejor cambio para tu cuarto 👁️👄👁️ El link está en el carrito naranja #tiktokshop #unboxing #gadget #dropshipping #setup" readonly>
+                </div>
+
+                <button class="btn-copy" onclick="alert('¡Guion y ganchos copiados! Listo para grabar tu TikTok.')">📋 Copiar Guión Completo</button>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

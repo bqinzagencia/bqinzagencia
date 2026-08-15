@@ -104,10 +104,23 @@ export default function Document() {
           gtag('js', new Date());
           gtag('config', 'G-54NPKF2D5N');
         `}} />
-        <meta name="description" content="BQinzagencIA — Automatización empresarial con Inteligencia Artificial." />
-        <meta property="og:title" content="BQinzagencIA — Tu negocio en piloto automático con IA" />
-        <meta property="og:description" content="Automatiza ventas, atención al cliente y operaciones con agentes de IA." />
+        <meta name="description" content="Automatizamos las ventas y la atención al cliente de tu negocio local con agentes virtuales de IA. Bot de WhatsApp con IA, automatizaciones y mucho más. ¡Prueba gratis 24h!" />
+        <meta name="keywords" content="agencia inteligencia artificial madrid, automatizacion de procesos, agentes virtuales whatsapp, bots para negocios locales, wasapbot, chatbot whatsapp" />
+        <meta name="robots" content="index, follow" />
+        <meta name="language" content="Spanish" />
+        <meta name="author" content="BQinzagencIA" />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.bqinzagencia.com/" />
+        <meta property="og:title" content="Agencia de Inteligencia Artificial y Automatizaciones en Madrid | BQinzagencIA" />
+        <meta property="og:description" content="Automatizamos las ventas y la atención al cliente de tu negocio local con agentes virtuales de IA y flujos de trabajo eficientes." />
+        <meta property="og:image" content="https://www.bqinzagencia.com/og-image.jpg" />
+        <meta property="og:locale" content="es_ES" />
+        <meta property="og:site_name" content="BQinzagencIA" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://www.bqinzagencia.com/" />
+        <meta name="twitter:title" content="Agencia de Inteligencia Artificial y Automatizaciones en Madrid | BQinzagencIA" />
+        <meta name="twitter:description" content="Automatizamos las ventas y la atención al cliente de tu negocio local con agentes virtuales de IA." />
+        <meta name="twitter:image" content="https://www.bqinzagencia.com/og-image.jpg" />
       </Head>
       <body>
         <Main />

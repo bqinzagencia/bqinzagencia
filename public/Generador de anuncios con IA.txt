@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnuncioCrack IA - Generador de Anuncios</title>
+    <style>
+        /* Estilos Globales - Modo Oscuro Elegante */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        header {
+            background-color: #1e293b;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+
+        .credits-counter {
+            background-color: #334155;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #475569;
+        }
+
+        .btn-vip {
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-vip:hover {
+            transform: scale(1.05);
+        }
+
+        /* Contenedor Principal */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Zona de Carga (Drag & Drop) */
+        .upload-zone {
+            background-color: #1e293b;
+            border: 2px dashed #38bdf8;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            transition: background-color 0.3s;
+        }
+
+        .upload-zone:hover {
+            background-color: #1e293b99;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Panel de Resultados (2 Columnas) */
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Columna Izquierda: Vista previa */
+        .preview-box {
+            background-color: #1e293b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            text-align: center;
+        }
+
+        .preview-box h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+
+        .mock-image {
+            width: 100%;
+            height: 250px;
+            background-color: #334155;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-weight: bold;
+            border: 1px solid #475569;
+        }
+
+        /* Columna Derecha: Formulario IA */
+        .form-box {
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        .input-mock {
+            width: 100%;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            padding: 0.8rem;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 1rem;
+        }
+
+        textarea.input-mock {
+            height: 120px;
+            resize: none;
+        }
+
+        /* Botón Copiar */
+        .btn-copy {
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        .btn-copy:hover {
+            background-color: #16a34a;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menú Superior -->
+    <header>
+        <div class="logo">🚀 AnuncioCrack.ia</div>
+        <div class="credits-counter">🎁 Créditos Gratis: <b>2 / 3</b></div>
+        <button class="btn-vip">Pro Ilimitado (4,99€)</button>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main>
+        
+        <!-- Zona de subida de fotos -->
+        <div class="upload-zone">
+            <span class="upload-icon">📸</span>
+            <h2>Arrastra aquí la foto de tu producto</h2>
+            <p style="color: #94a3b8; margin-top: 0.5rem;">O haz clic para seleccionar desde tus archivos</p>
+        </div>
+
+        <!-- Resultados de la IA -->
+        <div class="results-container">
+            
+            <!-- Vista Previa de Imagen -->
+            <div class="preview-box">
+                <h3>🖼️ Tu Producto</h3>
+                <div class="mock-image">
+                    [ Imagen cargada: Zapatillas ]
+                </div>
+            </div>
+
+            <!-- Datos Generados -->
+            <div class="form-box">
+                <div class="form-group">
+                    <label>🏷️ Título sugerido para Wallapop / Vinted</label>
+                    <input type="text" class="input-mock" value="Zapatillas Nike Air Max 90 - Como nuevas (Talla 42)" readonly>
+                </div>
+
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>💰 Precio Recomendado</label>
+                        <input type="text" class="input-mock" value="45€ - 50€" readonly>
+                    </div>
+                    <div>
+                        <label>📂 Categoría</label>
+                        <input type="text" class="input-mock" value="Moda y Accesorios" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>📋 Descripción Optimizada por IA</label>
+                    <textarea class="input-mock" readonly>¡Oportunidad! Se venden zapatillas Nike Air Max 90 en perfecto estado, muy poco uso (ver fotos de la suela). Súper cómodas y combinables. Se entregan limpias en su caja original. Envío rápido o trato en mano en Madrid.</textarea>
+                </div>
+
+                <button class="btn-copy" onclick="alert('¡Copiado al portapapeles! Listo para pegar en Wallapop.')">📋 Copiar Anuncio Completo</button>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stok Subastas VIP · Madrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --bg: #f1f2f5;
+    --surface: #ffffff;
+    --surface-2: #f7f8fa;
+    --border: #e1e4ea;
+    --text: #1c2027;
+    --text-muted: #6b7280;
+    --gold: #a5772f;
+    --gold-soft: #c9a15a;
+    --crimson: #a23b2a;
+    --green: #3f8f56;
+    --radius: 10px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(165,119,47,0.06), transparent 40%),
+      radial-gradient(circle at 85% 10%, rgba(162,59,42,0.05), transparent 45%);
+  }
+  a{ color: inherit; }
+
+  .wrap{ max-width: 1040px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  header.top{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap: 24px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 28px;
+    margin-bottom: 32px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 34px;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+    color: #14161c;
+  }
+  .sub{
+    color: var(--text-muted);
+    font-size: 14.5px;
+    margin: 0;
+  }
+  .status{
+    display:flex; align-items:center; gap: 9px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 9px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(20,22,28,0.04);
+  }
+  .dot{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-muted);
+  }
+  .dot.ok{ background: var(--green); box-shadow: 0 0 0 3px rgba(63,143,86,0.15); }
+  .dot.bad{ background: var(--crimson); box-shadow: 0 0 0 3px rgba(162,59,42,0.15); }
+
+  .stats{
+    display:grid; grid-template-columns: repeat(3,1fr);
+    gap: 14px; margin-bottom: 30px;
+  }
+  .stat{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: 0 1px 2px rgba(20,22,28,0.03);
+  }
+  .stat .n{
+    font-family:'Fraunces', serif; font-size: 30px; font-weight: 600;
+    line-height:1; color:#14161c;
+  }
+  .stat .l{
+    color: var(--text-muted); font-size: 12.5px; margin-top: 8px;
+  }
+
+  .toolbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 16px; margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .toolbar h2{
+    font-family:'Fraunces', serif; font-weight: 600; font-size: 18px; margin:0;
+    color:#14161c;
+  }
+  .toggle{
+    display:flex; align-items:center; gap: 8px;
+    font-size: 13px; color: var(--text-muted);
+    cursor: pointer; user-select:none;
+  }
+  .toggle input{ accent-color: var(--gold); width:15px; height:15px; }
+
+  .map-section{ margin-bottom: 40px; }
+  .map-legend{
+    display:flex; align-items:center; gap: 18px;
+    font-size: 12px; color: var(--text-muted);
+  }
+  .map-legend span{ display:flex; align-items:center; gap: 6px; }
+  .legend-dot{ width: 9px; height: 9px; border-radius: 50%; display:inline-block; }
+  .legend-dot.gold{ background: var(--gold); }
+  .legend-dot.muted{ background: var(--text-muted); }
+
+  #map{
+    height: 420px;
+    width: 100%;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgba(20,22,28,0.03);
+  }
+  .leaflet-popup-content-wrapper{
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 8px;
+  }
+  .leaflet-popup-tip{ background: var(--surface); }
+  .leaflet-popup-content a{ color: var(--gold); }
+  .leaflet-container{ font-family: 'Inter', sans-serif; }
+
+  .list{ display:flex; flex-direction:column; gap: 12px; }
+
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display:flex; gap: 18px; align-items:flex-start;
+    transition: border-color .15s ease, box-shadow .15s ease;
+    box-shadow: 0 1px 2px rgba(20,22,28,0.03);
+  }
+  .card:hover{ border-color: #c7ccd6; box-shadow: 0 2px 8px rgba(20,22,28,0.06); }
+  .card.destacar{ border-color: rgba(165,119,47,0.4); background: linear-gradient(180deg, rgba(165,119,47,0.05), var(--surface) 45%); }
+
+  .stamp{
+    flex: 0 0 auto;
+    width: 54px; height: 54px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    transform: rotate(-8deg);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 700; letter-spacing:0.05em;
+    color: var(--gold);
+    text-align:center; line-height:1.15;
+  }
+  .stamp.none{
+    border-color: var(--border); color: var(--text-muted);
+  }
+
+  .card-body{ flex:1; min-width:0; }
+  .card-title{
+    font-family:'Fraunces', serif; font-size: 17px; font-weight: 600;
+    margin: 0 0 6px; line-height: 1.3;
+    color:#14161c;
+  }
+  .card-title a{ text-decoration:none; }
+  .card-title a:hover{ text-decoration: underline; text-decoration-color: var(--gold); }
+
+  .meta{
+    display:flex; flex-wrap:wrap; gap: 6px 16px;
+    font-size: 12.5px; color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .meta span b{ color: var(--text); font-weight: 500; }
+
+  .badge{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--surface-2);
+  }
+  .badge.destacar{ color: var(--gold); border-color: rgba(165,119,47,0.4); background: rgba(165,119,47,0.08); }
+
+  .desc{
+    font-size: 13.5px; color: var(--text-muted);
+    margin-top: 8px; line-height: 1.5;
+  }
+
+  .empty, .loading, .error{
+    text-align:center; color: var(--text-muted);
+    padding: 60px 20px; border: 1px dashed var(--border);
+    border-radius: var(--radius); font-size: 14px;
+    background: var(--surface);
+  }
+  .error{ color: var(--crimson); border-color: rgba(162,59,42,0.35); }
+
+  footer{
+    margin-top: 48px; text-align:center;
+    color: var(--text-muted); font-size: 12px;
+  }
+
+  @media (max-width: 640px){
+    .stats{ grid-template-columns: 1fr; }
+    header.top{ align-items:flex-start; }
+    .card{ flex-direction:column; }
+    #map{ height: 320px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <p class="eyebrow">bqinzagencia</p>
+      <h1>Stok Subastas VIP · Madrid</h1>
+      <p class="sub">Captación y análisis automático de subastas del BOE</p>
+    </div>
+    <div class="status" id="status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">comprobando servicio…</span>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="stat"><div class="n" id="statTotal">—</div><div class="l">Subastas registradas</div></div>
+    <div class="stat"><div class="n" id="statDestacadas">—</div><div class="l">Destacadas</div></div>
+    <div class="stat"><div class="n" id="statUltima">—</div><div class="l">Última actualización</div></div>
+  </section>
+
+  <section class="map-section">
+    <div class="toolbar">
+      <h2>Mapa</h2>
+      <div class="map-legend">
+        <span><span class="legend-dot gold"></span> Destacada</span>
+        <span><span class="legend-dot muted"></span> Revisada</span>
+      </div>
+    </div>
+    <div id="map"></div>
+  </section>
+
+  <div class="toolbar">
+    <h2>Listado</h2>
+    <label class="toggle">
+      <input type="checkbox" id="soloDestacadas">
+      Mostrar solo destacadas
+    </label>
+  </div>
+
+  <div class="list" id="list">
+    <div class="loading">Cargando subastas…</div>
+  </div>
+
+  <footer>Actualizado automáticamente cada 6 horas por el scraper del BOE.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  let TODAS = [];
+  let map;
+  let marcadores;
+
+  function fmtRelativo(iso){
+    if(!iso) return '—';
+    const d = new Date(iso);
+    const diffMin = Math.round((Date.now() - d.getTime())/60000);
+    if(diffMin < 1) return 'ahora mismo';
+    if(diffMin < 60) return 'hace ' + diffMin + ' min';
+    const diffH = Math.round(diffMin/60);
+    if(diffH < 24) return 'hace ' + diffH + ' h';
+    const diffD = Math.round(diffH/24);
+    return 'hace ' + diffD + ' d';
+  }
+
+  function iniciarMapa(){
+    map = L.map('map', { scrollWheelZoom: false }).setView([40.4168, -3.7038], 9);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+    marcadores = L.layerGroup().addTo(map);
+  }
+
+  function renderMapa(data){
+    if(!map) return;
+    marcadores.clearLayers();
+
+    const conCoords = data.filter(s => typeof s.lat === 'number' && typeof s.lng === 'number');
+
+    conCoords.forEach(s => {
+      const destacar = s.analisis && s.analisis.recomendacion === 'destacar';
+      const color = destacar ? '#a5772f' : '#5b6472';
+      const marker = L.circleMarker([s.lat, s.lng], {
+        radius: destacar ? 8 : 6,
+        color: '#ffffff',
+        weight: 2,
+        fillColor: color,
+        fillOpacity: destacar ? 0.95 : 0.8
+      });
+
+      const titulo = s.titulo || 'Subasta sin título';
+      const url = s.url || '#';
+      const municipio = s.municipio || s.ubicacion || '';
+
+      marker.bindPopup(
+        '<strong>' + titulo + '</strong><br>' +
+        (municipio ? municipio + '<br>' : '') +
+        '<a href="' + url + '" target="_blank" rel="noopener">Ver en el BOE →</a>'
+      );
+
+      marker.addTo(marcadores);
+    });
+  }
+
+  function render(){
+    const soloDestacadas = document.getElementById('soloDestacadas').checked;
+    const data = soloDestacadas
+      ? TODAS.filter(s => s.analisis && s.analisis.recomendacion === 'destacar')
+      : TODAS;
+
+    renderMapa(data);
+
+    const list = document.getElementById('list');
+
+    if(data.length === 0){
+      list.innerHTML = '<div class="empty">' +
+        (soloDestacadas ? 'Aún no hay subastas destacadas.' : 'Todavía no hay subastas guardadas. Vuelve tras el próximo ciclo del scraper.') +
+        '</div>';
+      return;
+    }
+
+    list.innerHTML = data.map(s => {
+      const destacar = s.analisis && s.analisis.recomendacion === 'destacar';
+      const rec = s.analisis && s.analisis.recomendacion ? s.analisis.recomendacion : 'sin analizar';
+      const titulo = s.titulo || 'Subasta sin título';
+      const url = s.url || '#';
+
+      let motivo = '';
+      if (s.analisis) {
+        motivo = s.analisis.motivo || s.analisis.resumen || s.analisis.justificacion || '';
+      }
+
+      return '' +
+      '<div class="card' + (destacar ? ' destacar' : '') + '">' +
+        '<div class="stamp' + (destacar ? '' : ' none') + '">' + (destacar ? 'DESTA&#8209;CAR' : 'REVI&#8209;SADA') + '</div>' +
+        '<div class="card-body">' +
+          '<h3 class="card-title"><a href="' + url + '" target="_blank" rel="noopener">' + titulo + '</a></h3>' +
+          '<div class="meta">' +
+            (s.municipio ? '<span><b>Municipio:</b> ' + s.municipio + '</span>' : (s.ubicacion ? '<span><b>Ubicación:</b> ' + s.ubicacion + '</span>' : '')) +
+            (s.expediente ? '<span><b>Expediente:</b> ' + s.expediente + '</span>' : '') +
+            '<span><b>Procesado:</b> ' + fmtRelativo(s.procesadoEn) + '</span>' +
+          '</div>' +
+          '<span class="badge' + (destacar ? ' destacar' : '') + '">' + rec + '</span>' +
+          (motivo ? '<div class="desc">' + motivo + '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function cargarEstado(){
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    try{
+      const res = await fetch('/health');
+      const data = await res.json();
+      if(data.status === 'ok'){
+        dot.className = 'dot ok';
+        text.textContent = 'servicio activo';
+      } else {
+        throw new Error('estado inesperado');
+      }
+    }catch(e){
+      dot.className = 'dot bad';
+      text.textContent = 'servicio no responde';
+    }
+  }
+
+  async function cargarSubastas(){
+    try{
+      const res = await fetch('/api/subastas');
+      const data = await res.json();
+      if(!data.ok) throw new Error(data.error || 'Error desconocido');
+
+      TODAS = data.subastas || [];
+
+      document.getElementById('statTotal').textContent = TODAS.length;
+      const destacadas = TODAS.filter(s => s.analisis && s.analisis.recomendacion === 'destacar');
+      document.getElementById('statDestacadas').textContent = destacadas.length;
+      document.getElementById('statUltima').textContent = TODAS.length ? fmtRelativo(TODAS[0].procesadoEn) : '—';
+
+      render();
+    }catch(e){
+      document.getElementById('list').innerHTML = '<div class="error">No se pudieron cargar las subastas: ' + e.message + '</div>';
+    }
+  }
+
+  document.getElementById('soloDestacadas').addEventListener('change', render);
+
+  iniciarMapa();
+  cargarEstado();
+  cargarSubastas();
+</script>
+</body>
+</html>

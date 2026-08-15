@@ -78,7 +78,7 @@
       '#agme-send:hover{opacity:0.85;}',
       '#agme-branding{text-align:center;padding:5px;font-size:9px;color:#D1D5DB;background:#fff;}',
       '#agme-branding a{color:#D1D5DB;}',
-      '@media(max-width:480px){#agme-panel{width:calc(100vw - 20px);' + side + ':10px;bottom:80px;}}',
+      '@media(max-width:480px){#agme-panel{width:calc(100vw - 20px);' + side + ':10px;bottom:90px;max-height:70vh;}}',
     ].join('');
     document.head.appendChild(style);
   }
@@ -131,8 +131,8 @@
 
     var closeBtn = document.createElement('button');
     closeBtn.id  = 'agme-hclose';
-    closeBtn.textContent = '✕';
     closeBtn.setAttribute('aria-label', 'Cerrar chat');
+    closeBtn.style.display = 'none'; // ocultar X del header — cerrar solo con el FAB
 
     header.appendChild(avatarDiv);
     header.appendChild(nameDiv);
@@ -209,7 +209,7 @@
     var fab   = document.getElementById('agme-fab');
     if (panel) panel.classList.add('open');
     if (badge) badge.style.display = 'none';
-    if (fab)   fab.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><line x1="18" y1="6" x2="6" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
+    if (fab)   fab.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>'; // mantener icono chat al abrir
     scrollToBottom();
   }
 

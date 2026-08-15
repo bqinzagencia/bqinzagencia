@@ -1,4 +1,4 @@
-// pages/wasapbot/activar.js — v14: flujo QR-first (nombre+correo → QR → panel)
+// pages/wasapbot/activar.js — v15: paso 2 conectado a solicitud de activacion manual (Meta)
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -35,9 +35,9 @@ function validarEmail(email) {
   return null;
 }
 
-// ── Paso 1: Datos ── Paso 2: QR ── Paso 3: Listo ──
+// ── Paso 1: Datos ── Paso 2: Solicitar activación ── Paso 3: Listo ──
 export default function WasapBotActivar() {
-  const [paso,      setPaso]      = useState(1); // 1=datos, 2=QR, 3=listo
+  const [paso,      setPaso]      = useState(1); // 1=datos, 2=activacion, 3=listo
   const [nombre,    setNombre]    = useState('');
   const [email,     setEmail]     = useState('');
   const [emailHotmart, setEmailHotmart] = useState(''); // email pre-llenado desde Hotmart
@@ -56,21 +56,14 @@ export default function WasapBotActivar() {
   const [codigoEmail,       setCodigoEmail]       = useState('');
   const [verificandoCodigo, setVerificandoCodigo] = useState(false);
 
-  // QR
-  const [qrBase64,   setQrBase64]   = useState('');
-  const [qrSegundos, setQrSegundos] = useState(0);
-  const [qrExpirado, setQrExpirado] = useState(false);
-  const [generandoQR,setGenerandoQR]= useState(false);
+  // Numero de WhatsApp final (paso 3)
   const [numeroWA,   setNumeroWA]   = useState('');
-  const qrTimerRef = useRef(null);
-  const pollRef    = useRef(null);
 
-  // Pairing Code
-  const [modoPairing,    setModoPairing]    = useState(false);
-  const [telefonoPairing,setTelefonoPairing]= useState('');
-  const [pairingCode,    setPairingCode]    = useState('');
-  const [loadingPairing, setLoadingPairing] = useState(false);
-  const [errorPairing,   setErrorPairing]   = useState('');
+  // Solicitud de activación manual (nueva plataforma Meta)
+  const [telefonoActivacion, setTelefonoActivacion] = useState('');
+  const [enviandoActivacion, setEnviandoActivacion] = useState(false);
+  const [solicitudEnviada,   setSolicitudEnviada]   = useState(false);
+  const [errorActivacion,    setErrorActivacion]    = useState('');
 
   useEffect(() => {
     fetch('/api/wasapbot-precios').then(r=>r.json())
@@ -89,10 +82,6 @@ export default function WasapBotActivar() {
       setVerificadoVia('hotmart');
       setDesdeHotmart(true);
     }
-    return () => {
-      clearInterval(qrTimerRef.current);
-      clearTimeout(pollRef.current);
-    };
   }, []);
 
   // ── Google ──────────────────────────────────────────────────────────────
@@ -150,8 +139,8 @@ export default function WasapBotActivar() {
     finally { setVerificandoCodigo(false); }
   };
 
-  // ── Paso 1 → crear empresa + ir a QR ───────────────────────────────────
-  const crearYMostrarQR = async () => {
+  // ── Paso 1 → crear empresa + ir a paso 2 ───────────────────────────────
+  const crearEmpresa = async () => {
     if (!nombre.trim()) { setError('Escribe el nombre de tu negocio'); return; }
     if (nombre.trim().length < 3) { setError('El nombre debe tener al menos 3 caracteres'); return; }
     if (/^(sin nombre|test|prueba|hola|demo|asdf|qwerty)$/i.test(nombre.trim())) { setError('Escribe el nombre real de tu negocio'); return; }
@@ -161,7 +150,7 @@ export default function WasapBotActivar() {
 
     setError(''); setLoading(true);
     try {
-      // 1. Crear empresa en Firestore
+      // Crear empresa en Firestore
       const r = await fetch('/api/wasapbot-crear', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -182,93 +171,35 @@ export default function WasapBotActivar() {
       trackRegistroCompleto({ industria:'otro', ciudad:'' });
       trackEvent('registro_paso1_ok', { metodo_email: verificadoVia });
 
-      // 2. Ir al paso QR y generarlo
       setPaso(2);
       setLoading(false);
-      generarQR(eid);
     } catch(e) {
       setError(e.message);
       setLoading(false);
     }
   };
 
-  // ── Pairing Code ─────────────────────────────────────────────────────
-  const iniciarPairing = async () => {
-    setErrorPairing('La conexión automática está en mantenimiento mientras migramos a la nueva plataforma oficial de Meta. Te contactaremos para activarlo manualmente.');
-  };
-
-  // ── Generar QR ──────────────────────────────────────────────────────────
-  // NOTA: El servidor de Railway (Baileys) fue retirado el 15/08/2026.
-  // Mientras se construye el flujo oficial de Meta (Embedded Signup),
-  // mostramos un mensaje de mantenimiento en vez de intentar conectar.
-  const generarQR = async (eid) => {
-    setGenerandoQR(false);
-    setQrBase64('');
-    setQrExpirado(false);
-    setError('');
-  };
-
-  // ── Countdown 60s ───────────────────────────────────────────────────────
-  const iniciarCountdown = () => {
-    clearInterval(qrTimerRef.current);
-    setQrSegundos(60);
-    setQrExpirado(false);
-    qrTimerRef.current = setInterval(() => {
-      setQrSegundos(s => {
-        if (s <= 1) {
-          clearInterval(qrTimerRef.current);
-          setQrExpirado(true);
-          trackEvent('qr_expirado', {});
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-  };
-
-  // ── Esperar que el usuario escanee ──────────────────────────────────────
-  const esperarConexion = (id) => {
-    let n = 0;
-    const check = async () => {
-      if (n++ > 60) return;
-      const r = await fetch(WA_SERVER+'/sesion/'+id+'/status', {
-        headers:{'x-server-secret':WA_SECRET},
-      }).catch(()=>null);
-      const d = r ? await r.json().catch(()=>({})) : {};
-      if (d.status === 'connected') {
-        clearInterval(qrTimerRef.current);
-        setNumeroWA(d.numero||'');
-        onConectado(id, d.numero||'');
-        return;
-      }
-      pollRef.current = setTimeout(check, 3000);
-    };
-    check();
-  };
-
-  // ── WhatsApp conectado ──────────────────────────────────────────────────
-  const onConectado = async (id, numero) => {
-    trackEvent('whatsapp_conectado_qr_first', { numero });
-    // Esperar 5s para que Baileys se estabilice
-    await new Promise(r => setTimeout(r, 5000));
-    // Enviar mensaje de bienvenida
+  // ── Paso 2 → solicitar activación manual (nueva plataforma Meta) ───────
+  const solicitarActivacionManual = async () => {
+    const tel = telefonoActivacion.replace(/\D/g,'');
+    if (tel.length < 9) { setErrorActivacion('Escribe tu numero de WhatsApp con codigo de pais. Ej: 34674421919'); return; }
+    setErrorActivacion(''); setEnviandoActivacion(true);
     try {
-      await fetch('/api/wasapbot-panel', {
+      const r = await fetch('/api/wasapbot-solicitar-conexion', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          accion: 'enviarMensajeBienvenida',
-          empresaId: id,
-          nombre: nombre.trim(),
-          numero,
-        }),
-      }).catch(()=>{});
-    } catch(e) { /* no bloquear si falla */ }
-
-    setPaso(3);
+        body: JSON.stringify({ empresaId, nombre: nombre.trim(), email: email.trim(), telefono: tel }),
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error||'No se pudo enviar la solicitud');
+      setNumeroWA(tel);
+      setSolicitudEnviada(true);
+      trackEvent('solicitud_activacion_manual', {});
+    } catch(e) {
+      setErrorActivacion(e.message);
+    } finally {
+      setEnviandoActivacion(false);
+    }
   };
-
-  // ── Colores countdown ───────────────────────────────────────────────────
-  const colorQR = qrSegundos > 20 ? '#25D366' : qrSegundos > 10 ? '#F59E0B' : '#EF4444';
 
   // ── Estilos base ────────────────────────────────────────────────────────
   const INP = {
@@ -413,7 +344,7 @@ export default function WasapBotActivar() {
                 Activa tu WhatsApp<br/>inteligente
               </h1>
               <p style={{fontFamily:F,fontSize:14,color:'rgba(255,255,255,0.5)',fontWeight:300,lineHeight:1.7}}>
-                Nombre de tu negocio + correo → escaneas un QR → listo.<br/>
+                Nombre de tu negocio + correo → deja tu numero → te contactamos.<br/>
                 <strong style={{color:'#EFF4FF',fontWeight:600}}>Menos de 2 minutos.</strong>
               </p>
             </div>
@@ -590,7 +521,7 @@ export default function WasapBotActivar() {
             {/* Boton sticky fuera del card - siempre visible en movil */}
             <div style={{position:'sticky',bottom:0,zIndex:20,paddingTop:12,paddingBottom:8,background:'linear-gradient(to bottom, transparent, #F0F4FF 40%)'}}>
               <button
-                onClick={crearYMostrarQR}
+                onClick={crearEmpresa}
                 disabled={loading||!emailVerificado||!nombre.trim()}
                 style={{
                   width:'100%',minHeight:54,border:'none',borderRadius:14,
@@ -616,7 +547,7 @@ export default function WasapBotActivar() {
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
                       <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.859L.054 23.448a.75.75 0 0 0 .922.922l5.59-1.478A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
                     </svg>
-                    Activar mi WhatsApp →
+                    Continuar →
                   </>
                 )}
               </button>
@@ -631,7 +562,7 @@ export default function WasapBotActivar() {
           </div>
         )}
 
-        {/* ═══ PASO 2: CONEXION ══════════════════════════════════════════════════ */}
+        {/* ═══ PASO 2: SOLICITAR ACTIVACIÓN ══════════════════════════════════ */}
         {paso===2&&(
           <div className="aup">
 
@@ -640,207 +571,58 @@ export default function WasapBotActivar() {
                 Conecta tu WhatsApp
               </h2>
               <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.45)',fontWeight:300}}>
-                Elige como quieres conectarte
+                Te contactamos para activarlo manualmente
               </p>
             </div>
 
-            {/* ── OPCION 1: CODIGO (ARRIBA - RECOMENDADO) ── */}
-            {!pairingCode && (
-              <div style={{
-                background:'#F0FDF4',border:'2px solid #25D366',
-                borderRadius:16,padding:'16px',marginBottom:12,textAlign:'left',
-              }}>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                  <div style={{background:'#25D366',color:'#fff',borderRadius:6,padding:'2px 8px',fontFamily:F,fontSize:10,fontWeight:700,flexShrink:0}}>RECOMENDADO</div>
-                  <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#111827'}}>Conectar con codigo</div>
+            {!solicitudEnviada ? (
+              <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:16,padding:'20px',marginBottom:12,textAlign:'left'}}>
+                <p style={{fontFamily:F,fontSize:13,color:'#6B7280',marginBottom:14,lineHeight:1.6}}>
+                  Estamos migrando a la plataforma oficial de WhatsApp (Meta). Déjanos tu número
+                  y activamos tu bot manualmente en menos de 24 horas.
+                </p>
+                <label style={{fontFamily:F,fontSize:11,fontWeight:700,textTransform:'uppercase',
+                  letterSpacing:1.2,color:'#6B7280',display:'block',marginBottom:8}}>
+                  Tu numero de WhatsApp *
+                </label>
+                <input value={telefonoActivacion} onChange={e=>setTelefonoActivacion(e.target.value)}
+                  placeholder="34674421919" inputMode="tel"
+                  style={{...INP,marginBottom:10}}/>
+                <div style={{fontFamily:F,fontSize:11,color:'#9CA3AF',marginBottom:14}}>
+                  España: 34 + numero sin el 0 inicial
                 </div>
-                {!modoPairing ? (
-                  <button onClick={()=>setModoPairing(true)}
-                    style={{
-                      width:'100%',background:'linear-gradient(135deg,#25D366,#1aad4e)',
-                      color:'#fff',border:'none',borderRadius:10,
-                      padding:'12px',fontFamily:F,fontSize:14,fontWeight:700,
-                      boxShadow:'0 4px 16px rgba(37,211,102,.3)',
-                    }}>
-                    Conectar con mi numero de telefono →
-                  </button>
-                ) : (
-                  <div>
-                    <div style={{display:'flex',gap:8,marginBottom:6}}>
-                      <input value={telefonoPairing} onChange={e=>setTelefonoPairing(e.target.value)}
-                        placeholder="34674421919" inputMode="tel"
-                        style={{...INP,flex:1,fontSize:14,padding:'11px 14px'}}/>
-                      <button onClick={iniciarPairing} disabled={loadingPairing}
-                        style={{background:'linear-gradient(135deg,#25D366,#1aad4e)',color:'#fff',border:'none',borderRadius:10,padding:'0 14px',fontFamily:F,fontSize:13,fontWeight:700,opacity:loadingPairing?.6:1,flexShrink:0}}>
-                        {loadingPairing?'...':'Obtener'}
-                      </button>
-                    </div>
-                    {errorPairing&&<div style={{fontFamily:F,fontSize:12,color:'#EF4444',marginBottom:6}}>{errorPairing}</div>}
-                    <div style={{fontFamily:F,fontSize:11,color:'#6B7280',marginBottom:6}}>España: 34 + numero sin el 0 inicial</div>
-                    <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.2)',borderRadius:8,padding:'8px 10px',fontFamily:F,fontSize:11,color:'#92400E',lineHeight:1.5}}>
-                      WhatsApp mostrara "Chrome (Ubuntu) esta intentando vincularse" — toca <strong>Confirmar</strong>.
-                    </div>
-                  </div>
+
+                {errorActivacion&&(
+                  <div style={{fontFamily:F,fontSize:12,color:'#EF4444',marginBottom:10}}>{errorActivacion}</div>
                 )}
-              </div>
-            )}
 
-            {/* Codigo generado */}
-            {pairingCode && (
-              <div style={{background:'#F0FDF4',border:'2px solid #25D366',borderRadius:16,padding:'16px',marginBottom:12,textAlign:'center'}}>
-                <div style={{fontFamily:F,fontSize:11,color:'#6B7280',marginBottom:4}}>Tu codigo de vinculacion</div>
-                <div style={{fontFamily:FA,fontSize:36,letterSpacing:6,color:'#25D366',marginBottom:10}}>{pairingCode}</div>
-                {['Abre WhatsApp','Ajustes → Dispositivos vinculados','Vincular dispositivo → Vincular con numero','Ingresa el codigo'].map((t,i)=>(
-                  <div key={i} style={{display:'flex',gap:8,alignItems:'center',marginBottom:5,textAlign:'left'}}>
-                    <div style={{width:18,height:18,borderRadius:5,background:'rgba(37,211,102,.15)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F,fontSize:9,fontWeight:700,color:'#25D366',flexShrink:0}}>{i+1}</div>
-                    <span style={{fontFamily:F,fontSize:11,color:'#6B7280'}}>{t}</span>
-                  </div>
-                ))}
-                <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(37,211,102,.07)',border:'1px solid rgba(37,211,102,.2)',borderRadius:99,padding:'6px 14px',marginTop:10}}>
-                  <div style={{width:6,height:6,borderRadius:'50%',background:'#25D366',animation:'pulse 1.5s ease infinite'}}/>
-                  <span style={{fontFamily:F,fontSize:11,color:'rgba(37,211,102,.85)',fontWeight:500}}>Esperando el codigo...</span>
+                <button onClick={solicitarActivacionManual} disabled={enviandoActivacion}
+                  style={{
+                    width:'100%',background:'linear-gradient(135deg,#25D366,#1aad4e)',
+                    color:'#fff',border:'none',borderRadius:10,
+                    padding:'13px',fontFamily:F,fontSize:14,fontWeight:700,
+                    boxShadow:'0 4px 16px rgba(37,211,102,.3)',
+                    opacity:enviandoActivacion?.6:1,
+                  }}>
+                  {enviandoActivacion?'Enviando...':'Solicitar activación →'}
+                </button>
+              </div>
+            ) : (
+              <div style={{background:'#F0FDF4',border:'2px solid #25D366',borderRadius:16,padding:'20px',marginBottom:12,textAlign:'center'}}>
+                <div style={{fontSize:32,marginBottom:8}}>✅</div>
+                <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#111827',marginBottom:6}}>
+                  ¡Solicitud recibida!
                 </div>
-              </div>
-            )}
-
-            {/* ── OPCION 2: QR (ABAJO - SECUNDARIA) ── */}
-            {!pairingCode && (
-              <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:16,padding:'16px',marginBottom:12,textAlign:'left'}}>
-                <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#6B7280',marginBottom:10,textAlign:'center'}}>O escanea el QR con otro dispositivo</div>
-                {generandoQR ? (
-                  <div style={{textAlign:'center',padding:'16px 0'}}>
-                    <div style={{width:36,height:36,border:'3px solid rgba(37,211,102,.15)',borderTop:'3px solid #25D366',borderRadius:'50%',animation:'spin .9s linear infinite',margin:'0 auto 8px'}}/>
-                    <div style={{fontFamily:F,fontSize:12,color:'#9CA3AF'}}>Generando QR...</div>
-                  </div>
-                ) : qrExpirado ? (
-                  <div style={{textAlign:'center',padding:'10px 0'}}>
-                    <div style={{fontFamily:F,fontSize:13,color:'#EF4444',marginBottom:8}}>⏱️ QR expirado</div>
-                    <button onClick={()=>generarQR()} style={{background:'linear-gradient(135deg,#2B6AFF,#1A56E8)',color:'#fff',border:'none',borderRadius:10,padding:'9px 18px',fontFamily:F,fontSize:12,fontWeight:700}}>Generar nuevo QR</button>
-                  </div>
-                ) : qrBase64 ? (
-                  <div style={{display:'flex',gap:12,alignItems:'center'}}>
-                    <div style={{background:'#fff',borderRadius:10,padding:6,boxShadow:'0 2px 12px rgba(0,0,0,.08)',border:`2px solid ${colorQR}`,flexShrink:0}}>
-                      <img src={qrBase64} alt="QR WhatsApp" style={{width:110,height:110,display:'block'}}/>
-                    </div>
-                    <div style={{flex:1}}>
-                      <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:colorQR,marginBottom:6}}>{qrSegundos}s</div>
-                      {['Abre WhatsApp','Ajustes → Dispositivos vinculados','Apunta la camara al QR'].map((t,i)=>(
-                        <div key={i} style={{display:'flex',gap:6,alignItems:'center',marginBottom:4}}>
-                          <span style={{color:'#25D366',fontSize:9,fontWeight:700,flexShrink:0}}>✓</span>
-                          <span style={{fontFamily:F,fontSize:11,color:'#6B7280'}}>{t}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* Error */}
-            {error&&(
-              <div style={{background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.2)',borderRadius:10,padding:'10px 14px',marginBottom:10,fontFamily:F,fontSize:13,color:'#EF4444',display:'flex',alignItems:'center',gap:8}}>
-                {error}<button onClick={()=>setError('')} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(239,68,68,.5)',fontSize:16}}>✕</button>
+                <div style={{fontFamily:F,fontSize:13,color:'#6B7280',lineHeight:1.6}}>
+                  Te contactaremos al numero +{telefonoActivacion.replace(/\D/g,'')} para activar tu WhatsApp en menos de 24 horas.
+                </div>
               </div>
             )}
 
             <button onClick={()=>{ window.location.href='/wasapbot/panel/'+empresaId; }}
               style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.4)',textDecoration:'underline',display:'block',margin:'8px auto 0',cursor:'pointer'}}>
-              Conectar WhatsApp despues →
+              Ir a mi panel →
             </button>
-          </div>
-        )}
-
-        {/* ═══ PASO 3: LISTO ═══════════════════════════════════════════════ */}
-        {paso===3&&(
-          <div className="aup" style={{textAlign:'center',padding:'20px 0'}}>
-
-            {/* Check animado */}
-            <div className="aok" style={{
-              width:88,height:88,borderRadius:'50%',
-              background:'linear-gradient(135deg,rgba(37,211,102,.15),rgba(37,211,102,.05))',
-              border:'2px solid rgba(37,211,102,.4)',
-              display:'flex',alignItems:'center',justifyContent:'center',
-              margin:'0 auto 20px',
-              boxShadow:'0 0 48px rgba(37,211,102,.2)',
-            }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-                stroke="#25D366" strokeWidth="2.5" strokeLinecap="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </div>
-
-            <h1 style={{
-              fontFamily:FA,fontSize:38,letterSpacing:'-1.5px',
-              color:'#25D366',marginBottom:8,lineHeight:1,
-            }}>
-              ¡WhatsApp activo!
-            </h1>
-
-            {numeroWA&&(
-              <div style={{
-                display:'inline-flex',alignItems:'center',gap:7,
-                fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.6)',marginBottom:16,
-              }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 9.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-                </svg>
-                +{numeroWA}
-              </div>
-            )}
-
-            {/* Mensaje bienvenida */}
-            <div style={{
-              background:'#F0FDF4',border:'1px solid #BBF7D0',
-              borderRadius:16,padding:'16px 18px',
-              marginBottom:24,textAlign:'left',
-            }}>
-              <div style={{fontFamily:F,fontSize:11,fontWeight:700,color:'#16A34A',
-                textTransform:'uppercase',letterSpacing:1.2,marginBottom:10}}>
-                📱 Tu WhatsApp acaba de recibir
-              </div>
-              <div style={{
-                background:'#fff',borderRadius:12,padding:'12px 14px',
-                fontFamily:F,fontSize:13,color:'#111827',lineHeight:1.6,
-                border:'1px solid #E5EAFF',
-              }}>
-                <span style={{color:'#25D366',fontWeight:700}}>Bot de {nombre||'tu negocio'}:</span>
-                {' '}¡Hola! 🤖 Soy el asistente inteligente de{' '}
-                <strong>{nombre||'tu negocio'}</strong>. Ya estoy activo y listo para atender
-                a tus clientes las 24 horas. Escríbeme algo para probarme 👋
-              </div>
-            </div>
-
-            <p style={{fontFamily:F,fontSize:14,color:'rgba(255,255,255,0.55)',fontWeight:300,
-              lineHeight:1.7,marginBottom:28,maxWidth:360,margin:'0 auto 28px'}}>
-              Desde el panel puedes agregar tus servicios, precios y horarios para
-              que el bot responda con información real de tu negocio.
-            </p>
-
-            <a href={'/wasapbot/panel/'+empresaId}
-              style={{
-                display:'flex',alignItems:'center',justifyContent:'center',gap:10,
-                maxWidth:380,margin:'0 auto 12px',
-                background:'linear-gradient(135deg,#25D366,#1aad4e)',
-                color:'#fff',borderRadius:14,padding:'16px',
-                fontFamily:F,fontSize:15,fontWeight:700,
-                boxShadow:'0 6px 28px rgba(37,211,102,.35)',
-                textDecoration:'none',
-              }}>
-              Ir a mi panel
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="m9 18 6-6-6-6"/>
-              </svg>
-            </a>
-
-            <Link href="/wasapbot"
-              style={{
-                display:'block',maxWidth:380,margin:'0 auto',
-                background:'rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.7)',border:'1px solid rgba(255,255,255,0.15)',
-                borderRadius:14,padding:'13px',
-                fontFamily:F,fontSize:13,textAlign:'center',textDecoration:'none',
-              }}>
-              Volver al inicio
-            </Link>
           </div>
         )}
 

@@ -4,10 +4,15 @@ const nextConfig = {
   images: {
     domains: ['res.cloudinary.com', 'firebasestorage.googleapis.com', 'images.unsplash.com'],
   },
+  async rewrites() {
+    return [
+      // Sirve /sitemap.xml desde la API route
+      { source: '/sitemap.xml', destination: '/api/sitemap' },
+    ];
+  },
   async headers() {
     return [
       {
-        // Aplica CORS a todas las rutas /api/
         source: '/api/:path*',
         headers: [
           { key: 'Access-Control-Allow-Origin',  value: '*' },

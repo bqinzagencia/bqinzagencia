@@ -204,7 +204,9 @@ export default async function handler(req, res) {
           paginaActual:  (s.paginasVistas || []).slice(-1)[0] || '/',
           paginasVistas: s.paginasVistas?.length || 1,
           segsAtras:     Math.round((ahoraNow - t.getTime()) / 1000),
-          isNew:         s.isNew || false,
+          isNew:         s.isNew  || false,
+          pais:          s.pais   || '',
+          ciudad:        s.ciudad || '',
         };
       });
     usuariosRT.sort((a,b) => a.segsAtras - b.segsAtras);

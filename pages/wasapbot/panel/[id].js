@@ -107,10 +107,12 @@ function SimuladorChat({ empresaId, empresa }) {
   const [mensajes, setMensajes] = useState([{ role:'assistant', content:`¡Hola! 👋 Soy el asistente de *${empresa?.nombreEmpresa||'tu negocio'}*. ¿En qué puedo ayudarte hoy?` }]);
   const [input, setInput] = useState('');
   const [cargando, setCargando] = useState(false);
-  const bottomRef = useRef(null);
+  const scrollRef = useRef(null);
   const sessionId = useRef(`sim_${Date.now()}`);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [mensajes]);
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [mensajes, cargando]);
 
   const enviar = async () => {
     const texto = input.trim();
@@ -143,7 +145,7 @@ function SimuladorChat({ empresaId, empresa }) {
   return (
     <div>
       {/* Mensajes */}
-      <div style={{height:400,overflowY:'auto',padding:'16px 12px',display:'flex',flexDirection:'column',gap:8,background:'#0B141A'}}>
+      <div ref={scrollRef} style={{height:400,overflowY:'auto',padding:'16px 12px',display:'flex',flexDirection:'column',gap:8,background:'#0B141A'}}>
         {mensajes.map((m,i) => (
           <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start'}}>
             <div style={{
@@ -163,7 +165,6 @@ function SimuladorChat({ empresaId, empresa }) {
             </div>
           </div>
         )}
-        <div ref={bottomRef}/>
       </div>
       {/* Preguntas rápidas */}
       <div style={{padding:'8px 12px',display:'flex',gap:6,flexWrap:'wrap',borderTop:'1px solid rgba(255,255,255,0.05)',background:'#111B21'}}>
@@ -573,7 +574,7 @@ export default function WasapBotPanel() {
     {key:'catalogo',label:d.tabCatalogo,icon:Ic.ClipboardList},
     ...(['estandar','pro'].includes(empresa?.planWasapbot||empresa?.plan)?[{key:'broadcast',label:'Broadcast',icon:Ic.TrendingUp}]:[]),
     ...((empresa?.planWasapbot||empresa?.plan)==='pro'?[{key:'web',label:'Página web',icon:Ic.MapPin}]:[]),
-    {key:'config',label:'Configuración',icon:Ic.Settings},
+    {key:'config',label:'Configuración del AgenteIA',icon:Ic.Settings},
     {key:'simulador',label:'Simulador Bot',icon:Ic.Smartphone},
   ];
 
@@ -619,6 +620,9 @@ export default function WasapBotPanel() {
           [data-citas-header] { flex-direction: column !important; align-items: flex-start !important; }
           /* Header catálogo en columna */
           [data-cat-header] { flex-direction: column !important; align-items: flex-start !important; }
+          [data-config-grid] { grid-template-columns: 1fr !important; }
+          [data-config-instrucciones] { order: 1; }
+          [data-config-horario] { order: 2; }
           /* Inicio h2 más pequeño */
           [data-inicio-h2] { font-size: 22px !important; }
         }
@@ -1237,8 +1241,8 @@ export default function WasapBotPanel() {
           )}
 
           {tab==='config'&&(
-            <div style={{maxWidth:560}}>
-              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:20}}>Configuración</h2>
+            <div style={{maxWidth:1100}}>
+              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:20}}>Configuración del Agente IA</h2>
               <div data-tour="hub-config" style={{...CARD,marginBottom:14}}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>Conexión WhatsApp</div>
                 <Guia visible={!connected&&!guiasVistas['whatsapp_conectado']} texto={d.guias.whatsapp} icono={Ic.Smartphone}/>
@@ -1249,7 +1253,8 @@ export default function WasapBotPanel() {
                   {connected&&<button onClick={async()=>{await fetch(`${WA}/sesion/${id}/desconectar`,{method:'POST',headers:{'x-server-secret':SECRET}});setStatus('disconnected');}} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Desconectar</button>}
                 </div>
               </div>
-              <div style={{...CARD,marginBottom:14}}>
+              <div data-config-grid style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,alignItems:'start'}}>
+              <div data-config-horario style={{...CARD,marginBottom:0}}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>Horario de atención semanal</div>
                 <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:14,lineHeight:1.5,fontWeight:300}}>
                   {cfg.tieneCitas
@@ -1291,7 +1296,7 @@ export default function WasapBotPanel() {
                   {savingHorario?'Guardando...':'Guardar horario'}
                 </button>
               </div>
-              <div style={CARD}>
+              <div data-config-instrucciones style={CARD}>
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:4,display:'flex',alignItems:'center',gap:7}}>
                   🤖 Instrucciones del agente IA
                 </div>
@@ -1310,7 +1315,8 @@ export default function WasapBotPanel() {
                   {savingPrompt?'Guardando...':'💾 Guardar instrucciones del bot'}
                 </button>
               </div>
-              <div style={CARD}>
+              </div>
+              <div style={{...CARD,marginTop:14}}>
                 <div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.5)',lineHeight:2.2}}>
                   {[['Negocio',empresa.nombreEmpresa],['Industria',empresa.industria],['Tipo',cfg.labelCatalogo],['Email',empresa.email||'Sin correo'],['Ciudad',empresa.ciudad||'—'],['Plan',`${plan.nombre} — ${plan.precio}/mes`]].map(([k,v])=>(
                     <div key={k}><span style={{color:'#4B6080',fontSize:11}}>{k}:</span> <span style={{color:k==='Email'&&!empresa.email?'#F59E0B':undefined}}>{v}</span></div>
@@ -1320,28 +1326,6 @@ export default function WasapBotPanel() {
                 Contactar soporte para actualizar
                 </a>
                 </div>
-
-            {/* PROMPT DEL AGENTE IA */}
-            <div style={{...CARD,marginTop:14}}>
-              <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:4}}>🤖 Instrucciones del agente IA</div>
-              <p style={{fontFamily:F,fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:12,lineHeight:1.6,fontWeight:300}}>
-                Aquí defines todo lo que sabe tu bot: productos, precios, horarios, normas, tono... Cuanto más detallado, mejor responderá a tus clientes por WhatsApp.
-              </p>
-              <textarea
-                value={promptAgente}
-                onChange={e=>setPromptAgente(e.target.value)}
-                placeholder={'Ejemplo:\nSomos una barbería en Madrid. Servicios: Corte 15€, Corte+Barba 22€. Horario: Lunes-Sábado 9:00-20:00. No damos precios por adelantado para servicios especiales...'}
-                style={{...INP,minHeight:280,resize:'vertical',lineHeight:1.7,fontSize:12}}
-              />
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:8}}>
-                <span style={{fontFamily:F,fontSize:11,color:'#4B6080'}}>{promptAgente.length} caracteres</span>
-                {promptMsg&&<span style={{fontFamily:F,fontSize:12,color:promptMsg.startsWith('✓')?'#25D366':'#EF4444'}}>{promptMsg}</span>}
-              </div>
-              <button onClick={guardarPrompt} disabled={savingPrompt||!promptAgente.trim()}
-                style={{marginTop:12,background:'#25D366',color:'#fff',border:'none',borderRadius:9,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer',opacity:savingPrompt||!promptAgente.trim()?0.6:1}}>
-                {savingPrompt?'Guardando...':'💾 Guardar instrucciones del bot'}
-              </button>
-            </div>
           </div>
           )}
 

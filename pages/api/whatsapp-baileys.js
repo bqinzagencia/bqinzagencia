@@ -249,7 +249,9 @@ export default async function handler(req, res) {
     }
 
     // Si es empresa del dashboard agencIAme sin plan wasapbot específico → no responder
-    if (!planActivo) {
+    // Las empresas de demo pueden usar el bot sin plan activo
+    const esDemo = empresa.esDemo === true;
+    if (!planActivo && !esDemo) {
       // Modo configuración — responde sin IA para no consumir tokens
       // El cliente sabe que el negocio existe pero está en configuración
       // (o que su prueba gratuita de 24h ya finalizó)
@@ -278,22 +280,17 @@ export default async function handler(req, res) {
     }
 
     // ── 2.6. Check de tokens ANTES de llamar a GPT ───────────
-    // Si es el dueño, usa creditosDueno separados (gestionable desde métricas).
-    // Si es un cliente normal, usa wasapbot_tokens del mes actual.
-    {
+    if (!esDemo) {
       const esDueno = telefonoDueno && numeroLimpio === telefonoDueno;
       const PLAN_TOKENS_CHECK = { basico:50000, estandar:150000, pro:400000, wasapbot:0, emprendedor:50000, profesional:150000, prueba_5k:45000 };
       const mesKeyCheck = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
-
       if (esDueno) {
-        // El dueño tiene su propio tope configurable desde métricas
         const tokLimitDueno = Number(empresa.tokensLimiteDueno || 50000);
         const tokUsadoDueno = Number(empresa.tokensUsadosDueno || 0);
         if (tokLimitDueno > 0 && tokUsadoDueno > tokLimitDueno) {
           return res.json({ respuesta:`Has alcanzado tu límite mensual de créditos de agencia. Puedes ajustarlo en el panel de métricas.`, imagenes:[] });
         }
       } else {
-        // Cliente normal: check de tokens del mes
         const tokLimitCheck = empresa.esPruebaGratis ? 45000 : (PLAN_TOKENS_CHECK[empresa.planWasapbot||empresa.plan||'wasapbot'] || 50000);
         if (tokLimitCheck > 0) {
           const tokSnapCheck = await adminDb.collection('wasapbot_tokens').doc(`${empresaId}_${mesKeyCheck}`).get().catch(()=>null);
@@ -528,6 +525,7 @@ REGLAS CRÍTICAS DE COMPORTAMIENTO Y ESTILO (MERCADO ESPAÑOL):
 3. DIVISA: Todos los precios deben mostrarse obligatoriamente en Euros utilizando el símbolo "€" (por ejemplo: 79€). Nunca hables de dólares, pesos ni de otras monedas.
 4. BREVEDAD: Sé extremadamente conciso. Tus respuestas en WhatsApp no deben superar los 2 o 3 párrafos cortos (máximo 60-80 palabras por respuesta). Ve directo al grano.
 5. NO INVENTAR: Si el usuario pregunta algo que NO está en tu base de conocimiento, responde amablemente que no dispones de ese dato en este momento y ofrécele dejar una nota para que un agente humano le contacte por WhatsApp.
+6. ORTOGRAFÍA: Aplica correctamente las reglas del español. En particular, usa "e" en vez de "y" cuando la palabra siguiente empieza por el sonido "i" (ejemplo: "reforma de baño e instalación", no "reforma de baño y instalación"); usa "u" en vez de "o" cuando la palabra siguiente empieza por el sonido "o" (ejemplo: "7 u 8", no "7 o 8").
 
 CONTEXTO DE CONVERSACIÓN: Si el cliente responde con una palabra corta como "sí", "no", "ok", "dale", "claro", debes interpretarla SIEMPRE en el contexto del último mensaje que enviaste. NUNCA respondas como si fuera el inicio de una nueva conversación cuando hay historial previo.
 

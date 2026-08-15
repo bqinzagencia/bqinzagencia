@@ -22,7 +22,7 @@ function hoyKey() {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { mensajes, empresaId, modo = 'soporte' } = req.body;
+  const { mensajes, empresaId, modo = 'soporte', sessionId } = req.body;
   if (!mensajes || !Array.isArray(mensajes)) {
     return res.status(400).json({ error: 'Faltan mensajes' });
   }
@@ -75,6 +75,34 @@ export default async function handler(req, res) {
       fecha: hoyKey(),
       count: FieldValue.increment(1),
     }, { merge: true }).catch(() => {});
+
+    // Guardar el historial completo de la conversacion para poder verlo
+    // despues en /admin/soporte-ia. Se sobreescribe el array "mensajes"
+    // completo en cada turno (snapshot de la conversacion hasta ahora),
+    // asi no hace falta ir haciendo arrayUnion turno a turno.
+    if (sessionId) {
+      try {
+        const convRef  = adminDb.collection('soporte_ia_conversaciones').doc(sessionId);
+        const convSnap = await convRef.get();
+        const mensajesGuardar = [
+          ...mensajes.map(m => ({ rol: m.role === 'user' ? 'user' : 'ia', texto: m.content })),
+          { rol: 'ia', texto: respuesta },
+        ];
+        await convRef.set({
+          sessionId,
+          empresaId: empresaId || null,
+          empresaNombre: empresa?.nombreEmpresa || null,
+          modo,
+          ip: req.headers['x-forwarded-for'] || null,
+          mensajes: mensajesGuardar,
+          totalMensajes: mensajesGuardar.length,
+          actualizadoEn: FieldValue.serverTimestamp(),
+          ...(convSnap.exists ? {} : { creadoEn: FieldValue.serverTimestamp() }),
+        }, { merge: true });
+      } catch (e) {
+        console.error('guardar conversacion soporte-ia:', e.message);
+      }
+    }
 
     return res.json({ ok: true, respuesta });
 

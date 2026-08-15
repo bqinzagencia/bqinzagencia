@@ -68,7 +68,7 @@ const POPUP_ITEMS = [
   { type: 'briefcase', t: 'CRM avanzado de clientes (Plan Pro)' },
 ];
 
-function PopupBienvenida({ onClose }) {
+function PopupBienvenida({ onClose, onDemo }) {
   const [sonidoActivo, setSonidoActivo] = useState(false);
   const videoRef = useRef(null);
 
@@ -111,87 +111,20 @@ function PopupBienvenida({ onClose }) {
         overflowY: 'auto',
         boxShadow: '0 40px 80px rgba(0,0,0,0.7), 0 0 60px rgba(37,211,102,0.08)',
       }}>
-        {/* Video pequeño arriba — miniatura, video completo sin recortar (object-fit: contain) */}
-        <div style={{ position: 'relative', borderRadius: '24px 24px 0 0', overflow: 'hidden', height: 150, background: '#000', flexShrink: 0 }}>
-          <video
-            ref={videoRef}
-            autoPlay muted loop playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-          >
-            <source src="/bienvenida.mp4" type="video/mp4"/>
-          </video>
-          {/* Overlay gradiente — solo abajo, para que el badge se lea sin oscurecer el video */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(10,13,18,0.9) 100%)', pointerEvents: 'none' }}/>
-
-          {/* Badge "Inventario en vivo" — aprovecha el espacio oscuro IZQUIERDO del video */}
-          <div style={{
-            position: 'absolute', top: 12, left: 12, zIndex: 5,
-            display: 'flex', alignItems: 'center', gap: 5,
-            background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)',
-            borderRadius: 99, padding: '4px 9px',
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#25D366', flexShrink: 0, animation: 'pulseDot 1.6s ease infinite' }}/>
-            <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, fontWeight: 700, color: '#25D366', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
-              Inventario en vivo
-            </span>
-          </div>
-
-          {/* Mini-chat "¿Cómo va el inventario?" — aprovecha el espacio oscuro DERECHO del video */}
-          <div style={{
-            position: 'absolute', top: 40, right: 8, maxWidth: 102, zIndex: 5,
-            display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end',
-          }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.85)',
-              borderRadius: '10px 10px 10px 3px', padding: '5px 9px',
-              fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, lineHeight: 1.3, fontWeight: 500,
-            }}>
-              ¿Cómo va el inventario?
-            </div>
-            <div style={{
-              background: '#25D366', color: '#06140C',
-              borderRadius: '10px 10px 3px 10px', padding: '5px 9px',
-              fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, lineHeight: 1.35, fontWeight: 700, textAlign: 'right',
-            }}>
-              📦 8 unidades<br/>⚠️ 3 con stock bajo
-            </div>
-          </div>
-
-          {/* Badge WasapBot sobre el video */}
-          <div style={{ position: 'absolute', bottom: 10, left: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <PopupIcon type="bot" size={15}/>
+        {/* Cabecera del popup sin video */}
+        <div style={{ background: 'linear-gradient(135deg,#0D1F12,#0A1A0D)', borderRadius: '24px 24px 0 0', padding: '20px 22px 16px', borderBottom: '1px solid rgba(37,211,102,0.12)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(37,211,102,0.15)', border: '1.5px solid rgba(37,211,102,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <PopupIcon type="bot" size={18}/>
             </div>
             <div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: '#25D366' }}>WasapBot · <span style={{color:'#fff'}}>BQinz</span><span style={{color:'#FF6B00'}}>agenc</span><span style={{color:'#fff'}}>IA</span></div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, color: 'rgba(255,255,255,0.4)', marginTop: 1 }}>● En línea · Responde al instante</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#25D366' }}>WasapBot · <span style={{color:'#fff'}}>BQinz</span><span style={{color:'#FF6B00'}}>agenc</span><span style={{color:'#fff'}}>IA</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#25D366', animation: 'pulseDot 1.6s ease infinite', display: 'inline-block' }}/>
+                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>● En línea · Responde al instante</span>
+              </div>
             </div>
           </div>
-          {/* Botón sonido */}
-          <button onClick={toggleSonido} aria-label="Activar sonido" className="popup-sound-btn" style={{
-            position: 'absolute', bottom: 10, right: 14, zIndex: 11,
-            width: 30, height: 30, borderRadius: '50%',
-            background: sonidoActivo ? 'rgba(37,211,102,0.22)' : 'rgba(0,0,0,0.55)',
-            border: `1px solid ${sonidoActivo ? 'rgba(37,211,102,0.55)' : 'rgba(255,255,255,0.18)'}`,
-            color: sonidoActivo ? '#25D366' : 'rgba(255,255,255,0.75)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all .2s',
-          }}>
-            {sonidoActivo ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
-            ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-            )}
-          </button>
-          {/* Botón cerrar */}
-          <button onClick={onClose} style={{
-            position: 'absolute', top: 12, right: 12,
-            background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: '50%', width: 32, height: 32,
-            color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, fontWeight: 700, zIndex: 12,
-          }}>✕</button>
         </div>
 
         {/* Texto "tu negocio en piloto automático" */}
@@ -245,35 +178,36 @@ function PopupBienvenida({ onClose }) {
             </div>
           </Link>
 
-          {/* Botón chatbot AIA dentro del popup */}
+          {/* Botón demo directo dentro del popup */}
           <div
             onClick={() => {
               onClose();
               setTimeout(() => {
-                const fab = document.querySelector('.aw-fab');
-                if (fab) fab.click();
-              }, 400);
+                const el = document.getElementById('btn-demo-anchor');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => el && el.querySelector('button')?.click(), 400);
+              }, 200);
             }}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.2)',
-              borderRadius: 12, padding: '11px 14px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: 'rgba(37,211,102,0.06)', border: '1.5px solid rgba(37,211,102,0.35)',
+              borderRadius: 12, padding: '13px 14px', cursor: 'pointer',
             }}>
-            <img src="/agenciame-robot-final.png" alt="AIA" style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }}/>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, color: '#EFF4FF' }}>Hablar con AIA ahora</div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>Tu asistente IA · Responde al instante</div>
+            <span style={{ fontSize: 16 }}>💬</span>
+            <div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 700, color: '#25D366' }}>Prúbalo ahora, sin registrarte</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>Demo instantánea con IA real</div>
             </div>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#25D366', flexShrink: 0, boxShadow: '0 0 6px #25D366' }}/>
           </div>
 
-          <button onClick={onClose} style={{
-            background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
+          <button onClick={() => { onClose(); setTimeout(() => onDemo && onDemo(), 300); }} style={{
+            background: 'linear-gradient(135deg,rgba(37,211,102,0.1),rgba(37,211,102,0.05))',
+            border: '1px solid rgba(37,211,102,0.25)',
             borderRadius: 12, padding: '11px',
             fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13,
-            color: 'rgba(255,255,255,0.3)', cursor: 'pointer',
+            color: '#25D366', cursor: 'pointer', fontWeight: 600,
           }}>
-            Ver más información
+            💬 Probar demo sin registrarme
           </button>
         </div>
       </div>
@@ -346,18 +280,20 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  // Mostrar popup solo en móvil, solo una vez por sesión
+  // Abrir demo si viene con ?demo=1 en la URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('demo') === '1') setShowDemo(true);
+  }, []);
+
   useEffect(() => {
     const isMobile = window.innerWidth <= 768;
-    const yaVisto  = sessionStorage.getItem('popup_wasapbot_visto');
-    if (isMobile && !yaVisto) {
+    if (isMobile) {
       const t = setTimeout(() => {
         setShowPopup(true);
-        sessionStorage.setItem('popup_wasapbot_visto', '1');
       }, 800);
       return () => clearTimeout(t);
-    } else if (isMobile && yaVisto) {
-      // Si ya lo vio antes, mostrar WasapBot directamente
+    } else {
       setPopupClosed(true);
     }
   }, []);
@@ -365,11 +301,11 @@ export default function Landing() {
   const handleClosePopup = () => {
     setShowPopup(false);
     setPopupClosed(true);
-    // Scroll suave a la sección WasapBot tras cerrar el popup
+    // Scroll al botón de demo para que sea lo primero que vea el usuario
     setTimeout(() => {
-      const el = document.getElementById('wasapbot');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 120);
+      const el = document.getElementById('btn-demo-anchor');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
   };
 
   const G  = '#FF6B00';  // naranja BQinzagencIA
@@ -387,7 +323,7 @@ export default function Landing() {
       </Head>
 
       {/* Popup de bienvenida — solo móvil */}
-      {showPopup && <PopupBienvenida onClose={handleClosePopup} />}
+      {showPopup && <PopupBienvenida onClose={handleClosePopup} onDemo={() => setShowDemo(true)} />}
       {showDemo && <DemoSimuladorPublico onClose={() => setShowDemo(false)} />}
 
       <style dangerouslySetInnerHTML={{__html: `
@@ -600,8 +536,8 @@ export default function Landing() {
               <span style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:13, color:'rgba(255,255,255,0.3)' }}>Desde 79€/mes</span>
             </div>
 
-            {/* Botón del simulador demo — pruébalo sin registrarte */}
-            <div style={{ marginTop:16 }}>
+            {/* Botón del simulador demo — ancla para scroll desde popup */}
+            <div id="btn-demo-anchor" style={{ marginTop:16 }}>
               <button onClick={() => setShowDemo(true)} style={{ background:'rgba(37,211,102,0.08)', border:'1.5px solid rgba(37,211,102,0.4)', color:'#25D366', borderRadius:8, padding:'12px 24px', fontFamily:"'Plus Jakarta Sans',sans-serif", fontWeight:700, fontSize:13.5, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
                 💬 Pruébalo ahora, sin registrarte →
               </button>
@@ -734,6 +670,9 @@ export default function Landing() {
               <Link href="/wasapbot/activar">
                 <button className="btn-wa" style={{ fontSize: 16, padding: '16px 44px' }}>Activar mi WasapBot →</button>
               </Link>
+              <button onClick={() => setShowDemo(true)} className="btn-wa" style={{ fontSize: 16, padding: '16px 44px' }}>
+                💬 Probar demo
+              </button>
               <a href="#wasapbot">
                 <button className="btn-ghost" style={{ fontSize: 16, padding: '16px 44px' }}>Ver cómo funciona</button>
               </a>

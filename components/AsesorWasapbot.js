@@ -218,6 +218,10 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
   const [escalado, setEscalado] = useState(false);
   const [hover,    setHover]    = useState(false);
   const [burbuja,  setBurbuja]  = useState(true);
+  // Id estable para esta conversación — se genera una sola vez por sesión
+  // de navegador y se manda al backend para poder guardar el historial
+  // completo y verlo despues en /admin/soporte-ia.
+  const [sessionId] = useState(() => 'aw_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2));
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
 
@@ -277,7 +281,7 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
       const resp = await fetch('/api/chat-asesor-wasapbot', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mensajes: historial, empresaId: empresa?.id, modo }),
+        body: JSON.stringify({ mensajes: historial, empresaId: empresa?.id, modo, sessionId }),
       });
 
       const data = await resp.json();
@@ -397,7 +401,8 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
         .aw-inp::placeholder{color:rgba(255,255,255,.25)}
         .aw-send{background:linear-gradient(135deg,#FF6B00,#FF9500);color:#fff;border:none;border-radius:9px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s}
         .aw-send:disabled{opacity:0.4;cursor:not-allowed}
-        @media(max-width:480px){.aw-fab{bottom:20px;right:16px;width:50px;height:50px}.aw-label{display:none}}
+        @media(max-width:480px){.aw-fab{bottom:20px;right:16px;width:50px;height:50px}.aw-label{display:none}.aw-bubble-msg{display:none!important}}
+        @media(max-width:768px){.aw-bubble-msg{display:none!important}}
         @media(max-width:600px){
           .aw-panel{
             position:fixed;top:0;left:0;right:0;bottom:auto;
@@ -503,21 +508,20 @@ export default function AsesorWasapbot({ empresa, modo = 'soporte' }) {
         </div>
       )}
 
-      {/* FAB */}
-      <button className="aw-fab" onClick={()=>{setOpen(o=>!o);setBurbuja(false)}} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}>
-        <div className="aw-badge"/>
-        {open ? (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        ) : (
+      {/* FAB — oculto mientras el chat esta abierto: el panel ya tiene su
+          propio boton de cerrar en el header, y en celular el panel ocupa
+          toda la pantalla, asi que dejar el FAB fijo encima tapaba el
+          boton de enviar. */}
+      {!open && (
+        <button className="aw-fab" onClick={()=>{setOpen(o=>!o);setBurbuja(false)}} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}>
+          <div className="aw-badge"/>
           <img src="/agenciame-robot-final.png" alt="BQinzagencIA" style={{width:54,height:54,objectFit:'contain'}}/>
-        )}
-        <div className={`aw-label${hover&&!open?' show':''}`}>
-          <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#EFF4FF'}}>Soporte IA</div>
-          <div style={{fontFamily:F,fontSize:10,color:'#4B6080',marginTop:1}}>Respuesta inmediata</div>
-        </div>
-      </button>
+          <div className={`aw-label${hover?' show':''}`}>
+            <div style={{fontFamily:F,fontSize:12,fontWeight:700,color:'#EFF4FF'}}>Soporte IA</div>
+            <div style={{fontFamily:F,fontSize:10,color:'#4B6080',marginTop:1}}>Respuesta inmediata</div>
+          </div>
+        </button>
+      )}
     </>
   );
 }

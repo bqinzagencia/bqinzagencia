@@ -64,6 +64,15 @@ function usePageTracker() {
       body: JSON.stringify({ type: 'pageview', path: router.pathname, sessionId, visitorId, isNew, ref: document.referrer }),
     }).catch(() => {});
 
+    // Heartbeat cada 30s para mantener la sesión activa en tiempo real
+    const heartbeat = setInterval(() => {
+      fetch('/api/track-visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'heartbeat', path: router.pathname, sessionId, visitorId }),
+      }).catch(() => {});
+    }, 30000);
+
     // Tiempo al cerrar pestaña
     const onUnload = () => {
       const spent = Math.round((Date.now() - startRef.current) / 1000);
@@ -72,7 +81,10 @@ function usePageTracker() {
       }));
     };
     window.addEventListener('beforeunload', onUnload);
-    return () => window.removeEventListener('beforeunload', onUnload);
+    return () => {
+      clearInterval(heartbeat);
+      window.removeEventListener('beforeunload', onUnload);
+    };
   }, [router.pathname]);
 }
 

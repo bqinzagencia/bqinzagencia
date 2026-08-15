@@ -287,6 +287,7 @@ export default function MetricasAdmin() {
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:10, background:'rgba(37,211,102,.05)', border:'1px solid rgba(37,211,102,.12)', borderRadius:8, padding:'8px 12px' }}>
                       <div style={{ width:7, height:7, borderRadius:'50%', background:'#25D366', flexShrink:0 }}/>
                       <div style={{ flex:1, fontSize:12, color:'#EFF4FF', fontFamily:"'Courier New',monospace" }}>{pagLabel}</div>
+                      {(u.ciudad || u.pais) && <div style={{ fontSize:11, color:'#60A5FA' }}>📍 {[u.ciudad, u.pais].filter(Boolean).join(', ')}</div>}
                       <div style={{ fontSize:11, color:'#4B6080' }}>{u.paginasVistas} pág{u.paginasVistas>1?'s':''}</div>
                       {u.isNew && <span style={{ background:'rgba(255,107,0,.15)', color:'#FF6B00', border:'1px solid rgba(255,107,0,.3)', borderRadius:99, padding:'1px 7px', fontSize:9, fontWeight:700 }}>NUEVO</span>}
                       <div style={{ fontSize:11, color:'#4B6080', whiteSpace:'nowrap' }}>{tiempoStr}</div>
@@ -641,7 +642,7 @@ export default function MetricasAdmin() {
             <div style={{ fontSize:13, fontWeight:700, marginBottom:16 }}>Estado de servicios</div>
             {[
               { name:'OpenAI',   pct:Math.round(parseFloat(openaiGasto)/5*100), color:'#10a37f', detail:`$${openaiGasto} gastado de $5.00 de crédito`, sub:`~${Math.round((5-parseFloat(openaiGasto))/0.002)} convs restantes` },
-              { name:'Railway',  pct:Math.round((railway?.uptime||0)/3600/720*100), color:'#e06c00', detail:`${railway ? 'Activo — ' + Math.round((railway.uptime||0)/3600)+'h uptime' : 'Sin datos'}`, sub:'~7€/mes fijo' },
+              { name:'Railway',  pct: railway ? 100 : 0, color:'#e06c00', detail:`${railway ? 'Activo — ' + Math.round((railway.uptime||0)/3600)+'h uptime' : 'Sin datos'}`, sub:'~7€/mes fijo' },
               { name:'Firebase', pct:Math.round((data?.lecturasHoy||0)/50000*100), color:'#FFCA28', detail:`~${(data?.lecturasHoy||0).toLocaleString()} lecturas hoy`, sub:'límite: 50.000/día — GRATIS' },
               { name:'Vercel',   pct:3, color:'#EFF4FF', detail:'Hobby plan', sub:'GRATIS hasta 100GB bandwidth' },
               { name:'WhatsApp', pct:Math.min((railway?.sesionesActivas||0)*25,100), color:'#25D366', detail:`${railway?.sesionesActivas||0} sesión(es) activa(s)`, sub:'Baileys — sin coste adicional' },

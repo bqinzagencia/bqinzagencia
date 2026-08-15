@@ -522,9 +522,9 @@ export default function PlanesWasapbot() {
 
         {/* Métodos de pago */}
         <div style={{textAlign:'center',marginTop:36}}>
-          <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.2)',marginBottom:12}}>Métodos de pago disponibles</div>
+          <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.2)',marginBottom:12}}>Método de pago disponible</div>
           <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
-            {['💳 Tarjeta débito/crédito','💰 PayPal','🏦 Transferencia bancaria','📱 Apple Pay','📱 Google Pay'].map(m=>(
+            {['💰 PayPal'].map(m=>(
               <span key={m} style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,.35)',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',borderRadius:99,padding:'5px 14px'}}>{m}</span>
             ))}
           </div>
@@ -556,7 +556,7 @@ export default function PlanesWasapbot() {
         <div onClick={()=>{ if(!loading) setPlanParaPagar(null); }} style={{position:'fixed',inset:0,zIndex:999,background:'rgba(0,0,0,.75)',backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
           <div onClick={e=>e.stopPropagation()} style={{background:'#0A0D12',border:'1px solid rgba(255,107,0,.25)',borderRadius:18,padding:'28px 26px',maxWidth:380,width:'100%'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
-              <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:'#EFF4FF'}}>Elige cómo pagar</div>
+              <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:'#EFF4FF'}}>Pagar con PayPal</div>
               {!loading && (
                 <button onClick={()=>setPlanParaPagar(null)} style={{background:'none',border:'none',color:'rgba(255,255,255,.3)',fontSize:18,cursor:'pointer',lineHeight:1}}>✕</button>
               )}

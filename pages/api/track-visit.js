@@ -25,6 +25,27 @@ export default async function handler(req, res) {
     const dayRef = adminDb.collection('analytics').doc('visits').collection('dias').doc(fecha);
     const sessionRef = dayRef.collection('sessions').doc(sessionId);
 
+    if (type === 'heartbeat') {
+      await sessionRef.update({
+        actualizadoEn: FieldValue.serverTimestamp(),
+        paginaActual: path || '/',
+      }).catch(() => {});
+      return;
+    }
+
+    // Obtener país/ciudad desde los headers de Vercel (sin llamada externa)
+    let pais = '', ciudad = '';
+    if (type === 'pageview') {
+      // Vercel inyecta estos headers automáticamente en producción
+      pais   = req.headers['x-vercel-ip-country']      || '';
+      ciudad = req.headers['x-vercel-ip-city']         || '';
+      // Decodificar ciudad si viene URL-encoded (ej: "Beri%C3%A1in" → "Berián")
+      try { if (ciudad) ciudad = decodeURIComponent(ciudad); } catch {}
+      // Mapear código de país a nombre completo
+      const PAISES = { ES:'Spain', MX:'Mexico', AR:'Argentina', CO:'Colombia', US:'United States', GB:'United Kingdom', FR:'France', DE:'Germany', IT:'Italy', PT:'Portugal', BR:'Brazil', CL:'Chile', PE:'Peru', VE:'Venezuela', EC:'Ecuador', UY:'Uruguay', PY:'Paraguay', BO:'Bolivia', DO:'Dominican Republic', GT:'Guatemala', HN:'Honduras', SV:'El Salvador', NI:'Nicaragua', CR:'Costa Rica', PA:'Panama', CU:'Cuba', PR:'Puerto Rico', MA:'Morocco', NL:'Netherlands', BE:'Belgium' };
+      if (pais && PAISES[pais]) pais = PAISES[pais];
+    }
+
     if (type === 'pageview') {
       const snap = await sessionRef.get();
 
@@ -39,6 +60,7 @@ export default async function handler(req, res) {
             pageviews: 1,
             tiempoTotal: 0,
             rebote: true,
+            pais, ciudad,
             creadoEn: FieldValue.serverTimestamp(),
             actualizadoEn: FieldValue.serverTimestamp(),
           }),

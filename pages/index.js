@@ -283,18 +283,9 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
+  // Popup de bienvenida en móvil desactivado a petición del cliente.
   useEffect(() => {
-    const isMobile = window.innerWidth <= 768;
-    const yaVisto  = sessionStorage.getItem('popup_wasapbot_visto');
-    if (isMobile && !yaVisto) {
-      const t = setTimeout(() => {
-        setShowPopup(true);
-        sessionStorage.setItem('popup_wasapbot_visto', '1');
-      }, 800);
-      return () => clearTimeout(t);
-    } else if (isMobile && yaVisto) {
-      setPopupClosed(true);
-    }
+    setPopupClosed(true);
   }, []);
 
   const handleClosePopup = () => {
@@ -319,8 +310,6 @@ export default function Landing() {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
-
-      {showPopup && <PopupBienvenida onClose={handleClosePopup} />}
 
       {/* ── FRANJA SUPERIOR: PRUEBA GRATIS 24H (solo desktop) ── */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 201, background: 'linear-gradient(90deg,#1aad4e,#25D366)', padding: '6px 16px', textAlign: 'center' }} className="franja-promo">
@@ -358,7 +347,13 @@ export default function Landing() {
         @keyframes pulseWA { 0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0.4)} 70%{box-shadow:0 0 0 10px rgba(249,115,22,0)} }
         @keyframes float { 0%,100%{transform:translateY(-50%)} 50%{transform:translateY(calc(-50% - 14px))} }
 
-        .planes-swipe-hint { display: none; }
+        .banner-prueba-movil { display: none !important; }
+        @media (max-width: 768px) {
+          .banner-prueba-movil { display: block !important; margin-top: 8px !important; }
+          .banner-prueba-desktop { display: none !important; }
+          .wasapbot-section-inner { padding: 28px 18px 48px !important; }
+          .lnd-admin-grid { grid-template-columns: 1fr !important; }
+        }
 
         @media (max-width: 768px) {
           .franja-promo { display: none !important; }
@@ -488,6 +483,7 @@ export default function Landing() {
           .hero-popup-closed .lnd-hero-badge{margin-bottom:12px!important}
           .hero-popup-closed .lnd-hero-h1{font-size:clamp(30px,8vw,48px)!important;margin-bottom:10px!important;line-height:1!important}
           .hero-popup-closed .lnd-hero-ctas button{padding:11px!important;font-size:13px!important}
+          .hero-popup-closed .lnd-hero-price-link{display:none!important}
           .hero-popup-closed .slide-up.d3{margin-top:10px!important}
         }`}</style>
         <img className="lnd-hero-img"
@@ -524,11 +520,14 @@ export default function Landing() {
                 <button className="btn-wa" style={{ fontSize: 16, padding: '16px 44px' }}>Activar mi WasapBot →</button>
               </Link>
               <a href="#wasapbot">
-                <button className="btn-ghost" style={{ fontSize: 16, padding: '16px 44px' }}>Ver cómo funciona</button>
+                <button className="btn-wa" style={{ fontSize: 16, padding: '16px 44px' }}>Ver cómo funciona</button>
               </a>
+              <Link href="/wasapbot?demo=1">
+                <button className="btn-wa" style={{ fontSize: 16, padding: '16px 44px' }}>💬 Pruébalo ahora, sin registrarte</button>
+              </Link>
             </div>
 
-            <div className="slide-up d3" style={{ marginTop: 22 }}>
+            <div className="slide-up d3 lnd-hero-price-link" style={{ marginTop: 22 }}>
               <Link href="/wasapbot/activar">
                 <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 700, color: G, cursor: 'pointer', borderBottom: `1px solid rgba(249,115,22,0.4)`, paddingBottom: 2 }}>
                   Desde 79€/mes · Sin contratos →
@@ -566,19 +565,19 @@ export default function Landing() {
 
       {/* ── BANNER PRUEBA GRATIS — JUSTO DEBAJO DEL HERO (móvil: estático; desktop: oculto) ── */}
       <Link href="/wasapbot/activar">
-        <div className="banner-prueba-movil" style={{ display: 'none', background: 'linear-gradient(90deg,#1aad4e,#25D366)', padding: '14px 22px', textAlign: 'center', cursor: 'pointer' }}>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, fontWeight: 700, color: '#06090D' }}>
+        <div className="banner-prueba-movil" style={{ display: 'none', position: 'relative', zIndex: 5, margin: '0 14px 18px', borderRadius: 12, background: 'linear-gradient(90deg,#1aad4e,#25D366)', padding: '14px 18px', textAlign: 'center', cursor: 'pointer', boxShadow: '0 8px 24px rgba(37,211,102,0.25)' }}>
+          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 700, color: '#06090D' }}>
             🎁 Prueba WasapBot <u>gratis 24h</u> — sin tarjeta →
           </span>
         </div>
       </Link>
 
       {/* ── WASAPBOT SECTION ── */}
-      <section id="wasapbot" style={{ background: '#06090D', borderTop: `1px solid rgba(249,115,22,0.15)`, padding: '40px 80px 64px' }}>
+      <section id="wasapbot" className="wasapbot-section-inner" style={{ background: '#06090D', borderTop: `1px solid rgba(249,115,22,0.15)`, padding: '40px 80px 64px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-          {/* Banner prueba gratis 24h — visible nada más entrar */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(37,211,102,.12),rgba(37,211,102,.04))', border: '1.5px solid rgba(37,211,102,.35)', borderRadius: 14, padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 40 }}>
+          {/* Banner prueba gratis 24h — SOLO DESKTOP */}
+          <div className="banner-prueba-desktop" style={{ background: 'linear-gradient(135deg,rgba(37,211,102,.12),rgba(37,211,102,.04))', border: '1.5px solid rgba(37,211,102,.35)', borderRadius: 14, padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 40 }}>
             <span style={{ fontSize: 22, flexShrink: 0 }}>🎁</span>
             <div style={{ flex: 1, minWidth: 180 }}>
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, fontWeight: 800, color: '#25D366', textTransform: 'uppercase', letterSpacing: 1.5 }}>Prueba gratis 24 horas</span>
@@ -596,7 +595,7 @@ export default function Landing() {
             <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: G, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 20 }}>
               ¿Qué administra WasapBot por ti?
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0, borderTop: '1px solid rgba(255,255,255,.06)', borderLeft: '1px solid rgba(255,255,255,.06)' }}>
+            <div className="lnd-admin-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0, borderTop: '1px solid rgba(255,255,255,.06)', borderLeft: '1px solid rgba(255,255,255,.06)' }}>
               {[
                 { icon: '🛒', titulo: 'Pedidos',     desc: 'Toma y confirma pedidos por WhatsApp' },
                 { icon: '📊', titulo: 'Inventario',   desc: 'Descuenta stock y alerta cuando se agota' },
@@ -912,6 +911,23 @@ export default function Landing() {
             <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 12 }}>Madrid, España</span>
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#ccc', fontSize: 12 }}>bqinzagencia@gmail.com</span>
+            </div>
+            {/* Redes Sociales */}
+            <div style={{ marginTop: 28, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              {[
+                { href: 'https://www.instagram.com/bqinzagencia/', label: 'Instagram', svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none"/></svg> },
+                { href: 'https://www.tiktok.com/@bqinz', label: 'TikTok', svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg> },
+                { href: 'https://www.youtube.com/@bqinz', label: 'YouTube', svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23 7s-.3-1.9-1.2-2.7c-1.1-1.2-2.4-1.2-3-1.3C16.6 3 12 3 12 3s-4.6 0-6.8.1c-.6.1-1.9.1-3 1.3C1.3 5.2 1 7 1 7S.7 9.1.7 11.2v1.9C.7 15.2 1 17.3 1 17.3s.3 1.9 1.2 2.7c1.1 1.2 2.6 1.1 3.3 1.2C7.6 21.4 12 21.4 12 21.4s4.6 0 6.8-.2c.6-.1 1.9-.1 3-1.2.9-.8 1.2-2.7 1.2-2.7s.3-2.1.3-4.2v-1.9C23.3 9.1 23 7 23 7zM9.7 15.5V8.4l8.1 3.6-8.1 3.5z"/></svg> },
+                { href: 'https://es.pinterest.com/BQinzagencIA/', label: 'Pinterest', svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12c0 5.1 3.2 9.5 7.7 11.3-.1-.9-.2-2.4 0-3.4.2-.9 1.3-5.5 1.3-5.5s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.5-.9 3.8-.3 1.1.5 2 1.5 2 1.8 0 3.1-1.9 3.1-4.6 0-2.4-1.7-4.1-4.2-4.1-2.8 0-4.5 2.1-4.5 4.4 0 .9.3 1.8.8 2.3.1.1.1.2.1.4-.1.3-.3 1.1-.3 1.2-.1.2-.2.2-.4.1-1.4-.7-2.3-2.8-2.3-4.5 0-3.6 2.7-7 7.7-7 4 0 7.1 2.9 7.1 6.7 0 4-2.5 7.2-6 7.2-1.2 0-2.3-.6-2.6-1.3l-.7 2.7c-.3 1-.9 2.2-1.4 3 1.1.3 2.2.5 3.3.5 6.6 0 12-5.4 12-12S18.6 0 12 0z"/></svg> },
+                { href: 'https://www.facebook.com/profile.php?id=61591108242533', label: 'Facebook', svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.87v2.28h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg> },
+              ].map(({href, label, svg}) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" title={label}
+                  style={{ color: '#888', transition: 'color 0.2s', display:'flex', alignItems:'center' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#FF6B00'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#888'}>
+                  {svg}
+                </a>
+              ))}
             </div>
           </div>
           {[
