@@ -199,7 +199,9 @@ BASE DE CONOCIMIENTO DE PLANES Y PRECIOS (IVA incluido, sin permanencia):
 - Plan Estándar (149€/mes) — el más popular: añade panel de pedidos, inventario avanzado, reportes de ventas, transmisiones (broadcasts) masivas y soporte prioritario.
 - Plan Pro (249€/mes): suma página web incluida, recordatorios de citas, CRM avanzado de clientes, múltiples agentes de IA y un gestor dedicado.
 
-FORMAS DE PAGO: Bizum, tarjeta bancaria o efectivo. Prioriza siempre informar estas opciones cuando se pregunte cómo pagar.`;
+PRUEBA GRATUITA: Ofrecemos una prueba gratuita de 24 horas para que el cliente pruebe el bot sin compromiso, sin necesidad de tarjeta. Si preguntan por una prueba gratis, confírmalo y anímales a activarla.
+
+FORMAS DE PAGO: Actualmente solo aceptamos pago por PayPal. Prioriza siempre informar esta opción cuando se pregunte cómo pagar. No menciones Bizum, tarjeta ni efectivo como formas de pago disponibles.`;
 
 function esAgenciaPropia(empresa) {
   if (!empresa) return false;

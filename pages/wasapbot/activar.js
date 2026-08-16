@@ -571,15 +571,15 @@ export default function WasapBotActivar() {
                 Conecta tu WhatsApp
               </h2>
               <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.45)',fontWeight:300}}>
-                Te contactamos para activarlo manualmente
+                Te contactamos para completar la activación
               </p>
             </div>
 
             {!solicitudEnviada ? (
               <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:16,padding:'20px',marginBottom:12,textAlign:'left'}}>
                 <p style={{fontFamily:F,fontSize:13,color:'#6B7280',marginBottom:14,lineHeight:1.6}}>
-                  Estamos migrando a la plataforma oficial de WhatsApp (Meta). Déjanos tu número
-                  y activamos tu bot manualmente en menos de 24 horas.
+                  Estamos completando la integración con la plataforma oficial de WhatsApp (Meta).
+                  Déjanos tu número y activaremos tu bot en menos de 24 horas.
                 </p>
                 <label style={{fontFamily:F,fontSize:11,fontWeight:700,textTransform:'uppercase',
                   letterSpacing:1.2,color:'#6B7280',display:'block',marginBottom:8}}>
@@ -622,7 +622,8 @@ export default function WasapBotActivar() {
             <button onClick={()=>{ window.location.href='/wasapbot/panel/'+empresaId; }}
               style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.4)',textDecoration:'underline',display:'block',margin:'8px auto 0',cursor:'pointer'}}>
               Ir a mi panel →
-            </button>
+           Te contactamos para completar la activación
+ </button>
           </div>
         )}
 
