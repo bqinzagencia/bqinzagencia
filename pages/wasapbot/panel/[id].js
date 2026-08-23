@@ -16,6 +16,9 @@ const FA = "'Abril Fatface', serif";
 const WA     = process.env.NEXT_PUBLIC_WA_SERVER || 'REEMPLAZAR_URL_RAILWAY';
 const SECRET = process.env.NEXT_PUBLIC_WA_SECRET || 'REEMPLAZAR_SECRET';
 
+const META_APP_ID    = process.env.NEXT_PUBLIC_META_APP_ID;
+const META_CONFIG_ID = '1588866396584083';
+
 const PLANES = {
   prueba_5k:{ nombre:'Prueba 24h',     tokens:45000,  convs:300,  color:'#F59E0B', precio:'Gratis' },
   basico:   { nombre:'Básico',   tokens:50000,  convs:500,  color:'#25D366', precio:'79€'  },
@@ -199,14 +202,11 @@ export default function WasapBotPanel() {
   const [conocimiento,   setConocimiento]   = useState(null);
   const [loadError,      setLoadError]      = useState('');
   const [status,         setStatus]         = useState('loading');
-  const [qrBase64,       setQrBase64]       = useState('');
   const [convs,          setConvs]          = useState([]);
   const [citas,          setCitas]          = useState([]);
   const [citasFiltro,    setCitasFiltro]    = useState('todos');
   const [stats,          setStats]          = useState({ hoy:0, semana:0, total:0, tokensUsados:0 });
   const [tab,            setTab]            = useState('inicio');
-  const [reconect,       setReconect]       = useState(false);
-  const [metodoConexion, setMetodoConexion] = useState('');
   const [editando,       setEditando]       = useState(false);
   const [itemsEdit,      setItemsEdit]      = useState([]);
   const [savingCat,      setSavingCat]      = useState(false);
@@ -234,6 +234,9 @@ export default function WasapBotPanel() {
   const [webForm,        setWebForm]        = useState({ tituloWeb:'', descripcionWeb:'', fotoWebPortada:'', webActivaWasapbot:true });
   const [savingWeb,      setSavingWeb]      = useState(false);
   const [webMsg,         setWebMsg]         = useState('');
+  const [sdkListo,       setSdkListo]       = useState(false);
+  const [conectando,     setConectando]     = useState(false);
+  const [errorConexion,  setErrorConexion]  = useState('');
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -254,6 +257,82 @@ export default function WasapBotPanel() {
 
   const marcarGuia = (clave) => {
     setGuiasVistas(prev => { const n={...prev,[clave]:true}; if(id) localStorage.setItem('wasapbot_guias_'+id,JSON.stringify(n)); return n; });
+  };
+
+  // Embedded Signup de Meta — mismo mecanismo que /wasapbot/activar
+  useEffect(() => {
+    window.fbAsyncInit = function () {
+      window.FB.init({ appId: META_APP_ID, cookie: true, xfbml: true, version: 'v22.0' });
+      setSdkListo(true);
+    };
+    if (!document.getElementById('facebook-jssdk')) {
+      const js = document.createElement('script');
+      js.id = 'facebook-jssdk';
+      js.src = 'https://connect.facebook.net/es_ES/sdk.js';
+      document.body.appendChild(js);
+    } else if (window.FB) {
+      setSdkListo(true);
+    }
+
+    const onMessage = (event) => {
+      if (!event.origin || !event.origin.endsWith('facebook.com')) return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'WA_EMBEDDED_SIGNUP' && data.event === 'FINISH') {
+          const { phone_number_id, waba_id } = data.data || {};
+          window.__wasapbotEmbeddedSignupData = { phoneNumberId: phone_number_id, wabaId: waba_id };
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
+  const conectarConFacebook = () => {
+    if (!sdkListo || !window.FB) { setErrorConexion('Aún está cargando, espera un segundo e inténtalo de nuevo'); return; }
+    setErrorConexion('');
+    window.__wasapbotEmbeddedSignupData = null;
+
+    window.FB.login((response) => {
+      if (response.authResponse?.code) {
+        finalizarConexionMeta(response.authResponse.code);
+      } else {
+        setErrorConexion('No se completó la conexión con Facebook. Puedes intentarlo de nuevo.');
+      }
+    }, {
+      config_id: META_CONFIG_ID,
+      response_type: 'code',
+      override_default_response_type: true,
+      extras: { setup: {} },
+    });
+  };
+
+  const finalizarConexionMeta = async (code) => {
+    setConectando(true);
+    setErrorConexion('');
+    await new Promise(r => setTimeout(r, 1500));
+    const datos = window.__wasapbotEmbeddedSignupData;
+
+    if (!datos?.phoneNumberId || !datos?.wabaId) {
+      setErrorConexion('No pudimos completar la conexión automáticamente. Nuestro equipo la activará manualmente en menos de 24h.');
+      setConectando(false);
+      return;
+    }
+
+    try {
+      const r = await fetch('/api/wasapbot-embedded-signup-callback', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ empresaId:id, code, phoneNumberId: datos.phoneNumberId, wabaId: datos.wabaId }),
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'No se pudo completar la conexión');
+      setStatus('connected');
+      setTab('inicio');
+    } catch (e) {
+      setErrorConexion(e.message);
+    } finally {
+      setConectando(false);
+    }
   };
 
   const cargarDatos = async () => {
@@ -406,25 +485,6 @@ export default function WasapBotPanel() {
       },30000);
     } catch { setStatus('disconnected'); }
   };
-
-  const iniciarQR = async () => {
-    setMetodoConexion('qr'); setReconect(true); setQrBase64('');
-    try {
-      await fetch(`${WA}/sesion/iniciar`,{method:'POST',headers:{'Content-Type':'application/json','x-server-secret':SECRET},body:JSON.stringify({empresaId:id})});
-      let n=0;
-      const poll=async()=>{
-        if(n++>30){setReconect(false);return;}
-        const r=await fetch(`${WA}/sesion/${id}/qr`,{headers:{'x-server-secret':SECRET}}).catch(()=>null);
-        const dq=r?await r.json().catch(()=>({})):{};
-        if(dq.qrBase64){setQrBase64(dq.qrBase64);setReconect(false);return;}
-        if(dq.status==='connected'){setStatus('connected');setQrBase64('');setReconect(false);setTab('inicio');return;}
-        setTimeout(poll,2000);
-      };
-      poll();
-    } catch{setReconect(false);}
-  };
-
-  const reconectar = async () => { setTab('qr'); setMetodoConexion(''); setQrBase64(''); };
 
   const guardarCatalogo = async () => {
     setSavingCat(true); setSaveMsg('');
@@ -1094,30 +1154,56 @@ export default function WasapBotPanel() {
             </div>
           )}
 
-          {/* ══ QR ══ */}
+          {/* ══ CONECTAR WHATSAPP (Embedded Signup de Meta) ══ */}
           {tab==='qr'&&(
-            <div style={{maxWidth:680,margin:'0 auto'}}>
+            <div style={{maxWidth:520,margin:'0 auto'}}>
               <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:6}}>Conectar WhatsApp</h2>
-              <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:28,fontWeight:300}}>Escanea el código QR para vincular tu WhatsApp.</p>
-              {!metodoConexion&&(
-                <div onClick={iniciarQR} style={{background:'rgba(37,211,102,0.04)',border:'1.5px solid rgba(37,211,102,0.2)',borderRadius:16,padding:22,cursor:'pointer',transition:'all 0.2s',maxWidth:380}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(37,211,102,0.5)';e.currentTarget.style.transform='translateY(-2px)';}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(37,211,102,0.2)';e.currentTarget.style.transform='none';}}>
-                  <div style={{display:'flex',alignItems:'center',gap:7,fontFamily:F,fontSize:14,fontWeight:700,color:'#EFF4FF',marginBottom:4}}><Ic.QrCode size={15}/> Escanear código QR</div>
-                  <p style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.6,margin:0}}>Abre WhatsApp desde tu celular y escanea el código con la cámara.</p>
-                </div>
-              )}
-              {metodoConexion==='qr'&&(
-                <div style={{textAlign:'center'}}>
-                  {reconect&&!qrBase64&&(<div style={{padding:'60px 0'}}><div style={{width:48,height:48,border:'3px solid rgba(37,211,102,0.1)',borderTop:'3px solid #25D366',borderRadius:'50%',animation:'spin 0.9s linear infinite',margin:'0 auto 20px'}}/><div style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.25)'}}>Generando QR...</div></div>)}
-                  {qrBase64&&(
-                    <div>
-                      <div style={{background:'#fff',borderRadius:20,padding:22,display:'inline-block',marginBottom:24,boxShadow:'0 20px 60px rgba(0,0,0,0.6)'}}><img src={qrBase64} alt="QR" style={{width:220,height:220,display:'block'}}/></div>
-                      <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:16}}>Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo → Escanea</p>
-                    </div>
+              <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24,fontWeight:300}}>Con un clic, a través de Meta — sin QR, sin escaneos.</p>
+
+              <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:20,padding:'24px',boxShadow:'0 4px 24px rgba(43,106,255,.07)',marginBottom:16,textAlign:'center'}}>
+                <div style={{fontSize:40,marginBottom:12}}>📱</div>
+                <p style={{fontFamily:F,fontSize:13.5,color:'#6B7280',lineHeight:1.6,marginBottom:20}}>
+                  Vas a iniciar sesión con tu cuenta de Facebook para conectar el
+                  WhatsApp de tu negocio de forma <strong style={{color:'#111827'}}>segura y oficial</strong>.
+                  Elegirás o crearás tu cuenta de WhatsApp Business y confirmarás tu
+                  propio número — todo en la misma ventana.
+                </p>
+
+                {errorConexion&&(
+                  <div style={{background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.2)',borderRadius:10,padding:'11px 14px',marginBottom:16,fontFamily:F,fontSize:13,color:'#EF4444',textAlign:'left'}}>
+                    {errorConexion}
+                  </div>
+                )}
+
+                <button
+                  onClick={conectarConFacebook}
+                  disabled={!sdkListo||conectando}
+                  style={{
+                    display:'flex',alignItems:'center',justifyContent:'center',gap:10,
+                    width:'100%',minHeight:54,border:'none',borderRadius:14,
+                    background:(!sdkListo||conectando)?'#D1D9F0':'#1877F2',
+                    color:(!sdkListo||conectando)?'#9CA3AF':'#fff',
+                    fontFamily:F,fontSize:16,fontWeight:700,
+                    boxShadow:(!sdkListo||conectando)?'none':'0 6px 24px rgba(24,119,242,.35)',
+                    transition:'all .2s',cursor:(!sdkListo||conectando)?'default':'pointer',
+                  }}>
+                  {conectando?(
+                    <>
+                      <div style={{width:18,height:18,border:'2.5px solid rgba(255,255,255,.3)',borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite'}}/>
+                      Conectando...
+                    </>
+                  ):!sdkListo?(
+                    'Cargando...'
+                  ):(
+                    <>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                      Conectar con Facebook
+                    </>
                   )}
-                </div>
-              )}
+                </button>
+              </div>
             </div>
           )}
 
@@ -1247,7 +1333,7 @@ export default function WasapBotPanel() {
                 <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>Conexión WhatsApp</div>
                 <Guia visible={!connected&&!guiasVistas['whatsapp_conectado']} texto={d.guias.whatsapp} icono={Ic.Smartphone}/>
                 <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
-                  <button onClick={()=>{setTab('qr');setMetodoConexion('');setQrBase64('');}} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:7}}>
+                  <button onClick={()=>setTab('qr')} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:7}}>
                     {connected?<><Ic.RefreshCw size={13}/> Reconectar WhatsApp</>:<><Ic.Smartphone size={13}/> Conectar WhatsApp</>}
                   </button>
                   {connected&&<button onClick={async()=>{await fetch(`${WA}/sesion/${id}/desconectar`,{method:'POST',headers:{'x-server-secret':SECRET}});setStatus('disconnected');}} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Desconectar</button>}
