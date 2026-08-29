@@ -22,6 +22,13 @@ const VERIFY_TOKEN   = process.env.META_VERIFY_TOKEN;
 const SERVER_SECRET  = process.env.SERVER_SECRET || 'bqinzagencia2026';
 const BRAIN_URL       = `${process.env.AGENCIAME_API_URL || 'https://bqinzagencia.com'}/api/whatsapp-baileys`;
 
+// Misma clave de fecha (zona horaria España) que usa chat-asesor-wasapbot.js
+// para el contador soporte_ia_uso, así ambos canales suman al mismo día.
+function hoyKey() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export const config = {
   api: { bodyParser: true },
 };
@@ -123,6 +130,9 @@ async function resolverEmpresa(phoneNumberId) {
 // Guarda/actualiza la conversación de WhatsApp en soporte_ia_conversaciones,
 // la misma colección que ya lee el panel Admin > Soporte IA. Un documento
 // por cliente+empresa, para que el historial se vaya acumulando.
+// También suma al contador diario soporte_ia_uso (mismo contador que usa
+// el chat web) para que el gráfico de "Actividad histórica" del panel
+// refleje también los mensajes que llegan por WhatsApp.
 async function guardarConversacionWhatsapp({ empresaId, empresaNombre, numeroCliente, textoUsuario, textoIA }) {
   const convId = `wa_${empresaId}_${numeroCliente}`;
   const ref = adminDb.collection('soporte_ia_conversaciones').doc(convId);
@@ -144,4 +154,12 @@ async function guardarConversacionWhatsapp({ empresaId, empresaNombre, numeroCli
   const snap = await ref.get();
   const total = (snap.data()?.mensajes || []).length;
   await ref.update({ totalMensajes: total });
+
+  // Contador diario soporte_ia_uso — mismo formato de clave y campos que usa
+  // chat-asesor-wasapbot.js, así el panel Admin > Soporte IA suma ambos canales.
+  const usoKey = `${empresaId}_${hoyKey()}`;
+  await adminDb.collection('soporte_ia_uso').doc(usoKey).set({
+    fecha: hoyKey(),
+    count: FieldValue.increment(1),
+  }, { merge: true }).catch(() => {});
 }
