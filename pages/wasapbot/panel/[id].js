@@ -237,6 +237,9 @@ export default function WasapBotPanel() {
   const [sdkListo,       setSdkListo]       = useState(false);
   const [conectando,     setConectando]     = useState(false);
   const [errorConexion,  setErrorConexion]  = useState('');
+  const [telegramToken,      setTelegramToken]      = useState('');
+  const [conectandoTelegram, setConectandoTelegram] = useState(false);
+  const [telegramMsg,        setTelegramMsg]        = useState('');
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -333,6 +336,27 @@ export default function WasapBotPanel() {
     } finally {
       setConectando(false);
     }
+  };
+
+  const conectarTelegram = async () => {
+    const tok = telegramToken.trim();
+    if (!tok) { setTelegramMsg('Pega el token que te dio @BotFather'); return; }
+    setConectandoTelegram(true);
+    setTelegramMsg('');
+    try {
+      const r = await fetch('/api/telegram-conectar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empresaId: id, botToken: tok }),
+      });
+      const dRes = await r.json();
+      if (!dRes.ok) { setTelegramMsg(dRes.error || 'No se pudo conectar.'); setConectandoTelegram(false); return; }
+      setTelegramMsg(`✓ Conectado como @${dRes.botUsername}. Ya puedes probarlo escribiéndole a tu bot en Telegram.`);
+      setEmpresa(prev => ({ ...prev, telegram: { botToken: tok, botUsername: dRes.botUsername, activo: true } }));
+      setTelegramToken('');
+    } catch {
+      setTelegramMsg('Error de conexión. Intenta de nuevo.');
+    }
+    setConectandoTelegram(false);
   };
 
   const cargarDatos = async () => {
@@ -1203,6 +1227,44 @@ export default function WasapBotPanel() {
                     </>
                   )}
                 </button>
+              </div>
+
+              {/* ── Alternativa: Telegram (gratis, sin verificación de Meta) ── */}
+              <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:20,padding:'22px',boxShadow:'0 4px 24px rgba(43,106,255,.05)',textAlign:'left'}}>
+                <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:10}}>
+                  <span style={{fontSize:22}}>✈️</span>
+                  <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:'#111827'}}>
+                    Alternativa: Telegram
+                    {empresa?.telegram?.activo&&<span style={{marginLeft:8,background:'rgba(37,211,102,.12)',color:'#159A52',borderRadius:99,padding:'2px 9px',fontSize:11,fontWeight:700}}>Conectado</span>}
+                  </div>
+                </div>
+                <p style={{fontFamily:F,fontSize:12.5,color:'#6B7280',lineHeight:1.7,marginBottom:14}}>
+                  Mientras tramitas WhatsApp, puedes activar tu mismo bot en Telegram — <strong>gratis y sin ningún trámite</strong>. Tarda 2 minutos:
+                </p>
+                <ol style={{fontFamily:F,fontSize:12.5,color:'#4B5563',lineHeight:2,paddingLeft:18,marginBottom:16}}>
+                  <li>Abre Telegram y busca <strong>@BotFather</strong></li>
+                  <li>Escríbele <code style={{background:'#F3F4F6',padding:'1px 6px',borderRadius:4}}>/newbot</code> y sigue sus instrucciones (nombre y username de tu bot)</li>
+                  <li>Copia el token que te da (algo como <code style={{background:'#F3F4F6',padding:'1px 6px',borderRadius:4,fontSize:11}}>123456:AAxxxx...</code>) y pégalo aquí abajo</li>
+                </ol>
+                {telegramMsg&&(
+                  <div style={{background:telegramMsg.startsWith('✓')?'rgba(37,211,102,.08)':'rgba(239,68,68,.07)',border:`1px solid ${telegramMsg.startsWith('✓')?'rgba(37,211,102,.25)':'rgba(239,68,68,.2)'}`,borderRadius:9,padding:'9px 13px',marginBottom:12,fontFamily:F,fontSize:12.5,color:telegramMsg.startsWith('✓')?'#159A52':'#EF4444'}}>
+                    {telegramMsg}
+                  </div>
+                )}
+                <div style={{display:'flex',gap:8}}>
+                  <input
+                    value={telegramToken}
+                    onChange={e=>setTelegramToken(e.target.value)}
+                    placeholder="Pega aquí el token de @BotFather"
+                    style={{flex:1,background:'#F9FAFB',border:'1.5px solid #E5E7EB',borderRadius:10,padding:'11px 14px',fontFamily:F,fontSize:13,color:'#111827',outline:'none'}}
+                  />
+                  <button
+                    onClick={conectarTelegram}
+                    disabled={conectandoTelegram}
+                    style={{background:conectandoTelegram?'#93C5FD':'#26A5E4',color:'#fff',border:'none',borderRadius:10,padding:'0 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:conectandoTelegram?'default':'pointer',whiteSpace:'nowrap'}}>
+                    {conectandoTelegram?'Conectando...':'Conectar'}
+                  </button>
+                </div>
               </div>
             </div>
           )}
