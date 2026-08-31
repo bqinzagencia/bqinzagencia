@@ -43,6 +43,19 @@ export default async function handler(req, res) {
     const chatId  = mensaje?.chat?.id;
     const updateId = req.body?.update_id;
 
+    // Fotos, audios, stickers, etc. — por ahora avisamos en vez de ignorar en silencio.
+    if (mensaje && !texto && chatId) {
+      const empresaSnapTmp = await adminDb.collection('empresas').doc(empresaId).get();
+      const botTokenTmp = empresaSnapTmp.data()?.telegram?.botToken;
+      if (botTokenTmp) {
+        await axios.post(`https://api.telegram.org/bot${botTokenTmp}/sendMessage`, {
+          chat_id: chatId,
+          text: 'Por ahora solo puedo leer mensajes de texto 🙏 Cuéntame en palabras qué necesitas y te ayudo.',
+        }).catch(() => {});
+      }
+      return res.status(200).json({ ok: true, skip: 'mensaje-no-texto' });
+    }
+
     // Puede llegar otro tipo de update (edición, callback de botón, etc.) — ignorar.
     if (!mensaje || !texto || !chatId) {
       return res.status(200).json({ ok: true, skip: 'no-es-mensaje-de-texto' });
@@ -70,6 +83,26 @@ export default async function handler(req, res) {
     // El "número de cliente" en Telegram es el chat_id (siempre es el mismo
     // para la misma persona, sirve igual que el número de teléfono en WhatsApp).
     const numeroCliente = String(chatId);
+    const nombreNegocio = empresa.nombreEmpresa || empresa.nombre || 'nuestro negocio';
+
+    // ── /start: bienvenida instantánea, sin gastar tokens de IA ──
+    if (texto.trim().toLowerCase().startsWith('/start')) {
+      const bienvenida = `👋 ¡Hola! Soy el asistente virtual de *${nombreNegocio}*.\n\nCuéntame qué necesitas — precios, horarios, agendar una cita — y te ayudo enseguida.`;
+      await enviarRespuestaTelegram({ botToken, chatId, texto: bienvenida });
+      await guardarConversacionTelegram({
+        empresaId,
+        empresaNombre: nombreNegocio,
+        numeroCliente,
+        textoUsuario: texto,
+        textoIA: bienvenida,
+      });
+      return res.status(200).json({ ok: true, skip: 'start-bienvenida' });
+    }
+
+    // ── Indicador de "escribiendo..." mientras el cerebro piensa ──
+    axios.post(`https://api.telegram.org/bot${botToken}/sendChatAction`, {
+      chat_id: chatId, action: 'typing',
+    }).catch(() => {});
 
     // ── Llamar al cerebro existente (misma ruta que usa WhatsApp) ──
     const brainResp = await axios.post(
@@ -85,7 +118,7 @@ export default async function handler(req, res) {
 
     await guardarConversacionTelegram({
       empresaId,
-      empresaNombre: empresa.nombreEmpresa || empresa.nombre || 'Empresa',
+      empresaNombre: nombreNegocio,
       numeroCliente,
       textoUsuario: texto,
       textoIA: respuesta || null,
