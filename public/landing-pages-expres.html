@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Landing Pages Exprés — Tu web lista en 48 horas | BQinzagencIA</title>
+<meta name="description" content="Landing pages rápidas y profesionales para pymes españolas. De la idea a la web publicada en 48 horas, sin procesos eternos.">
+<meta property="og:title" content="Landing Pages Exprés — Tu web lista en 48 horas">
+<meta property="og:description" content="Landing pages rápidas y profesionales para pymes. Pedido, diseño y publicación en 48 horas.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "BQinzagencIA — Landing Pages Exprés",
+  "telephone": "+34674421919",
+  "address": { "@type": "PostalAddress", "addressLocality": "Madrid", "addressCountry": "ES" },
+  "url": "https://www.bqinzagencia.com",
+  "areaServed": "ES",
+  "priceRange": "€€"
+}
+</script>
+<style>
+  :root{
+    --bg:#F1F5E6; --surface:#FFFFFF; --ink:#201A3D; --muted:#6B6A78;
+    --accent:#B4E33D; --accent-ink:#20330A; --coral:#FF6A3D; --line:#D9DECB;
+    --display:'Space Grotesk',system-ui,sans-serif;
+    --body:'IBM Plex Sans',system-ui,sans-serif;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  img,svg{max-width:100%}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  nav{padding:22px 0;border-bottom:1px solid var(--line)}
+  .navrow{display:flex;align-items:center;justify-content:space-between}
+  .logo{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.3px}
+  .logo span{color:var(--coral)}
+  .navcta{background:var(--ink);color:#fff;text-decoration:none;font-size:13px;font-weight:600;
+    padding:10px 18px;border-radius:8px}
+
+  .hero{padding:64px 0 56px;display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center}
+  .eyebrow{font-size:13px;color:var(--muted);margin-bottom:14px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,5.4vw,58px);line-height:1.03;
+    letter-spacing:-1.2px;max-width:14ch}
+  h1 em{font-style:normal;color:var(--coral)}
+  .sub{margin-top:18px;font-size:17px;color:var(--muted);max-width:46ch}
+
+  form.lead{margin-top:28px;display:flex;flex-direction:column;gap:10px;max-width:420px}
+  input{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:9px;
+    padding:13px 14px;font-family:var(--body);font-size:15px;color:var(--ink)}
+  input:focus{outline:none;border-color:var(--ink)}
+  button.primary{background:var(--accent);color:var(--accent-ink);border:none;border-radius:9px;
+    padding:14px 18px;font-family:var(--body);font-weight:600;font-size:15px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+  button.primary:hover{background:#a6d62f}
+  .consent{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted)}
+  .consent input{width:auto;margin-top:2px}
+  .formnote{font-size:12px;color:var(--muted)}
+
+  .clockbox{background:var(--ink);color:#fff;border-radius:18px;padding:34px 28px;position:relative}
+  .clockbox .num{font-family:var(--display);font-weight:700;font-size:96px;line-height:1;letter-spacing:-2px}
+  .clockbox .unit{font-size:14px;color:#C9C6E6;margin-top:2px}
+  .clockbox .desc{margin-top:22px;font-size:13px;color:#C9C6E6;border-top:1px solid #3A3460;padding-top:16px}
+
+  section{padding:52px 0;border-top:1px solid var(--line)}
+  .kicker{font-size:13px;color:var(--muted);margin-bottom:8px}
+  h2{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.2vw,32px);letter-spacing:-.6px;max-width:20ch}
+
+  .benefits{margin-top:32px;display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  .benefit{padding:22px 24px;border-left:1px solid var(--line)}
+  .benefit:first-child{border-left:none;padding-left:0}
+  .benefit h3{font-family:var(--display);font-weight:700;font-size:17px;margin-bottom:8px}
+  .benefit p{font-size:14px;color:var(--muted)}
+
+  .process{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .step .day{font-family:var(--display);font-weight:700;font-size:14px;color:var(--coral);margin-bottom:10px}
+  .step h3{font-family:var(--display);font-weight:700;font-size:19px;margin-bottom:8px}
+  .step p{font-size:14px;color:var(--muted)}
+
+  .styles{margin-top:32px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .style-card{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+  .style-mock{padding:14px}
+  .style-mock .dots{display:flex;gap:5px;margin-bottom:10px}
+  .style-mock .dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+  .style-mock .bar{height:9px;border-radius:3px;margin-bottom:6px}
+  .style-mock .bar.w1{width:70%} .style-mock .bar.w2{width:45%} .style-mock .bar.w3{width:85%}
+  .style-info{padding:14px 16px;border-top:1px solid var(--line)}
+  .style-info b{font-family:var(--display);font-size:13.5px;display:block;margin-bottom:2px}
+  .style-info span{font-size:12px;color:var(--muted)}
+
+  .guarantee{margin-top:28px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;
+    padding:28px 32px;display:flex;gap:20px;align-items:flex-start}
+  .guarantee .mark{font-family:var(--display);font-weight:700;font-size:28px;color:var(--coral);flex-shrink:0}
+  .guarantee p{font-size:14px;color:var(--muted);max-width:56ch}
+
+  .pricing{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .plan{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:28px}
+  .plan.featured{border-color:var(--ink);position:relative}
+  .plan .tag{font-size:11px;font-weight:600;color:var(--coral);margin-bottom:6px}
+  .plan h3{font-family:var(--display);font-weight:700;font-size:19px;margin-bottom:6px}
+  .plan .price{font-family:var(--display);font-weight:700;font-size:30px;margin:10px 0}
+  .plan ul{list-style:none;margin:16px 0 20px;font-size:13.5px;color:var(--muted)}
+  .plan li{padding:5px 0;border-top:1px solid var(--line)}
+  .plan li:first-child{border-top:none}
+  .plan a{display:block;text-align:center;background:var(--ink);color:#fff;text-decoration:none;
+    padding:12px;border-radius:9px;font-weight:600;font-size:13.5px}
+  .plan.featured a{background:var(--accent);color:var(--accent-ink)}
+  .pricenote{margin-top:14px;font-size:12px;color:var(--muted)}
+
+  .faq{margin-top:28px;max-width:720px}
+  .faq-item{border-top:1px solid var(--line)}
+  .faq-item:last-child{border-bottom:1px solid var(--line)}
+  .faq-item summary{padding:16px 4px;font-family:var(--display);font-weight:700;font-size:15px;
+    cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  .faq-item summary::-webkit-details-marker{display:none}
+  .faq-item summary::after{content:'+';font-size:20px;color:var(--muted);font-weight:400}
+  .faq-item[open] summary::after{content:'–'}
+  .faq-item p{padding:0 4px 16px;font-size:14px;color:var(--muted);max-width:60ch}
+
+  .pricebox{margin-top:28px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;
+    padding:32px;display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between}
+  .pricebox h3{font-family:var(--display);font-weight:700;font-size:20px;margin-bottom:6px}
+  .pricebox p{font-size:14px;color:var(--muted);max-width:40ch}
+  .pricebox a.primary2{background:var(--ink);color:#fff;text-decoration:none;padding:13px 22px;border-radius:9px;
+    font-weight:600;font-size:14px;white-space:nowrap}
+
+  footer{padding:28px 0;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  footer .fgrid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  footer .legal{border-top:1px solid var(--line);padding-top:14px;line-height:1.6;max-width:70ch}
+
+  .wa-float{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:20px;
+    background:var(--ink);color:#fff;width:54px;height:54px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:40}
+
+  @media(max-width:820px){
+    .hero{grid-template-columns:1fr}
+    .benefits{grid-template-columns:1fr;gap:18px}
+    .benefit{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:18px}
+    .benefit:first-child{border-top:none;padding-top:0}
+    .process{grid-template-columns:1fr;gap:26px}
+    .styles{grid-template-columns:1fr}
+    .pricing{grid-template-columns:1fr}
+    .guarantee{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap navrow">
+  <div class="logo">BQinzagenc<span>IA</span></div>
+  <a class="navcta" href="#pedir">Pedir presupuesto</a>
+</div></nav>
+
+<header class="hero wrap">
+  <div>
+    <div class="eyebrow">Landing Pages Exprés</div>
+    <h1>Tu página web, <em>lista en 48 horas</em>.</h1>
+    <p class="sub">Una landing rápida y directa, pensada para convertir visitas en presupuestos y llamadas — sin esperas de semanas ni procesos eternos.</p>
+
+    <form class="lead" id="pedir" onsubmit="return enviarWhatsapp(event)">
+      <input type="text" id="fEmpresa" placeholder="Nombre o actividad de tu negocio" required>
+      <input type="tel" id="fTelefono" placeholder="Teléfono de contacto" required>
+      <label class="consent">
+        <input type="checkbox" required>
+        Acepto que BQinzagencIA use estos datos para responder a mi solicitud, según lo indicado en el aviso legal.
+      </label>
+      <button class="primary" type="submit">Pedir presupuesto por WhatsApp →</button>
+      <div class="formnote">Te respondemos el mismo día. Sin compromiso.</div>
+    </form>
+  </div>
+
+  <div class="clockbox">
+    <div class="num" id="clockNum">0</div>
+    <div class="unit">horas para tenerla lista</div>
+    <div class="desc">Del primer mensaje a la web publicada: dos días, no dos meses.</div>
+  </div>
+</header>
+
+<section class="wrap">
+  <div class="kicker">Por qué esta landing</div>
+  <h2>Hecha para negocios que no pueden esperar</h2>
+  <div class="benefits">
+    <div class="benefit">
+      <h3>Rápida de verdad</h3>
+      <p>Sin reuniones interminables ni revisiones infinitas. Una landing enfocada en un único objetivo: que te contacten.</p>
+    </div>
+    <div class="benefit">
+      <h3>Pensada para convertir</h3>
+      <p>Estructura clara, llamada a la acción directa y sin fricción — el visitante sabe en segundos qué hacer.</p>
+    </div>
+    <div class="benefit">
+      <h3>Lista para mantener</h3>
+      <p>Al año, revisamos textos, velocidad y que todo siga funcionando — sin que tengas que preocuparte de nada.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="kicker">Cómo trabajamos</div>
+  <h2>Dos días, dos entregables</h2>
+  <div class="process">
+    <div class="step">
+      <div class="day">Día 1</div>
+      <h3>Diseño y contenido</h3>
+      <p>Recogemos qué hace tu negocio, tu tono y tus datos de contacto, y montamos el diseño completo de la página.</p>
+    </div>
+    <div class="step">
+      <div class="day">Día 2</div>
+      <h3>Publicación y ajustes</h3>
+      <p>Publicamos la landing, la probamos en móvil y escritorio, y la dejamos lista para recibir tus primeros contactos.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="kicker">Estilos disponibles</div>
+  <h2>Cada negocio, una identidad distinta</h2>
+  <p style="margin-top:8px;font-size:14px;color:var(--muted)">Ejemplos ilustrativos del tipo de estilo que podemos aplicar a tu sector — no plantillas genéricas, sino un diseño pensado para ti.</p>
+  <div class="styles">
+    <div class="style-card">
+      <div class="style-mock" style="background:#FFF3EC">
+        <div class="dots"><div class="dot" style="background:#E8A788"></div><div class="dot" style="background:#E8A788"></div><div class="dot" style="background:#E8A788"></div></div>
+        <div class="bar w1" style="background:#D97757"></div>
+        <div class="bar w2" style="background:#E8A788"></div>
+        <div class="bar w3" style="background:#F3D3C2"></div>
+      </div>
+      <div class="style-info"><b>Belleza &amp; Estética</b><span>Cálido, elegante, cercano</span></div>
+    </div>
+    <div class="style-card">
+      <div class="style-mock" style="background:#EFF3EA">
+        <div class="dots"><div class="dot" style="background:#8FAE6E"></div><div class="dot" style="background:#8FAE6E"></div><div class="dot" style="background:#8FAE6E"></div></div>
+        <div class="bar w1" style="background:#4F6B35"></div>
+        <div class="bar w2" style="background:#8FAE6E"></div>
+        <div class="bar w3" style="background:#C7D9B4"></div>
+      </div>
+      <div class="style-info"><b>Reformas &amp; Hogar</b><span>Sólido, directo, de confianza</span></div>
+    </div>
+    <div class="style-card">
+      <div class="style-mock" style="background:#FDF0E4">
+        <div class="dots"><div class="dot" style="background:#E0954D"></div><div class="dot" style="background:#E0954D"></div><div class="dot" style="background:#E0954D"></div></div>
+        <div class="bar w1" style="background:#B5651D"></div>
+        <div class="bar w2" style="background:#E0954D"></div>
+        <div class="bar w3" style="background:#F3CB9E"></div>
+      </div>
+      <div class="style-info"><b>Restauración</b><span>Apetitoso, vivo, inmediato</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="guarantee">
+    <div class="mark">✓</div>
+    <div>
+      <h3 style="font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:6px">Si no te encaja, la ajustamos</h3>
+      <p>Antes de publicarla, revisamos juntos el diseño. Si algo no refleja bien tu negocio, lo corregimos sin coste adicional dentro del mismo encargo.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="kicker">Precio</div>
+  <h2>Sin mensualidades escondidas</h2>
+  <div class="pricing">
+    <div class="plan">
+      <div class="tag">LANDING</div>
+      <h3>Página exprés</h3>
+      <div class="price">Presupuesto a medida</div>
+      <ul>
+        <li>Diseño único para tu negocio</li>
+        <li>Publicada en 48 horas</li>
+        <li>Adaptada a móvil</li>
+        <li>Botón directo a WhatsApp</li>
+      </ul>
+      <a href="#pedir">Pedir presupuesto</a>
+    </div>
+    <div class="plan featured">
+      <div class="tag">RECOMENDADO</div>
+      <h3>Landing + Mantenimiento</h3>
+      <div class="price">Presupuesto a medida</div>
+      <ul>
+        <li>Todo lo del plan Landing</li>
+        <li>Revisión anual de textos y velocidad</li>
+        <li>Pequeños cambios incluidos</li>
+        <li>Prioridad de respuesta</li>
+      </ul>
+      <a href="#pedir">Pedir presupuesto</a>
+    </div>
+  </div>
+  <p class="pricenote">El precio final depende del contenido y las secciones que necesite tu negocio — te lo confirmamos el mismo día que nos escribes.</p>
+</section>
+
+<section class="wrap">
+  <div class="kicker">Preguntas frecuentes</div>
+  <h2>Antes de escribirnos</h2>
+  <div class="faq">
+    <details class="faq-item">
+      <summary>¿Qué necesito para empezar?</summary>
+      <p>Solo el nombre de tu negocio y un teléfono de contacto. El resto lo vamos completando juntos por WhatsApp: qué haces, tus datos de contacto y, si tienes, fotos o textos que quieras incluir.</p>
+    </details>
+    <details class="faq-item">
+      <summary>¿Puedo pedir cambios después de verla?</summary>
+      <p>Sí. Antes de publicarla la revisamos juntos, y los ajustes de esa primera revisión están incluidos en el encargo.</p>
+    </details>
+    <details class="faq-item">
+      <summary>¿La landing incluye dominio y hosting?</summary>
+      <p>Te lo confirmamos según tu caso: si ya tienes dominio propio, la publicamos ahí; si no, te indicamos la opción más sencilla para conseguirlo.</p>
+    </details>
+    <details class="faq-item">
+      <summary>¿Qué pasa si más adelante quiero un bot de WhatsApp?</summary>
+      <p>La landing puede conectarse más adelante con WasapBot, nuestro asistente de WhatsApp con IA, para que tu negocio también responda automáticamente a clientes.</p>
+    </details>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="pricebox">
+    <div>
+      <h3>¿Hablamos de tu negocio?</h3>
+      <p>Cuéntanos qué necesitas y te confirmamos el presupuesto y la fecha de entrega el mismo día.</p>
+    </div>
+    <a class="primary2" href="#pedir">Pedir presupuesto →</a>
+  </div>
+</section>
+
+<div class="wrap"><footer>
+  <div class="fgrid">
+    <div>BQinzagencIA · Landing Pages Exprés</div>
+    <div>Madrid, España · <a href="https://wa.me/34674421919" style="text-decoration:underline">WhatsApp</a></div>
+  </div>
+  <div class="legal">
+    Aviso legal: los datos facilitados en el formulario se utilizan exclusivamente para responder a tu solicitud de presupuesto por WhatsApp y no se almacenan en ningún servidor de BQinzagencIA. Al enviar el formulario, la conversación continúa directamente en WhatsApp, sujeta a las condiciones de esa plataforma.
+  </div>
+</footer></div>
+
+<a class="wa-float" href="https://wa.me/34674421919?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20las%20Landing%20Pages%20Expr%C3%A9s" target="_blank" aria-label="Contactar por WhatsApp">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.859L.054 23.448a.75.75 0 0 0 .922.922l5.59-1.478A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+</a>
+
+<script>
+  (function(){
+    var el = document.getElementById('clockNum');
+    var target = 48, cur = 0;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) { el.textContent = target; return; }
+    var t = setInterval(function(){
+      cur += 4;
+      if (cur >= target) { cur = target; clearInterval(t); }
+      el.textContent = cur;
+    }, 20);
+  })();
+
+  function enviarWhatsapp(ev){
+    ev.preventDefault();
+    var WHATSAPP_NUMERO = '34674421919';
+    var empresa = document.getElementById('fEmpresa').value.trim();
+    var telefono = document.getElementById('fTelefono').value.trim();
+    var texto = 'Hola, quiero pedir presupuesto de una landing page exprés.\n' +
+                'Negocio: ' + empresa + '\n' +
+                'Mi teléfono: ' + telefono;
+    var url = 'https://wa.me/' + WHATSAPP_NUMERO + '?text=' + encodeURIComponent(texto);
+    window.open(url, '_blank');
+    return false;
+  }
+</script>
+</body>
+</html>

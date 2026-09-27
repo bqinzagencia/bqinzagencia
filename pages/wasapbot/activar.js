@@ -1,5 +1,5 @@
-// pages/wasapbot/activar.js — v15: paso 2 conectado a solicitud de activacion manual (Meta)
-import { useState, useEffect, useRef } from 'react';
+// pages/wasapbot/activar.js — v16: Embedded Signup real de Meta (sin QR, sin solicitud manual)
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { auth, loginWithGoogle } from '../../lib/firebase';
@@ -7,15 +7,15 @@ const trackInicioRegistro = () => {};
 const trackRegistroCompleto = () => {};
 const trackEvent = () => {};
 
-// Ocultar el bot flotante en esta pagina de registro para no distraer al usuario
 if (typeof window !== 'undefined') {
   document.documentElement.setAttribute('data-hide-bot', '1');
 }
 
 const F  = "'Inter', system-ui, sans-serif";
 const FA = "'Abril Fatface', serif";
-const WA_SERVER = process.env.NEXT_PUBLIC_WA_SERVER || 'https://bqinzagencia-whatsapp-server-production.up.railway.app';
-const WA_SECRET = process.env.NEXT_PUBLIC_WA_SECRET || 'bqinzagencia2026.';
+
+const META_APP_ID    = process.env.NEXT_PUBLIC_META_APP_ID;
+const META_CONFIG_ID = '1588866396584083';
 
 const DOMINIOS_FALSOS = [
   'tucorreo.com','correo.com','email.com','test.com','prueba.com',
@@ -35,19 +35,17 @@ function validarEmail(email) {
   return null;
 }
 
-// ── Paso 1: Datos ── Paso 2: Solicitar activación ── Paso 3: Listo ──
 export default function WasapBotActivar() {
-  const [paso,      setPaso]      = useState(1); // 1=datos, 2=activacion, 3=listo
+  const [paso,      setPaso]      = useState(1);
   const [nombre,    setNombre]    = useState('');
   const [email,     setEmail]     = useState('');
-  const [emailHotmart, setEmailHotmart] = useState(''); // email pre-llenado desde Hotmart
+  const [emailHotmart, setEmailHotmart] = useState('');
   const [desdeHotmart, setDesdeHotmart] = useState(false);
   const [empresaId, setEmpresaId] = useState('');
   const [error,     setError]     = useState('');
   const [loading,   setLoading]   = useState(false);
   const [trialHoras,setTrialHoras]= useState(0);
 
-  // Email verificado
   const [emailVerificado,   setEmailVerificado]   = useState(false);
   const [verificadoVia,     setVerificadoVia]     = useState('');
   const [gLoading,          setGLoading]          = useState(false);
@@ -56,21 +54,19 @@ export default function WasapBotActivar() {
   const [codigoEmail,       setCodigoEmail]       = useState('');
   const [verificandoCodigo, setVerificandoCodigo] = useState(false);
 
-  // Numero de WhatsApp final (paso 3)
-  const [numeroWA,   setNumeroWA]   = useState('');
+  const [sdkListo,      setSdkListo]      = useState(false);
+  const [conectando,    setConectando]    = useState(false);
+  const [errorConexion, setErrorConexion] = useState('');
 
-  // Solicitud de activación manual (nueva plataforma Meta)
-  const [telefonoActivacion, setTelefonoActivacion] = useState('');
-  const [enviandoActivacion, setEnviandoActivacion] = useState(false);
-  const [solicitudEnviada,   setSolicitudEnviada]   = useState(false);
-  const [errorActivacion,    setErrorActivacion]    = useState('');
+  const [telegramToken,      setTelegramToken]      = useState('');
+  const [conectandoTelegram, setConectandoTelegram] = useState(false);
+  const [telegramMsg,        setTelegramMsg]        = useState('');
 
   useEffect(() => {
     fetch('/api/wasapbot-precios').then(r=>r.json())
       .then(d=>{ if(d.ok) setTrialHoras(Number(d.promo?.trialHoras)||0); })
       .catch(()=>{});
     trackInicioRegistro();
-    // Detectar si viene de Hotmart con email pre-llenado
     const params = new URLSearchParams(window.location.search);
     const emailParam  = params.get('email');
     const fuenteParam = params.get('fuente');
@@ -84,7 +80,6 @@ export default function WasapBotActivar() {
     }
   }, []);
 
-  // ── Google ──────────────────────────────────────────────────────────────
   const conectarGoogle = async () => {
     setError(''); setGLoading(true);
     try {
@@ -107,7 +102,6 @@ export default function WasapBotActivar() {
     }
   };
 
-  // ── Código por email ────────────────────────────────────────────────────
   const enviarCodigo = async () => {
     const err = validarEmail(email);
     if (err) { setError(err); return; }
@@ -139,8 +133,7 @@ export default function WasapBotActivar() {
     finally { setVerificandoCodigo(false); }
   };
 
-  // ── Paso 1 → crear empresa + ir a paso 2 ───────────────────────────────
-  const crearEmpresa = async () => {
+  const crearYContinuar = async () => {
     if (!nombre.trim()) { setError('Escribe el nombre de tu negocio'); return; }
     if (nombre.trim().length < 3) { setError('El nombre debe tener al menos 3 caracteres'); return; }
     if (/^(sin nombre|test|prueba|hola|demo|asdf|qwerty)$/i.test(nombre.trim())) { setError('Escribe el nombre real de tu negocio'); return; }
@@ -150,7 +143,6 @@ export default function WasapBotActivar() {
 
     setError(''); setLoading(true);
     try {
-      // Crear empresa en Firestore
       const r = await fetch('/api/wasapbot-crear', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -166,8 +158,7 @@ export default function WasapBotActivar() {
       const d = await r.json();
       if (!d.ok) throw new Error(d.error);
 
-      const eid = d.empresaId;
-      setEmpresaId(eid);
+      setEmpresaId(d.empresaId);
       trackRegistroCompleto({ industria:'otro', ciudad:'' });
       trackEvent('registro_paso1_ok', { metodo_email: verificadoVia });
 
@@ -179,29 +170,26 @@ export default function WasapBotActivar() {
     }
   };
 
-  // ── Paso 2 → solicitar activación manual (nueva plataforma Meta) ───────
-  const solicitarActivacionManual = async () => {
-    const tel = telefonoActivacion.replace(/\D/g,'');
-    if (tel.length < 9) { setErrorActivacion('Escribe tu numero de WhatsApp con codigo de pais. Ej: 34674421919'); return; }
-    setErrorActivacion(''); setEnviandoActivacion(true);
+  const conectarTelegram = async () => {
+    const tok = telegramToken.trim();
+    if (!tok) { setTelegramMsg('Pega el token que te dio @BotFather'); return; }
+    setConectandoTelegram(true);
+    setTelegramMsg('');
     try {
-      const r = await fetch('/api/wasapbot-solicitar-conexion', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ empresaId, nombre: nombre.trim(), email: email.trim(), telefono: tel }),
+      const r = await fetch('/api/telegram-conectar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empresaId, botToken: tok }),
       });
       const d = await r.json();
-      if (!d.ok) throw new Error(d.error||'No se pudo enviar la solicitud');
-      setNumeroWA(tel);
-      setSolicitudEnviada(true);
-      trackEvent('solicitud_activacion_manual', {});
-    } catch(e) {
-      setErrorActivacion(e.message);
-    } finally {
-      setEnviandoActivacion(false);
+      if (!d.ok) { setTelegramMsg(d.error || 'No se pudo conectar.'); setConectandoTelegram(false); return; }
+      trackEvent('telegram_conectado', {});
+      setPaso(3);
+    } catch {
+      setTelegramMsg('Error de conexión. Intenta de nuevo.');
     }
+    setConectandoTelegram(false);
   };
 
-  // ── Estilos base ────────────────────────────────────────────────────────
   const INP = {
     width:'100%', background:'#fff', border:'1.5px solid #D1D9F0',
     borderRadius:12, padding:'14px 18px', color:'#111827',
@@ -228,13 +216,10 @@ export default function WasapBotActivar() {
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
         @keyframes ok{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
-        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         .aup{animation:up .35s ease both}
         .aok{animation:ok .5s cubic-bezier(0.175,0.885,0.32,1.275) both}
       `}}/>
 
-      {/* NAV */}
       <nav style={{
         position:'sticky',top:0,zIndex:100,
         background:'rgba(8,12,40,.97)',backdropFilter:'blur(20px)',
@@ -256,12 +241,11 @@ export default function WasapBotActivar() {
         </Link>
       </nav>
 
-      {/* INDICADOR DE PASO */}
       <div style={{background:'rgba(10,14,42,.97)',borderBottom:'1px solid rgba(255,255,255,0.07)',padding:'12px 24px'}}>
         <div style={{maxWidth:480,margin:'0 auto',display:'flex',alignItems:'center',gap:8}}>
           {[
             {n:1, label:'Tu negocio'},
-            {n:2, label:'Conectar WhatsApp'},
+            {n:2, label:'Tu Telegram'},
             {n:3, label:'¡Listo!'},
           ].map((s,i)=>{
             const done = paso > s.n;
@@ -297,11 +281,9 @@ export default function WasapBotActivar() {
 
       <div style={{maxWidth:480,margin:'0 auto',padding:'32px 20px 80px'}}>
 
-        {/* ═══ PASO 1: DATOS ═══════════════════════════════════════════════ */}
         {paso===1&&(
           <div className="aup">
 
-            {/* Banner Hotmart — simple y positivo */}
             {desdeHotmart && (
               <div style={{
                 display:'flex',alignItems:'center',gap:12,
@@ -310,12 +292,11 @@ export default function WasapBotActivar() {
               }}>
                 <span style={{fontSize:20,flexShrink:0}}>✅</span>
                 <div style={{fontFamily:F,fontSize:13,color:'#166534',lineHeight:1.5}}>
-                  <strong>¡Pago confirmado!</strong> Registírate con el mismo correo que usaste en Hotmart para activar tu plan.
+                  <strong>¡Pago confirmado!</strong> Regístrate con el mismo correo que usaste en Hotmart para activar tu plan.
                 </div>
               </div>
             )}
 
-            {/* Header */}
             <div style={{textAlign:'center',marginBottom:28}}>
               {trialHoras>0&&(
                 <div style={{
@@ -341,15 +322,14 @@ export default function WasapBotActivar() {
                 fontFamily:FA,fontSize:34,fontWeight:400,
                 letterSpacing:'-1.5px',color:'#EFF4FF',lineHeight:1.05,marginBottom:8,
               }}>
-                Activa tu WhatsApp<br/>inteligente
+                Activa tu asistente<br/>inteligente
               </h1>
               <p style={{fontFamily:F,fontSize:14,color:'rgba(255,255,255,0.5)',fontWeight:300,lineHeight:1.7}}>
-                Nombre de tu negocio + correo → deja tu numero → te contactamos.<br/>
-                <strong style={{color:'#EFF4FF',fontWeight:600}}>Menos de 2 minutos.</strong>
+                Cuéntanos de tu negocio y conecta tu bot<br/>
+                <strong style={{color:'#EFF4FF',fontWeight:600}}>en Telegram, gratis y en minutos.</strong>
               </p>
             </div>
 
-            {/* Formulario */}
             <div style={{
               background:'#fff',border:'1.5px solid #E5EAFF',
               borderRadius:20,padding:'24px',
@@ -374,7 +354,6 @@ export default function WasapBotActivar() {
                 </div>
               )}
 
-              {/* Nombre */}
               <div style={{marginBottom:16}}>
                 <label style={{fontFamily:F,fontSize:11,fontWeight:700,textTransform:'uppercase',
                   letterSpacing:1.2,color:'#6B7280',display:'block',marginBottom:8}}>
@@ -389,7 +368,6 @@ export default function WasapBotActivar() {
                 />
               </div>
 
-              {/* Correo */}
               <div style={{marginBottom:20}}>
                 <label style={{fontFamily:F,fontSize:11,fontWeight:700,textTransform:'uppercase',
                   letterSpacing:1.2,color:'#6B7280',display:'block',marginBottom:8}}>
@@ -415,7 +393,6 @@ export default function WasapBotActivar() {
                         {desdeHotmart ? 'Correo del pago Hotmart 🔒' : `Verificado${verificadoVia==='google'?' con Google':''}`}
                       </div>
                     </div>
-                    {/* Solo mostrar botón Cambiar si NO viene de Hotmart */}
                     {!desdeHotmart && (
                       <button onClick={()=>{
                         setEmailVerificado(false); setVerificadoVia(''); setEmail('');
@@ -427,7 +404,6 @@ export default function WasapBotActivar() {
                   </div>
                 ) : (
                   <>
-                    {/* Google */}
                     <button onClick={conectarGoogle} disabled={gLoading}
                       style={{
                         display:'flex',alignItems:'center',justifyContent:'center',gap:10,
@@ -518,10 +494,9 @@ export default function WasapBotActivar() {
               )}
             </div>
 
-            {/* Boton sticky fuera del card - siempre visible en movil */}
             <div style={{position:'sticky',bottom:0,zIndex:20,paddingTop:12,paddingBottom:8,background:'linear-gradient(to bottom, transparent, #F0F4FF 40%)'}}>
               <button
-                onClick={crearEmpresa}
+                onClick={crearYContinuar}
                 disabled={loading||!emailVerificado||!nombre.trim()}
                 style={{
                   width:'100%',minHeight:54,border:'none',borderRadius:14,
@@ -553,7 +528,6 @@ export default function WasapBotActivar() {
               </button>
             </div>
 
-            {/* Garantías */}
             <div style={{display:'flex',justifyContent:'center',gap:16,flexWrap:'wrap'}}>
               {['\u2713 Sin tarjeta','\u2713 Sin contratos','\u2713 Gratis para empezar'].map((t,i)=>(
                 <span key={i} style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.5)',fontWeight:500}}>{t}</span>
@@ -562,68 +536,133 @@ export default function WasapBotActivar() {
           </div>
         )}
 
-        {/* ═══ PASO 2: SOLICITAR ACTIVACIÓN ══════════════════════════════════ */}
         {paso===2&&(
           <div className="aup">
 
             <div style={{textAlign:'center',marginBottom:16}}>
               <h2 style={{fontFamily:FA,fontSize:28,color:'#EFF4FF',letterSpacing:'-1px',marginBottom:4}}>
-                Conecta tu WhatsApp
+                Conecta tu Telegram
               </h2>
               <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.45)',fontWeight:300}}>
-                Te contactamos para completar la activación
+                Gratis y sin ningún trámite — tarda 2 minutos
               </p>
             </div>
 
-            {!solicitudEnviada ? (
-              <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:16,padding:'20px',marginBottom:12,textAlign:'left'}}>
-                <p style={{fontFamily:F,fontSize:13,color:'#6B7280',marginBottom:14,lineHeight:1.6}}>
-                  Estamos completando la integración con la plataforma oficial de WhatsApp (Meta).
-                  Déjanos tu número y activaremos tu bot en menos de 24 horas.
-                </p>
-                <label style={{fontFamily:F,fontSize:11,fontWeight:700,textTransform:'uppercase',
-                  letterSpacing:1.2,color:'#6B7280',display:'block',marginBottom:8}}>
-                  Tu numero de WhatsApp *
-                </label>
-                <input value={telefonoActivacion} onChange={e=>setTelefonoActivacion(e.target.value)}
-                  placeholder="34674421919" inputMode="tel"
-                  style={{...INP,marginBottom:10}}/>
-                <div style={{fontFamily:F,fontSize:11,color:'#9CA3AF',marginBottom:14}}>
-                  España: 34 + numero sin el 0 inicial
-                </div>
+            <div style={{
+              background:'#fff',border:'1.5px solid #E5EAFF',
+              borderRadius:20,padding:'24px',
+              boxShadow:'0 4px 24px rgba(43,106,255,.07)',
+              marginBottom:16,textAlign:'left',
+            }}>
+              <ol style={{fontFamily:F,fontSize:13,color:'#4B5563',lineHeight:2,paddingLeft:18,marginBottom:16}}>
+                <li>Abre Telegram y busca <strong>@BotFather</strong></li>
+                <li>Escríbele <code style={{background:'#F3F4F6',padding:'1px 6px',borderRadius:4}}>/newbot</code> y sigue sus instrucciones (nombre y username de tu bot)</li>
+                <li>Copia el token que te da (algo como <code style={{background:'#F3F4F6',padding:'1px 6px',borderRadius:4,fontSize:11}}>123456:AAxxxx...</code>) y pégalo aquí abajo</li>
+              </ol>
 
-                {errorActivacion&&(
-                  <div style={{fontFamily:F,fontSize:12,color:'#EF4444',marginBottom:10}}>{errorActivacion}</div>
+              {telegramMsg&&(
+                <div style={{
+                  background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.2)',
+                  borderRadius:10,padding:'11px 14px',marginBottom:16,
+                  fontFamily:F,fontSize:13,color:'#EF4444',textAlign:'left',
+                }}>
+                  {telegramMsg}
+                </div>
+              )}
+
+              <input
+                style={INP}
+                value={telegramToken}
+                onChange={e=>setTelegramToken(e.target.value)}
+                placeholder="Pega aquí el token de @BotFather"
+              />
+              <button
+                onClick={conectarTelegram}
+                disabled={conectandoTelegram}
+                style={{
+                  display:'flex',alignItems:'center',justifyContent:'center',gap:10,
+                  width:'100%',minHeight:54,border:'none',borderRadius:14,marginTop:12,
+                  background: conectandoTelegram?'#D1D9F0':'#26A5E4',
+                  color: conectandoTelegram?'#9CA3AF':'#fff',
+                  fontFamily:F,fontSize:16,fontWeight:700,
+                  boxShadow: conectandoTelegram?'none':'0 6px 24px rgba(38,165,228,.35)',
+                  transition:'all .2s',
+                }}>
+                {conectandoTelegram?(
+                  <>
+                    <div style={{width:18,height:18,border:'2.5px solid rgba(255,255,255,.3)',
+                      borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite'}}/>
+                    Conectando...
+                  </>
+                ):(
+                  <>✈️ Conectar Telegram</>
                 )}
-
-                <button onClick={solicitarActivacionManual} disabled={enviandoActivacion}
-                  style={{
-                    width:'100%',background:'linear-gradient(135deg,#25D366,#1aad4e)',
-                    color:'#fff',border:'none',borderRadius:10,
-                    padding:'13px',fontFamily:F,fontSize:14,fontWeight:700,
-                    boxShadow:'0 4px 16px rgba(37,211,102,.3)',
-                    opacity:enviandoActivacion?.6:1,
-                  }}>
-                  {enviandoActivacion?'Enviando...':'Solicitar activación →'}
-                </button>
-              </div>
-            ) : (
-              <div style={{background:'#F0FDF4',border:'2px solid #25D366',borderRadius:16,padding:'20px',marginBottom:12,textAlign:'center'}}>
-                <div style={{fontSize:32,marginBottom:8}}>✅</div>
-                <div style={{fontFamily:F,fontSize:14,fontWeight:700,color:'#111827',marginBottom:6}}>
-                  ¡Solicitud recibida!
-                </div>
-                <div style={{fontFamily:F,fontSize:13,color:'#6B7280',lineHeight:1.6}}>
-                  Te contactaremos al numero +{telefonoActivacion.replace(/\D/g,'')} para activar tu WhatsApp en menos de 24 horas.
-                </div>
-              </div>
-            )}
+              </button>
+            </div>
 
             <button onClick={()=>{ window.location.href='/wasapbot/panel/'+empresaId; }}
               style={{background:'none',border:'none',fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.4)',textDecoration:'underline',display:'block',margin:'8px auto 0',cursor:'pointer'}}>
-              Ir a mi panel →
-           Te contactamos para completar la activación
- </button>
+              Hacerlo más tarde →
+            </button>
+          </div>
+        )}
+
+        {paso===3&&(
+          <div className="aup" style={{textAlign:'center',padding:'20px 0'}}>
+
+            <div className="aok" style={{
+              width:88,height:88,borderRadius:'50%',
+              background:'linear-gradient(135deg,rgba(37,211,102,.15),rgba(37,211,102,.05))',
+              border:'2px solid rgba(37,211,102,.4)',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              margin:'0 auto 20px',
+              boxShadow:'0 0 48px rgba(37,211,102,.2)',
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                stroke="#25D366" strokeWidth="2.5" strokeLinecap="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+
+            <h1 style={{
+              fontFamily:FA,fontSize:38,letterSpacing:'-1.5px',
+              color:'#25D366',marginBottom:8,lineHeight:1,
+            }}>
+              ¡Telegram conectado!
+            </h1>
+
+            <p style={{fontFamily:F,fontSize:14,color:'rgba(255,255,255,0.55)',fontWeight:300,
+              lineHeight:1.7,marginBottom:28,maxWidth:360,margin:'0 auto 28px'}}>
+              El bot de <strong style={{color:'#EFF4FF'}}>{nombre||'tu negocio'}</strong> ya
+              está conectado en Telegram y listo. Desde el panel puedes agregar tus servicios,
+              precios y horarios para que el bot responda con información real de tu negocio.
+            </p>
+
+            <a href={'/wasapbot/panel/'+empresaId}
+              style={{
+                display:'flex',alignItems:'center',justifyContent:'center',gap:10,
+                maxWidth:380,margin:'0 auto 12px',
+                background:'linear-gradient(135deg,#25D366,#1aad4e)',
+                color:'#fff',borderRadius:14,padding:'16px',
+                fontFamily:F,fontSize:15,fontWeight:700,
+                boxShadow:'0 6px 28px rgba(37,211,102,.35)',
+                textDecoration:'none',
+              }}>
+              Ir a mi panel
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="m9 18 6-6-6-6"/>
+              </svg>
+            </a>
+
+            <Link href="/wasapbot"
+              style={{
+                display:'block',maxWidth:380,margin:'0 auto',
+                background:'rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.7)',border:'1px solid rgba(255,255,255,0.15)',
+                borderRadius:14,padding:'13px',
+                fontFamily:F,fontSize:13,textAlign:'center',textDecoration:'none',
+              }}>
+              Volver al inicio
+            </Link>
           </div>
         )}
 

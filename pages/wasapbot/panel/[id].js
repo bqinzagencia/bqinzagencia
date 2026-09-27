@@ -854,7 +854,7 @@ export default function WasapBotPanel() {
                 <div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:12,padding:'16px 20px',marginBottom:16,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
                   <div>
                     <div style={{display:'flex',alignItems:'center',gap:6,fontFamily:F,fontSize:14,fontWeight:700,color:'#EF4444',marginBottom:3}}><Ic.AlertTriangle size={14}/> Bot desconectado</div>
-                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.35)'}}>Ve a <strong style={{color:'#EFF4FF'}}>Configuración</strong> para conectar tu WhatsApp.</div>
+                    <div style={{fontFamily:F,fontSize:12,color:'rgba(255,255,255,0.35)'}}>Ve a <strong style={{color:'#EFF4FF'}}>Configuración</strong> para conectar tu Telegram.</div>
                   </div>
                   <button onClick={()=>setTab('config')} style={{background:'#EF4444',color:'#fff',border:'none',borderRadius:8,padding:'9px 20px',fontFamily:F,fontSize:13,fontWeight:700,cursor:'pointer'}}>Conectar ahora →</button>
                 </div>
@@ -1178,68 +1178,23 @@ export default function WasapBotPanel() {
             </div>
           )}
 
-          {/* ══ CONECTAR WHATSAPP (Embedded Signup de Meta) ══ */}
+          {/* ══ CONECTAR TELEGRAM (único canal de conexión de bots para clientes) ══ */}
           {tab==='qr'&&(
             <div style={{maxWidth:520,margin:'0 auto'}}>
-              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:6}}>Conectar WhatsApp</h2>
-              <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24,fontWeight:300}}>Con un clic, a través de Meta — sin QR, sin escaneos.</p>
+              <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:6}}>Conectar Telegram</h2>
+              <p style={{fontFamily:F,fontSize:13,color:'rgba(255,255,255,0.35)',marginBottom:24,fontWeight:300}}>Gratis, sin ningún trámite ni verificación — tu bot queda activo en minutos.</p>
 
-              <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:20,padding:'24px',boxShadow:'0 4px 24px rgba(43,106,255,.07)',marginBottom:16,textAlign:'center'}}>
-                <div style={{fontSize:40,marginBottom:12}}>📱</div>
-                <p style={{fontFamily:F,fontSize:13.5,color:'#6B7280',lineHeight:1.6,marginBottom:20}}>
-                  Vas a iniciar sesión con tu cuenta de Facebook para conectar el
-                  WhatsApp de tu negocio de forma <strong style={{color:'#111827'}}>segura y oficial</strong>.
-                  Elegirás o crearás tu cuenta de WhatsApp Business y confirmarás tu
-                  propio número — todo en la misma ventana.
-                </p>
-
-                {errorConexion&&(
-                  <div style={{background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.2)',borderRadius:10,padding:'11px 14px',marginBottom:16,fontFamily:F,fontSize:13,color:'#EF4444',textAlign:'left'}}>
-                    {errorConexion}
-                  </div>
-                )}
-
-                <button
-                  onClick={conectarConFacebook}
-                  disabled={!sdkListo||conectando}
-                  style={{
-                    display:'flex',alignItems:'center',justifyContent:'center',gap:10,
-                    width:'100%',minHeight:54,border:'none',borderRadius:14,
-                    background:(!sdkListo||conectando)?'#D1D9F0':'#1877F2',
-                    color:(!sdkListo||conectando)?'#9CA3AF':'#fff',
-                    fontFamily:F,fontSize:16,fontWeight:700,
-                    boxShadow:(!sdkListo||conectando)?'none':'0 6px 24px rgba(24,119,242,.35)',
-                    transition:'all .2s',cursor:(!sdkListo||conectando)?'default':'pointer',
-                  }}>
-                  {conectando?(
-                    <>
-                      <div style={{width:18,height:18,border:'2.5px solid rgba(255,255,255,.3)',borderTop:'2.5px solid #fff',borderRadius:'50%',animation:'spin .8s linear infinite'}}/>
-                      Conectando...
-                    </>
-                  ):!sdkListo?(
-                    'Cargando...'
-                  ):(
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                      </svg>
-                      Conectar con Facebook
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* ── Alternativa: Telegram (gratis, sin verificación de Meta) ── */}
+              {/* ── Telegram: único canal de conexión de bots para clientes ── */}
               <div style={{background:'#fff',border:'1.5px solid #E5EAFF',borderRadius:20,padding:'22px',boxShadow:'0 4px 24px rgba(43,106,255,.05)',textAlign:'left'}}>
                 <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:10}}>
                   <span style={{fontSize:22}}>✈️</span>
                   <div style={{fontFamily:F,fontSize:15,fontWeight:700,color:'#111827'}}>
-                    Alternativa: Telegram
+                    Telegram
                     {empresa?.telegram?.activo&&<span style={{marginLeft:8,background:'rgba(37,211,102,.12)',color:'#159A52',borderRadius:99,padding:'2px 9px',fontSize:11,fontWeight:700}}>Conectado</span>}
                   </div>
                 </div>
                 <p style={{fontFamily:F,fontSize:12.5,color:'#6B7280',lineHeight:1.7,marginBottom:14}}>
-                  Mientras tramitas WhatsApp, puedes activar tu mismo bot en Telegram — <strong>gratis y sin ningún trámite</strong>. Tarda 2 minutos:
+                  Activa tu bot en Telegram — <strong>gratis y sin ningún trámite</strong>. Tarda 2 minutos:
                 </p>
                 <ol style={{fontFamily:F,fontSize:12.5,color:'#4B5563',lineHeight:2,paddingLeft:18,marginBottom:16}}>
                   <li>Abre Telegram y busca <strong>@BotFather</strong></li>
@@ -1392,11 +1347,11 @@ export default function WasapBotPanel() {
             <div style={{maxWidth:1100}}>
               <h2 style={{fontFamily:FA,fontSize:28,fontWeight:400,letterSpacing:'-0.5px',marginBottom:20}}>Configuración del Agente IA</h2>
               <div data-tour="hub-config" style={{...CARD,marginBottom:14}}>
-                <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>Conexión WhatsApp</div>
+                <div style={{fontFamily:F,fontSize:13,fontWeight:700,color:'#EFF4FF',marginBottom:8}}>Conexión Telegram</div>
                 <Guia visible={!connected&&!guiasVistas['whatsapp_conectado']} texto={d.guias.whatsapp} icono={Ic.Smartphone}/>
                 <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
                   <button onClick={()=>setTab('qr')} style={{background:'rgba(37,211,102,0.08)',color:'#25D366',border:'1px solid rgba(37,211,102,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:7}}>
-                    {connected?<><Ic.RefreshCw size={13}/> Reconectar WhatsApp</>:<><Ic.Smartphone size={13}/> Conectar WhatsApp</>}
+                    {connected?<><Ic.RefreshCw size={13}/> Reconectar Telegram</>:<><Ic.Smartphone size={13}/> Conectar Telegram</>}
                   </button>
                   {connected&&<button onClick={async()=>{await fetch(`${WA}/sesion/${id}/desconectar`,{method:'POST',headers:{'x-server-secret':SECRET}});setStatus('disconnected');}} style={{background:'rgba(239,68,68,0.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'9px 18px',fontFamily:F,fontSize:13,fontWeight:600,cursor:'pointer'}}>Desconectar</button>}
                 </div>

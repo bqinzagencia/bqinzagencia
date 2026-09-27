@@ -338,6 +338,7 @@ export default function AdminSoporteIA() {
               <option value="">Todos los canales</option>
               <option value="web">💬 Chat web</option>
               <option value="whatsapp">📱 WhatsApp</option>
+              <option value="telegram">✈️ Telegram</option>
             </select>
             <select className="form-input" value={modoFiltro} onChange={e => setModoFiltro(e.target.value)} style={{ width: 160, borderRadius: 100 }}>
               <option value="">Ventas y soporte</option>
@@ -399,6 +400,12 @@ export default function AdminSoporteIA() {
                   const primerMensajeUsuario = c.mensajes?.find(m => m.rol === 'user')?.texto || '(sin mensaje de usuario)';
                   const estaAbierta = abierta === c.id;
                   const esWhatsapp = c.canal === 'whatsapp';
+                  const esTelegram = c.canal === 'telegram';
+                  const canalInfo = esWhatsapp
+                    ? { emoji: '📱', label: 'WhatsApp', bg: 'rgba(37,211,102,0.15)', color: '#25D366' }
+                    : esTelegram
+                    ? { emoji: '✈️', label: 'Telegram', bg: 'rgba(38,165,228,0.15)', color: '#26A5E4' }
+                    : null;
                   return (
                     <div key={c.id} style={{ borderBottom: idx < conversacionesFiltradas.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                       <div
@@ -416,21 +423,21 @@ export default function AdminSoporteIA() {
                         />
                         <div style={{
                           width: 40, height: 40, borderRadius: '50%',
-                          background: esWhatsapp ? 'rgba(37,211,102,0.15)' : (c.modo === 'ventas' ? 'rgba(255,107,0,0.1)' : 'rgba(37,211,102,0.1)'),
+                          background: canalInfo ? canalInfo.bg : (c.modo === 'ventas' ? 'rgba(255,107,0,0.1)' : 'rgba(37,211,102,0.1)'),
                           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
-                        }}>{esWhatsapp ? '📱' : (c.modo === 'ventas' ? '🎯' : '💬')}</div>
+                        }}>{canalInfo ? canalInfo.emoji : (c.modo === 'ventas' ? '🎯' : '💬')}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
                             <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{c.empresaNombre || 'Visitante'}</span>
-                            {esWhatsapp && (
-                              <span style={{ background: 'rgba(37,211,102,0.15)', color: '#25D366', borderRadius: 100, padding: '2px 8px', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                📱 WhatsApp
+                            {canalInfo && (
+                              <span style={{ background: canalInfo.bg, color: canalInfo.color, borderRadius: 100, padding: '2px 8px', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                {canalInfo.emoji} {canalInfo.label}
                               </span>
                             )}
                             <span style={{ background: c.modo === 'ventas' ? 'rgba(255,107,0,0.12)' : 'rgba(37,211,102,0.12)', color: c.modo === 'ventas' ? '#FF6B00' : '#25D366', borderRadius: 100, padding: '2px 8px', fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>
                               {c.modo || 'soporte'}
                             </span>
-                            {c.ip && <span style={{ fontSize: 10, color: 'var(--gray5)' }}>{esWhatsapp ? `+${c.ip}` : c.ip}</span>}
+                            {c.ip && <span style={{ fontSize: 10, color: 'var(--gray5)' }}>{esWhatsapp ? `+${c.ip}` : (esTelegram ? `chat ${c.ip}` : c.ip)}</span>}
                           </div>
                           <div style={{ fontSize: 13, color: 'var(--gray5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {primerMensajeUsuario}
