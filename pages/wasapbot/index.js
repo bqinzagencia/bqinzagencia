@@ -1001,7 +1001,7 @@ export default function Landing() {
         </div>
       </section>
 
-          {/* ── BQINZ PARTNERS — programa de comisionistas ── */}
+                {/* ── BQINZ PARTNERS — programa de comisionistas ── */}
       <section style={{ background: '#0C0C0C', borderTop: '1px solid #1A1A1A', borderBottom: '1px solid #1A1A1A', padding: '56px 80px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
           <div style={{ maxWidth: 560 }}>
