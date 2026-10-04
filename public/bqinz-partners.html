@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BQinz Partners — Gana dinero recomendando BQinzagencIA</title>
+<meta name="description" content="Recomienda negocios y gana comisión por cada cliente que active WasapBot. Sin vender, sin gestionar nada técnico.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F2; --surface:#FFFFFF; --line:#E6DFD3; --ink:#1C1B1F; --muted:#6B6558;
+    --gold:#C89B3C; --gold-ink:#2A1F05; --green:#2F6B4F;
+    --display:'Fraunces',serif; --body:'Inter',system-ui,sans-serif;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit} img,svg{max-width:100%}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  nav{padding:20px 0;border-bottom:1px solid var(--line)}
+  .navrow{display:flex;align-items:center;justify-content:space-between}
+  .logo{font-family:var(--display);font-weight:700;font-size:18px}
+  .logo span{color:var(--gold)}
+  .navcta{background:var(--ink);color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:10px 18px;border-radius:8px}
+
+  .hero{padding:60px 0 50px;text-align:center}
+  .eyebrow{display:inline-block;font-size:12.5px;font-weight:600;letter-spacing:.4px;color:var(--gold-ink);
+    background:rgba(200,155,60,.15);border:1px solid rgba(200,155,60,.4);padding:6px 14px;border-radius:99px;margin-bottom:22px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,5.4vw,52px);line-height:1.08;letter-spacing:-.5px;max-width:16ch;margin:0 auto}
+  h1 em{font-style:normal;color:var(--gold-ink);background:linear-gradient(transparent 60%,rgba(200,155,60,.35) 60%)}
+  .sub{margin:18px auto 0;font-size:17px;color:var(--muted);max-width:50ch}
+  .herocta{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--body);font-weight:600;
+    font-size:14.5px;padding:13px 22px;border-radius:10px;cursor:pointer;border:none}
+  .btn.primary{background:var(--ink);color:#fff}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+
+  section{padding:46px 0;border-top:1px solid var(--line)}
+  .kicker{font-size:13px;color:var(--muted);margin-bottom:6px}
+  h2{font-family:var(--display);font-weight:700;font-size:clamp(23px,3vw,30px);letter-spacing:-.4px;max-width:20ch}
+
+  .steps{margin-top:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  .step{padding:4px 22px;border-left:1px solid var(--line)}
+  .step:first-child{border-left:none;padding-left:0}
+  .step .n{font-family:var(--display);font-weight:700;font-size:13px;color:var(--gold-ink);margin-bottom:10px}
+  .step h3{font-family:var(--display);font-weight:700;font-size:17px;margin-bottom:7px}
+  .step p{font-size:13.5px;color:var(--muted)}
+
+  .commbox{margin-top:26px;background:var(--ink);color:#fff;border-radius:18px;padding:34px 32px;
+    display:flex;align-items:center;gap:30px;flex-wrap:wrap}
+  .commbox .num{font-family:var(--display);font-weight:700;font-size:58px;color:var(--gold)}
+  .commbox .num span{font-size:22px;vertical-align:top}
+  .commbox .txt{flex:1;min-width:220px}
+  .commbox .txt b{display:block;font-family:var(--display);font-size:17px;margin-bottom:4px}
+  .commbox .txt p{font-size:13.5px;color:#C9C4B8}
+  .commnote{margin-top:10px;font-size:12px;color:var(--muted)}
+
+  .who{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px}
+  .chip{background:var(--surface);border:1.5px solid var(--line);border-radius:99px;padding:9px 16px;font-size:13.5px}
+
+  .panel-preview{margin-top:30px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;overflow:hidden}
+  .panel-top{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);
+    font-family:var(--display);font-weight:700;font-size:14.5px}
+  .panel-top span{font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted)}
+  .panel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  .pkpi{padding:20px;border-left:1px solid var(--line)}
+  .pkpi:first-child{border-left:none}
+  .pkpi .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .pkpi .v{font-family:var(--display);font-weight:700;font-size:25px;margin-top:4px}
+  .pkpi .v.g{color:var(--green)}
+  .plist{padding:6px 0;border-top:1px solid var(--line)}
+  .prow{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;font-size:13.5px;border-top:1px solid var(--line)}
+  .prow:first-child{border-top:none}
+  .prow b{font-weight:600}
+  .prow .m{color:var(--muted);font-size:12px}
+  .pst{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
+  .pst.won{background:rgba(47,107,79,.12);color:var(--green)}
+  .pst.wip{background:rgba(200,155,60,.15);color:var(--gold-ink)}
+
+  form.lead{margin-top:26px;display:flex;flex-direction:column;gap:10px;max-width:420px}
+  input{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:9px;padding:13px 14px;font-family:var(--body);font-size:15px;color:var(--ink)}
+  input:focus{outline:none;border-color:var(--ink)}
+  button.submit{background:var(--gold);color:var(--gold-ink);border:none;border-radius:9px;padding:14px 18px;
+    font-family:var(--body);font-weight:700;font-size:15px;cursor:pointer;width:100%}
+  .formnote{font-size:12px;color:var(--muted)}
+
+  footer{padding:26px 0;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .wa-float{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:20px;background:var(--ink);color:#fff;
+    width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;
+    box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:40}
+
+  @media(max-width:760px){
+    .steps{grid-template-columns:1fr;gap:18px}
+    .step{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:16px}
+    .step:first-child{border-top:none;padding-top:0}
+    .panel-grid{grid-template-columns:1fr}
+    .pkpi{border-left:none;border-top:1px solid var(--line)} .pkpi:first-child{border-top:none}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap navrow">
+  <div class="logo">BQinz <span>Partners</span></div>
+  <a class="navcta" href="#unirme">Quiero unirme</a>
+</div></nav>
+
+<header class="hero wrap">
+  <div class="eyebrow">Programa de comisionistas de BQinzagencIA</div>
+  <h1>Gana dinero <em>recomendando</em> negocios con los que ya hablas</h1>
+  <p class="sub">Tú conoces negocios que necesitan modernizarse. Nosotros cerramos la venta, activamos el servicio y te pagamos la comisión. Sin vender, sin dar soporte técnico.</p>
+  <div class="herocta">
+    <a class="btn primary" href="#unirme">Quiero ser comisionista →</a>
+    <a class="btn ghost" href="#como-funciona">Cómo funciona</a>
+  </div>
+</header>
+
+<section class="wrap" id="como-funciona">
+  <div class="kicker">El proceso</div>
+  <h2>Tres pasos, nada técnico de tu parte</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="n">01</div>
+      <h3>Recomiendas</h3>
+      <p>Le hablas del bot de WhatsApp a un negocio que conozcas — una peluquería, un taller, un restaurante. Nos pasas el contacto.</p>
+    </div>
+    <div class="step">
+      <div class="n">02</div>
+      <h3>Nosotros cerramos</h3>
+      <p>Hacemos la demo, resolvemos dudas y activamos el servicio. Tú no necesitas saber nada de IA ni de WhatsApp Business.</p>
+    </div>
+    <div class="step">
+      <div class="n">03</div>
+      <h3>Tú cobras</h3>
+      <p>En cuanto el cliente paga su primera mensualidad, recibes tu comisión. Lo ves reflejado en tu panel.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="kicker">Comisión</div>
+  <h2>Clara desde el primer cliente</h2>
+  <div class="commbox">
+    <div class="num">20<span>%</span></div>
+    <div class="txt">
+      <b>De la primera mensualidad de cada cliente activado</b>
+      <p>Planes desde 79€ hasta 249€/mes — tu comisión crece con lo que contrate el cliente. Pago a los 7 días de que el cliente complete su primer pago.</p>
+    </div>
+  </div>
+  <p class="commnote">Cifra de partida a validar contigo — podemos ajustarla (porcentaje, recurrencia en varios meses, etc.) antes de lanzar el programa en firme.</p>
+</section>
+
+<section class="wrap">
+  <div class="kicker">Para quién es esto</div>
+  <h2>No hace falta ser comercial</h2>
+  <div class="who">
+    <span class="chip">Freelancers de marketing</span>
+    <span class="chip">Diseñadores web</span>
+    <span class="chip">Gestores y asesores</span>
+    <span class="chip">Community managers</span>
+    <span class="chip">Cualquiera con contactos de negocios locales</span>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="kicker">Tu panel</div>
+  <h2>Así verás tus comisiones</h2>
+  <div class="panel-preview">
+    <div class="panel-top">Panel de comisionista <span>vista previa — datos de ejemplo</span></div>
+    <div class="panel-grid">
+      <div class="pkpi"><div class="l">Referidos enviados</div><div class="v">14</div></div>
+      <div class="pkpi"><div class="l">Clientes activados</div><div class="v g">6</div></div>
+      <div class="pkpi"><div class="l">Comisión acumulada</div><div class="v g">342 €</div></div>
+    </div>
+    <div class="plist">
+      <div class="prow"><div><b>Taller Ruiz</b><div class="m">Plan Estándar · 149€/mes</div></div><span class="pst won">Pagado · 29,80 €</span></div>
+      <div class="prow"><div><b>Clínica Aurora</b><div class="m">Plan Básico · 79€/mes</div></div><span class="pst wip">Pendiente de 1er pago</span></div>
+      <div class="prow"><div><b>Café Central</b><div class="m">Plan Pro · 249€/mes</div></div><span class="pst won">Pagado · 49,80 €</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="unirme">
+  <div class="kicker">Apúntate</div>
+  <h2>Déjanos tus datos y te contactamos</h2>
+  <form class="lead" onsubmit="return enviarWhatsapp(event)">
+    <input type="text" id="fNombre" placeholder="Tu nombre" required>
+    <input type="tel" id="fTelefono" placeholder="Tu WhatsApp" required>
+    <button class="submit" type="submit">Unirme al programa →</button>
+    <div class="formnote">Te explicamos los detalles y te damos tu acceso al panel.</div>
+  </form>
+</section>
+
+<div class="wrap"><footer>BQinz Partners · Programa de comisionistas de BQinzagencIA · Madrid</footer></div>
+
+<a class="wa-float" href="https://wa.me/34674421919?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20el%20programa%20de%20comisionistas" target="_blank" aria-label="Contactar por WhatsApp">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.859L.054 23.448a.75.75 0 0 0 .922.922l5.59-1.478A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+</a>
+
+<script>
+  function enviarWhatsapp(ev){
+    ev.preventDefault();
+    var nombre = document.getElementById('fNombre').value.trim();
+    var telefono = document.getElementById('fTelefono').value.trim();
+    var texto = 'Hola, quiero unirme al programa de comisionistas de BQinzagencIA.\nMe llamo: ' + nombre + '\nMi WhatsApp: ' + telefono;
+    window.open('https://wa.me/34674421919?text=' + encodeURIComponent(texto), '_blank');
+    return false;
+  }
+</script>
+</body>
+</html>
