@@ -1001,6 +1001,42 @@ export default function Landing() {
         </div>
       </section>
 
+          {/* ── BQINZ PARTNERS — programa de comisionistas ── */}
+      <section style={{ background: '#0C0C0C', borderTop: '1px solid #1A1A1A', borderBottom: '1px solid #1A1A1A', padding: '56px 80px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ maxWidth: 560 }}>
+            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#C89B3C' }}>Programa de comisionistas</span>
+            <h3 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(26px,3.4vw,38px)', fontWeight: 400, color: '#F0F0F0', letterSpacing: '-0.5px', margin: '10px 0 10px', lineHeight: 1.1 }}>
+              Gana dinero recomendando negocios
+            </h3>
+            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, fontWeight: 300 }}>
+              ¿Conoces negocios que podrían necesitar WasapBot? Recomiéndalos y cobra comisión por cada cliente que actives — sin vender, sin dar soporte técnico.
+            </p>
+          </div>
+          <a href="/bqinz-partners.html" style={{ background: '#C89B3C', color: '#1C1B1F', borderRadius: 2, padding: '14px 32px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap', display: 'inline-block' }}>
+            Conoce BQinz Partners →
+          </a>
+        </div>
+      </section>
+
+        {/* ── BQINZ PARTNERS — programa de comisionistas ── */}
+      <section style={{ background: '#0C0C0C', borderTop: '1px solid #1A1A1A', borderBottom: '1px solid #1A1A1A', padding: '56px 80px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ maxWidth: 560 }}>
+            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#C89B3C' }}>Programa de comisionistas</span>
+            <h3 style={{ fontFamily: "'Abril Fatface', serif", fontSize: 'clamp(26px,3.4vw,38px)', fontWeight: 400, color: '#F0F0F0', letterSpacing: '-0.5px', margin: '10px 0 10px', lineHeight: 1.1 }}>
+              Gana dinero recomendando negocios
+            </h3>
+            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, fontWeight: 300 }}>
+              ¿Conoces negocios que podrían necesitar WasapBot? Recomiéndalos y cobra comisión por cada cliente que actives — sin vender, sin dar soporte técnico.
+            </p>
+          </div>
+          <a href="/bqinz-partners.html" style={{ background: '#C89B3C', color: '#1C1B1F', borderRadius: 2, padding: '14px 32px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap', display: 'inline-block' }}>
+            Conoce BQinz Partners →
+          </a>
+        </div>
+      </section>
+
       {/* ── FOOTER ── */}
       <footer style={{ background: '#040404', padding: '80px 80px 40px', borderTop: '1px solid #111' }} className="lnd-footer-inner">
         <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: 64, marginBottom: 64 }} className="lnd-footer-grid">
