@@ -891,7 +891,7 @@ export default function Landing() {
             <Link href="/wasapbot/activar">
               <button className="btn-wa" style={{ fontSize: 17, padding: '18px 52px' }}>Activar mi WasapBot →</button>
             </Link>
-            <a href="https://wa.me/34600000000?text=Quiero%20información%20sobre%20WasapBot" target="_blank" rel="noreferrer">
+            <a href="https://wa.me/34674421919?text=Quiero%20información%20sobre%20WasapBot" target="_blank" rel="noreferrer">
               <button className="btn-ghost" style={{ fontSize: 17, padding: '18px 52px' }}>Hablar con un asesor</button>
             </a>
           </div>
