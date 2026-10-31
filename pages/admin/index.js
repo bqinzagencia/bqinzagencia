@@ -135,6 +135,7 @@ export default function AdminPanel() {
             <button className="btn btn-ghost btn-sm" onClick={() => setModal('reglas')}>⚙️ Reglas de negocio</button>
             <button className="btn btn-ghost btn-sm" onClick={() => router.push('/admin/marketing')} style={{ background: 'rgba(255,107,0,0.1)', borderColor: 'rgba(255,107,0,0.3)', color: '#FF6B00' }}>📊 Marketing</button>
             <button className="btn btn-ghost btn-sm" onClick={() => router.push('/admin/soporte-ia')}>🤖 Soporte IA</button>
+            <button className='btn btn-ghost btn-sm' onClick={() => router.push('/multimarket')}>🛒 MultiMarket</button>
             <span style={{ color: 'var(--gray5)', fontSize: 14 }}>{user?.email}</span>
             <button className="btn btn-ghost btn-sm" onClick={async () => { await logoutUser(); router.push('/'); }}>Salir</button>
           </div>
