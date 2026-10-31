@@ -204,6 +204,33 @@ function ProductCard({ p, run, hasLicense }) {
     await navigator.clipboard.writeText(`${ai.optimized_title}\n\n${ai.optimized_description}`);
     alert('Título y descripción copiados. Pégalos al publicar en la app.');
   };
+  const sendExt = () => {
+    const payload = {
+      id: p.id,
+      title: ai?.optimized_title || p.title,
+      description: ai?.optimized_description || p.description_original || '',
+      price: p.price,
+      condition: p.condition,
+      category: p.category,
+      tags: ai?.recommended_tags || [],
+    };
+    let done = false;
+    const onMsg = (e) => {
+      if (e.source === window && e.data?.source === 'multimarket-ext' && e.data.type === 'MM_SAVED') {
+        done = true;
+        window.removeEventListener('message', onMsg);
+        alert('Enviado a la extensión. Abre Wallapop, Vinted o Milanuncios y pulsa "Rellenar formulario".');
+      }
+    };
+    window.addEventListener('message', onMsg);
+    window.postMessage({ source: 'multimarket-panel', type: 'MM_SEND_PRODUCT', payload }, window.location.origin);
+    setTimeout(() => {
+      if (!done) {
+        window.removeEventListener('message', onMsg);
+        alert('No detecto la extensión MultiMarket. Instálala en Chrome (chrome://extensions > Cargar descomprimida) y recarga esta página.');
+      }
+    }, 1200);
+  };
   const register = (pl) => {
     const url = window.prompt(`Pega la URL de tu anuncio en ${label(pl)} (puedes dejarla vacía):`);
     if (url === null) return;
@@ -237,6 +264,7 @@ function ProductCard({ p, run, hasLicense }) {
         <div style={s.row}>
           <button style={s.ghost} disabled={!hasLicense} onClick={optimize}>{ai ? 'Re-optimizar IA' : 'Optimizar con IA'}</button>
           {ai && <button style={s.ghost} onClick={copy}>Copiar anuncio</button>}
+          <button style={s.ghost} onClick={sendExt}>Enviar a extensión</button>
           <button style={s.ghost} onClick={del}>Eliminar</button>
         </div>
       </div>
